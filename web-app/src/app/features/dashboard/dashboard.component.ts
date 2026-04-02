@@ -18,6 +18,8 @@ export class DashboardComponent implements OnInit {
 
   public data: AppData | null = null;
 
+  public items: AppItem[] = [];
+
   // functions -----------
   public ngOnInit(): void {
     this.getData();
@@ -38,10 +40,17 @@ export class DashboardComponent implements OnInit {
    */
   private getData(): void {
     this.appDataService
-      .getAll()
-      .subscribe(data => {
-        this.data = data;
-        console.log('Data fetched successfully:', data);
+      .getAllActiveItems()
+      .subscribe(items => {
+        this.items = items;
+        console.log('Active items fetched successfully:', items);
       });
+
+    // this.appDataService
+    //   .getAll()
+    //   .subscribe(data => {
+    //     this.data = data;
+    //     console.log('Data fetched successfully:', data);
+    //   });
   }
 }

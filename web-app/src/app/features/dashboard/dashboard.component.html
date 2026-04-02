@@ -1,9 +1,43 @@
-@if (data) {
+@if (items.length > 0) {
 <div class="dashboard-container">
-  @for (item of data.items; track item.id; let i = $index) {
+  @for (item of items; track item.id; let i = $index) {
     <div class="dashboard-card" (click)="displayItemDetails(item)">
-      <h2 class="dashboard-card-title">{{ item.title }}</h2>
-      Item {{ i + 1 }}</div>
+      <div class="dashboard-card-title">
+        <h2>{{ item.title }}</h2>
+        @if (item.isFavorite) {
+          <i class="bi bi-star-fill"></i>
+        } 
+        @else {
+          <i class="bi bi-star"></i>
+        }
+      </div>
+      @if (item.type == 'todo' && item.todoContent && item.todoContent.length > 0) {
+        <div class="dashboard-card-content">
+            @for (subItem of item.todoContent; track subItem.id) {
+              <div class="dashboard-card-content-todo-item">
+                @if (subItem.config?.status == 'done') {
+                  <i class="bi bi-check2"></i>
+                }
+                @else {
+                  <i class="bi bi-square"></i>
+                }
+                <span [class.is-done]="subItem.config?.status == 'done'">{{ subItem.title }}</span>
+              </div>
+            }
+        </div>
+      }
+      @else if (item.type != 'todo' && item.content) {
+        <div class="dashboard-card-content">
+          {{ item.content }}
+        </div>
+      }
+
+      <div class="dashboard-card-tag">
+        @for (tag of item.tags; track tag) {
+          <span class="dashboard-card-tag-item">{{ tag }}</span>
+        }
+      </div>
+    </div>
   }
 </div>
 } 

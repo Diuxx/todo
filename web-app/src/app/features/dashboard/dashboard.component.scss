@@ -13,20 +13,26 @@
   .dashboard-card {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     gap: 0.5rem;
     border: 1px solid #e5e7eb;
     border-radius: 0.75rem;
     padding: 0.75rem;
     background-color: var(--app-bg-color);
     box-shadow: var(--shadow);
+    &:hover { cursor: pointer; }
 
     .dashboard-card-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      word-break: keep-all;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        word-break: keep-all;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
     .type-todo {
       background-color: var(--todo-color);
@@ -37,5 +43,40 @@
     .type-citation {
       background-color: var(--citation-color);
     }
+
+    .dashboard-card-content {
+      font-size: 0.875rem;
+      color: var(--text-secondary-color);
+      word-break: break-word;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 3; /* number of lines to show */
+      -webkit-box-orient: vertical;
+      .dashboard-card-content-todo-item {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 1; /* number of lines to show */
+        -webkit-box-orient: vertical;
+
+        .is-done {
+          text-decoration: line-through;
+        }
+      }
+    }
+    .dashboard-card-tag {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+    .dashboard-card-tag-item {
+      background-color: var(--tag-bg-color);
+      color: var(--tag-text-color);
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--tag-border-radius);
+      font-size: 0.75rem;
+      border: 1px solid var(--tag-border-color);
+    }
+
   }
 }
