@@ -7,7 +7,7 @@ export const appDataExample: AppData = {
       id: "item_note_1",
       type: "note",
       title: "Mes idées du matin",
-      content: "Créer une app qui regroupe notes, motivation et discipline.",
+      content: "Créer une app qui regroupe notes, motivation et discipline. Et un autre texte beaucoup trop long pour etre affiché dans la case. je crois qu'il en faut beaucoup plus pour que ça passe... ah et pas de petits points à la fin ",
       color: "blue",
       visibility: "private",
       isArchived: false,
@@ -23,7 +23,7 @@ export const appDataExample: AppData = {
       todoContent: [
         {
           id: "item_todo_1_sub_1",
-          title: "Choisir un livre",
+          title: "Choisir un livre ete un texte beaucoup trop long pour etre affiché dans la case.",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },

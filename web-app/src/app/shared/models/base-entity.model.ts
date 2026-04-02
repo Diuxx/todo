@@ -1,5 +1,6 @@
 
 export type ItemType = "note" | "todo" | "citation" | "image";
+export type ItemDefaultColor = "#FEF9C2" | "#FCCEE8" | "#FEF9C2" | "#F5F5F4";
 
 export type ItemColor =
   | "default"

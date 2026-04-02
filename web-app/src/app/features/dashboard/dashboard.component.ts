@@ -1,5 +1,6 @@
 import { Component, inject, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
+import { NgClass } from "@angular/common";
 import { AppDataService } from "../../shared/services/app-data.service";
 import { AppData } from "../../shared/models/app-data.model";
 import { AppItem } from "../../shared/models/app-item.model";
@@ -9,7 +10,7 @@ import { AppItem } from "../../shared/models/app-item.model";
   selector: 'life-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
-  imports: []
+  imports: [NgClass]
 })
 export class DashboardComponent implements OnInit {
 
