@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LifeLeveling</string>
+    <string name="title_activity_main">LifeLeveling</string>
+    <string name="package_name">com.diuxx.lifeleveling</string>
+    <string name="custom_url_scheme">com.diuxx.lifeleveling</string>
+</resources>

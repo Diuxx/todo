@@ -1,0 +1,12 @@
+
+.form-check-input:checked[type=checkbox] {
+  // --bs-form-check-bg-image: none;
+}
+.form-check-input:checked {
+    background-color: var(--app-color-grey);
+    border-color: var(--app-color-grey);
+}
+.form-check-input:focus {
+  border-color: inherit;
+  box-shadow: none;
+}

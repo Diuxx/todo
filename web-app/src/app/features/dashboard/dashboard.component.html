@@ -1,0 +1,12 @@
+@if (data) {
+<div class="dashboard-container">
+  @for (item of data.items; track item.id; let i = $index) {
+    <div class="dashboard-card" (click)="displayItemDetails(item)">
+      <h2 class="dashboard-card-title">{{ item.title }}</h2>
+      Item {{ i + 1 }}</div>
+  }
+</div>
+} 
+@else {
+  <p>Loading...</p>
+}

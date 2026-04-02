@@ -1,0 +1,40 @@
+
+<life-header>
+  <span left-section>
+    <i class="bi bi-arrow-left-short nav-button" (click)="navigateToDashboard()"></i>
+  </span>
+  <span class="my-title">{{ getId() ? 'Edit quest' : 'New quest' }}</span>
+</life-header>
+
+<form class="form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div>
+    <label for="title" class="form-label">Title</label>
+    <input type="text" id="title" class="form-control" formControlName="title" required>
+  </div>
+
+  <div class="row g-2">
+    <div class="col-6">
+      <label for="category" class="form-label">Category</label>
+      <select id="category" class="form-select" formControlName="category" required>
+        <option *ngFor="let category of categories" [value]="category.key">{{ category.label }}</option>
+      </select>
+    </div>
+  
+    <div class="col-6">
+      <label for="difficulty" class="form-label">Difficulty</label>
+      <select id="difficulty" class="form-select" formControlName="difficulty" required>
+        <option *ngFor="let difficulty of difficulties" [value]="difficulty.key">{{ difficulty.key | titlecase }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <label for="frequency" class="form-label">Frequency</label>
+    <select id="frequency" class="form-select" formControlName="frequency" required>
+      <option *ngFor="let frequency of frequencies" [value]="frequency.key">{{ frequency.shortLabel | titlecase }}</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
+    {{ getId() ? 'Update' : 'Create' }} Quest
+  </button>

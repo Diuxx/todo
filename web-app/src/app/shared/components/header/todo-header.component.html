@@ -1,0 +1,19 @@
+
+@if (visible) {
+  <!-- HEADER projetable -->
+  @if(leftContent) {
+    <div class="left-section">
+      <ng-content select="[left-section]" (ngProjectAs)="'[left-section]'"></ng-content>
+    </div>
+  }
+  
+  <div class="body-section">
+    <ng-content></ng-content>
+  </div>
+  
+  @if(rightContent) {
+    <div class="right-section">
+      <ng-content select="[right-section]" (ngProjectAs)="'[right-section]'"></ng-content>
+    </div>
+  }
+}

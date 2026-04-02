@@ -1,0 +1,67 @@
+
+:root {
+  --radius: 1rem;
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-left: env(safe-area-inset-left);
+  --safe-right: env(safe-area-inset-right);
+
+  --app-bg-color: #F2F2F2;
+  --app-fg-color: #4F4E56;
+  --app-color-black: #000000;
+  --app-color-grey: #576072;
+  --app-color-red: #F95E5E;
+  --app-color-red-light: #FEE2E2;
+  --app-color-green: #32c493;
+  --app-color-green-light: #A2E7D0;
+  --app-color-blue: #6378FF;
+  --app-color-blue-light: #E8EDFF;
+  --app-color-yellow: #FFB85C;
+  --app-color-yellow-light: #FFF8E6;
+  --app-color-purple: #695CFF;
+  --app-color-purple-light: #E8E6FF;
+
+  --box-border: #e5e7eb;
+  --border: rgba(52, 152, 219, 0.3);
+  --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.apply-bg-red {
+  background-color: var(--app-color-red);
+}
+
+.apply-bg-red-light {
+  background-color: var(--app-color-red-light);
+}
+
+.apply-bg-green {
+  background-color: var(--app-color-green);
+}
+
+.apply-bg-green-light {
+  background-color: var(--app-color-green-light);
+}
+
+.apply-bg-blue {
+  background-color: var(--app-color-blue);
+}
+
+.apply-bg-blue-light {
+  background-color: var(--app-color-blue-light);
+}
+
+.apply-bg-yellow {
+  background-color: var(--app-color-yellow);
+}
+
+.apply-bg-yellow-light {
+  background-color: var(--app-color-yellow-light);
+}
+
+.apply-bg-purple {
+  background-color: var(--app-color-purple);
+}
+
+.apply-bg-purple-light {
+  background-color: var(--app-color-purple-light);
+}

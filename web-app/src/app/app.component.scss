@@ -1,0 +1,18 @@
+
+:host {
+  display: grid;
+  grid-template-areas:
+    "header"
+    "main"
+    "footer";
+  grid-template-rows: auto 1fr auto;
+}
+
+/** mobile top safe area */
+.mobile-top {
+  width: 100%;
+  height: 50px;
+  position: fixed;
+  top: 0;
+  background-color: black;
+}

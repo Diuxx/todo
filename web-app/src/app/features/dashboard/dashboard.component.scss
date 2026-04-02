@@ -1,0 +1,41 @@
+
+
+:host {
+  grid-area: main;
+  padding: 1rem;
+
+  .dashboard-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-rows: masonry;
+    gap: 16px;
+  }
+  .dashboard-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    background-color: var(--app-bg-color);
+    box-shadow: var(--shadow);
+
+    .dashboard-card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      word-break: keep-all;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .type-todo {
+      background-color: var(--todo-color);
+    }
+    .type-note {
+      background-color: var(--note-color);
+    }
+    .type-citation {
+      background-color: var(--citation-color);
+    }
+  }
+}
