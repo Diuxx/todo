@@ -141,10 +141,11 @@ export const appDataExample: AppData = {
   ],
 
   settings: {
+    id: "main",
     theme: "system",
     language: "fr",
     dailyAffirmationEnabled: true,
-    defaultItemColor: "default",
     showArchivedItems: false,
+    userId: "user_123",
   },
 };

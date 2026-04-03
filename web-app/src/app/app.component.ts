@@ -2,9 +2,10 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Location } from '@angular/common';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { TodoHeaderComponent } from './shared/components/header/todo-header.component';
+import { TodoHeaderComponent } from './shared/components/todo-header/todo-header.component';
 import { TodoFooterComponent } from './shared/components/todo-footer/todo-footer.component';
 import { NavigationService } from './shared/services/navigation.service';
+import { DatabaseService } from './shared/services/database.service';
 
 @Component({
   selector: 'app-root',
@@ -21,9 +22,13 @@ export class AppComponent implements OnInit {
   private readonly router: Router = inject(Router);
   private readonly location: Location = inject(Location);
   private readonly navigationService: NavigationService = inject(NavigationService);
+  private readonly databaseService = inject(DatabaseService);
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     console.log('init application.');
+
+    // init indexedDB and create default settings if not exist.
+    await this.databaseService.init();
 
     this.updateCanGoBack();
 

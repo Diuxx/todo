@@ -1,5 +1,21 @@
 @if (visible) {
     <footer>
-        
+        <div class="footer-menu">
+            <a [routerLink]="['/dashboard']" class="footer-menu-item">
+                <img width="32px" src="/svgs/note.svg" alt="Note" class="footer-logo">
+                <span>Notes</span>
+            </a>
+        </div>
+        <div class="footer-menu">
+            <a [routerLink]="['/dashboard']" class="footer-menu-item">
+                <img width="32px" src="/svgs/todo-2.svg" alt="Todo" class="footer-logo">
+                <span>Todo</span>
+            </a>
+        </div>
+        <div class="footer-board">
+
+        </div>
+        <div class="footer-menu"></div>
+        <div class="footer-menu"></div>
     </footer>
 }

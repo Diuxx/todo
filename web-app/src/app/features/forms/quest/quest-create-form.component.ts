@@ -1,7 +1,7 @@
 import { CommonModule, TitleCasePipe } from "@angular/common";
 import { Component, OnInit } from "@angular/core"
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
-import { HeaderComponent } from "../../../shared/components/header/header.component";
+import { HeaderComponent } from "../../../shared/components/todo-header/header.component";
 import { ActivatedRoute, Router } from "@angular/router";
 import { StorageService } from "../../../shared/services/storage.service";
 import { Category } from "../../../shared/models/category.model";
