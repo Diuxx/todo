@@ -2,13 +2,11 @@ import { Injectable } from "@angular/core";
 import { AppData } from "../models/app-data.model";
 import { appDataExample } from "../models/mock-data";
 import { Observable, of } from "rxjs";
+import { map } from "rxjs/operators";
 import { AppItem } from "../models/app-item.model";
 
 @Injectable({ providedIn: 'root' }) // No provider needed.
 export class AppDataService {
-
-  constructor() {
-  }
 
   /**
    * 
@@ -47,5 +45,16 @@ export class AppDataService {
     }) 
 
     return of(todoConfigIncluded);
+  }
+
+  /**
+   * Get one active item by id.
+   * @param id item id
+   * @returns Observable<AppItem | undefined>
+   */
+  public getActiveItemById(id: string): Observable<AppItem | undefined> {
+    return this.getAllActiveItems().pipe(
+      map(items => items.find(item => item.id === id))
+    );
   }
 }

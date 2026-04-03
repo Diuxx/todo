@@ -20,6 +20,7 @@ export class DashboardComponent implements OnInit {
   public data: AppData | null = null;
 
   public items: AppItem[] = [];
+  public selectedItemId: string | null = null;
 
   // functions -----------
   public ngOnInit(): void {
@@ -27,7 +28,11 @@ export class DashboardComponent implements OnInit {
   }
 
   public displayItemDetails(item: AppItem): void {
-    console.log('Item clicked:', item);
+    this.selectedItemId = item.id;
+
+    setTimeout(() => {
+      this.router.navigate([item.id]);
+    }, 220);
   }
 
   public navigateToConfiguration(): void {

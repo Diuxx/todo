@@ -1,11 +1,16 @@
 <div class="mobile-top"></div>
 <todo-header>
   <span left-section>
-    <i class="bi bi-arrow-left-short nav-button"></i>
+    @if (!isHomePage()) {
+      <span class="nav-button" (click)="goHome()" style="display: flex; align-items: center; gap: 0.1rem;white-space: nowrap;font-size: 0.875rem;">
+        <i class="bi bi-arrow-left-short nav-button"></i>
+        Retour
+      </span>
+    }
   </span>
   <span class="my-title">Bonjour Nicolas</span>
   <span right-section>
-    <i class="bi bi-gear nav-button"></i>
+    <!-- <i class="bi bi-gear nav-button"></i> -->
   </span>
 </todo-header>
 
