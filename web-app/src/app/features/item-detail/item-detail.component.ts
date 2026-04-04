@@ -6,8 +6,9 @@ import { AppItem } from "../../shared/models/app-item.model";
 import { ItemsService } from "../../shared/services/items.service";
 import { SaveActionService } from "../../shared/services/save-action.service";
 import { TodoEditModalComponent } from "./todo-edit-modal/todo-edit-modal.component";
-import { createItemForm, getTodoSubItemFormGroups, mapItemFormToAppItem } from "../../shared/models/app-item-form.model";
+import { createItemForm, getTodoContentFormArray, getTodoSubItemFormGroups, mapItemFormToAppItem } from "../../shared/models/app-item-form.model";
 import { NgClass } from "@angular/common";
+import { generateUUID } from "../../shared/utils";
 
 @Component({
   standalone: true,
@@ -67,6 +68,7 @@ export class ItemDetailComponent implements OnInit {
       return;
     }
 
+    // get item and create form.
     this.itemsService
       .getItemById(id)
       .subscribe(foundItem => {
@@ -93,6 +95,23 @@ export class ItemDetailComponent implements OnInit {
     return this.itemForm.dirty;
   }
 
+  /**
+   * Deletes the current item.
+   * @returns void
+   */
+  public deleteItem(): void {
+    this.itemsService.deleteItem(this.item!.id).subscribe({
+      next: () => {
+        this.router.navigate(['/']);
+      },
+      error: () => console.log('Error deleting item')
+    })
+  }
+
+  /**
+   * Saves the current item if it has been modified.
+   * @returns void
+   */
   public saveElement(): void {
     if (!this.item) {
       return;
@@ -111,6 +130,56 @@ export class ItemDetailComponent implements OnInit {
     });
   }
 
+
+  public addTodoSubItem(): void {
+    if (this.item?.type !== 'todo') {
+      return;
+    }
+
+    const todoContentArray = getTodoContentFormArray(this.itemForm);
+    const subItemForm = this.formBuilder.group({
+      id: [generateUUID()],
+      title: [''],
+      status: ['pending'],
+      recurrenceType: ['none'],
+      alertEnabled: [false],
+      alertAt: [''],
+      recurrenceRule: [''],
+      lastCompletedAt: [''],
+      nextDueAt: [''],
+    });
+
+    todoContentArray.push(subItemForm);
+    subItemForm.markAsDirty();
+    this.itemForm.markAsDirty();
+
+    this.openTodoEditModal(subItemForm);
+  }
+
+  /**
+   * Deletes a sub-item from the todo content.
+   * If the deleted sub-item is currently being edited, it also closes the edit modal.
+   */
+  public deleteTodoSubItem(subItemForm: FormGroup): void {
+    if (this.item?.type !== 'todo') {
+      return;
+    }
+
+    const todoContentArray = getTodoContentFormArray(this.itemForm);
+    const index = todoContentArray.controls.indexOf(subItemForm);
+
+    if (index < 0) {
+      return;
+    }
+
+    if (this.editingSubItemForm === subItemForm) {
+      this.closeTodoEditModal();
+    }
+
+    todoContentArray.removeAt(index);
+    this.itemForm.markAsDirty();
+  }
+
   public openTodoEditModal(subItemForm: FormGroup): void {
     this.editingSubItemForm = subItemForm;
     this.isTodoEditModalVisible = true;
@@ -127,18 +196,6 @@ export class ItemDetailComponent implements OnInit {
       this.itemForm.markAsDirty();
     }
     this.closeTodoEditModal();
-  }
-
-  /**
-   * 
-   */
-  public deleteItem(): void {
-    this.itemsService.deleteItem(this.item!.id).subscribe({
-      next: () => {
-        this.router.navigate(['/']);
-      },
-      error: () => console.log('Error deleting item')
-    })
   }
 
   public onTodoStatusChange(subItemForm: FormGroup, isChecked: boolean): void {

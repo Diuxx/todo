@@ -28,12 +28,15 @@
               <button type="button" class="todo-action-btn" aria-label="Éditer la sous-tâche" (click)="openTodoEditModal(subItemForm)">
                 <i class="bi bi-pencil-fill" style="color: #576072;"></i>
               </button>
-              <button type="button" class="todo-action-btn" aria-label="Supprimer la sous-tâche">
+              <button type="button" class="todo-action-btn" aria-label="Supprimer la sous-tâche" (click)="deleteTodoSubItem(subItemForm)">
                 <i class="bi bi-trash-fill" style="color: #F95E5E;"></i>
               </button>
             </div>
             </div>
           }
+          <div class="todo-row clickable" (click)="addTodoSubItem()">
+            <i class="bi bi-plus-lg"></i> Ajouter une tâche
+          </div>    
         </div>
       }
       @else {

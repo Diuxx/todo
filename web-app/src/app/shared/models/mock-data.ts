@@ -81,20 +81,20 @@ export const appDataExample: AppData = {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
-    {
-      id: "item_image_1",
-      type: "image",
-      title: "Image motivation",
-      content: "Lever de soleil en montagne",
-      color: "default",
-      visibility: "private",
-      isArchived: false,
-      isFavorite: false,
-      tags: ["motivation", "vision-board"],
-      coverImageUrl: "/images/sunrise.jpg",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
+    // {
+    //   id: "item_image_1",
+    //   type: "image",
+    //   title: "Image motivation",
+    //   content: "Lever de soleil en montagne",
+    //   color: "default",
+    //   visibility: "private",
+    //   isArchived: false,
+    //   isFavorite: false,
+    //   tags: ["motivation", "vision-board"],
+    //   coverImageUrl: "/images/sunrise.jpg",
+    //   createdAt: new Date().toISOString(),
+    //   updatedAt: new Date().toISOString(),
+    // },
   ],
 
   todoHistory: [
@@ -117,14 +117,14 @@ export const appDataExample: AppData = {
   ],
 
   imagesMeta: [
-    {
-      itemId: "item_image_1",
-      imageUrl: "/images/sunrise.jpg",
-      thumbnailUrl: "/images/sunrise-thumb.jpg",
-      width: 1200,
-      height: 800,
-      alt: "Lever de soleil",
-    },
+    // {
+    //   itemId: "item_image_1",
+    //   imageUrl: "/images/sunrise.jpg",
+    //   thumbnailUrl: "/images/sunrise-thumb.jpg",
+    //   width: 1200,
+    //   height: 800,
+    //   alt: "Lever de soleil",
+    // },
   ],
 
   settings: {
