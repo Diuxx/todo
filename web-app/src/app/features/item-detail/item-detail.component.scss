@@ -31,10 +31,9 @@
 
   .detail-card-title {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto;
     gap: 1rem;
     align-items: center;
-
   }
 
   &.type-todo { background-color: var(--todo-color); }
@@ -56,15 +55,11 @@
   line-height: 1.2;
 }
 
-i.favorite-toggle {
+i.favorite-toggle,
+i.delete-btn {
   cursor: pointer;
   font-size: 1.45rem;
   line-height: 1;
-}
-
-.favorite-toggle:focus {
-  outline: none;
-  border-color: var(--input-focus-border-color);
 }
 
 .editable {
@@ -82,7 +77,6 @@ i.favorite-toggle {
   outline: none;
   border-color: var(--input-focus-border-color);
 }
-
 .editable.saved-feedback {
   border-color: var(--app-color-green);
 }

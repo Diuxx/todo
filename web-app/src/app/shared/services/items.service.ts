@@ -9,6 +9,15 @@ import { generateUUID } from "../utils";
 export class ItemsService {
 
     /**
+     * Deletes an item from the database by its ID.
+     * @param id The ID of the item to delete.
+     * @returns An observable that completes when the deletion is done.
+     */
+    public deleteItem(id: string): Observable<void> {
+        return from(db.items.delete(id));
+    }
+
+    /**
      * Retrieves all items from the database, ordered by creation date in descending order.
      * @returns An observable that emits an array of AppItem objects.
      */

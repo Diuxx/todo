@@ -11,15 +11,10 @@
           [ngClass]="{ 'to-be-saved': isFormChanged() }"
           formControlName="title"
           placeholder="Titre de l'item" />
-        <!-- <button
-          type="button"
-          class="favorite-toggle"
-          (click)="toggleFavorite()"
-          [attr.aria-label]="itemForm.get('isFavorite')?.value ? 'Retirer des favoris' : 'Ajouter aux favoris'">
-        </button> -->
         <i class="favorite-toggle bi" (click)="toggleFavorite()" [ngClass]="itemForm.get('isFavorite')?.value ? 'bi-star-fill' : 'bi-star'"></i>
+        <i class="delete-btn bi bi-trash-fill" (click)="deleteItem()"></i>
       </span>
-      @if (item.type === 'todo' && item.todoContent?.length) {
+      @if (item.type === 'todo') {
         <div class="todo-list">
           @for (subItemForm of todoSubItemsControls; track subItemForm.get('id')?.value; let i = $index) {
             <div class="todo-row" [formGroup]="subItemForm">
@@ -48,11 +43,11 @@
           formControlName="content"
           placeholder="Écris ton contenu ici..."></textarea>
       }
-      <div class="tags">
+      <!-- <div class="tags">
         @for (tag of item.tags; track tag) {
           <span>{{ tag }}</span>
         }
-      </div>
+      </div> -->
     </article>
   }
   @else {

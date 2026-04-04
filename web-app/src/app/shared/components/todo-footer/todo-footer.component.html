@@ -20,10 +20,14 @@
             }
         </div>
         <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
-            <a [routerLink]="['/create']" class="footer-menu-item">
-                <img width="32px" src="/svgs/new-2.svg" alt="citation" class="footer-logo">
+            <button
+                type="button"
+                class="footer-menu-item"
+                (click)="openSelectTypeModal()"
+                aria-label="Créer un nouvel item">
+                <img width="32px" src="/svgs/new-2.svg" alt="Créer" class="footer-logo">
                 <span>New</span>
-            </a>
+            </button>
         </div>
         <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
             <a [routerLink]="['/settings']" class="footer-menu-item">
@@ -32,4 +36,10 @@
             </a>
         </div>
     </footer>
+
+    <select-item-type-modal
+        [visible]="isSelectTypeModalVisible"
+        (selectType)="onSelectItemType($event)"
+        (close)="closeSelectTypeModal()">
+    </select-item-type-modal>
 }

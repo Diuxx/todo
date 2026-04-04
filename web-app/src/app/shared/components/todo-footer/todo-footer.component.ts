@@ -4,6 +4,9 @@ import { NavigationEnd, Router, RouterLink } from "@angular/router";
 import { Chart, ChartConfiguration, registerables } from "chart.js";
 import { Subject, filter, takeUntil } from "rxjs";
 import { SaveActionService } from "../../services/save-action.service";
+import { SelectItemTypeModalComponent } from "../select-item-type-modal/select-item-type-modal.component";
+import { ItemsService } from "../../services/items.service";
+import { AppItem } from "../../models/app-item.model";
 
 Chart.register(...registerables);
 
@@ -11,12 +14,13 @@ Chart.register(...registerables);
     selector: 'todo-footer',
     templateUrl: './todo-footer.component.html',
     styleUrls: ['./todo-footer.component.scss'],
-    imports: [RouterLink, NgClass]
+    imports: [RouterLink, NgClass, SelectItemTypeModalComponent]
 })
 export class TodoFooterComponent implements OnDestroy {
 
     @Input() visible: boolean = true;
     public showSaveIcon: boolean = false;
+    public isSelectTypeModalVisible: boolean = false;
 
     private readonly destroy$ = new Subject<void>();
     private readonly staticRoutes = new Set(['settings']);
@@ -25,7 +29,8 @@ export class TodoFooterComponent implements OnDestroy {
 
     constructor(
         private readonly router: Router,
-        private readonly saveActionService: SaveActionService
+        private readonly saveActionService: SaveActionService,
+        private readonly itemsService: ItemsService
     ) {
         this.updateCenterActionFromUrl(this.router.url);
         this.router.events
@@ -47,6 +52,42 @@ export class TodoFooterComponent implements OnDestroy {
             return;
         }
         // todo: display stats recap...
+    }
+
+    public openSelectTypeModal(): void {
+        this.isSelectTypeModalVisible = true;
+    }
+
+    public closeSelectTypeModal(): void {
+        this.isSelectTypeModalVisible = false;
+    }
+
+    public onSelectItemType(type: 'todo' | 'note'): void {
+        const newItem: AppItem = {
+            id: '',
+            type: type,
+            title: '',
+            content: '',
+            color: 'default',
+            visibility: 'private',
+            isArchived: false,
+            isFavorite: false,
+            tags: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            ...(type === 'todo' && { todoContent: [] })
+        };
+
+        this.itemsService.createItem(newItem).subscribe({
+            next: (createdItem) => {
+                this.closeSelectTypeModal();
+                this.router.navigate(['/item', createdItem.id]);
+            },
+            error: (error) => {
+                console.error('Error creating item:', error);
+                this.closeSelectTypeModal();
+            }
+        });
     }
 
     @ViewChild('progressChart')

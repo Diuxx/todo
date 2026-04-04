@@ -1,8 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild, inject } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { Subject, takeUntil } from "rxjs";
-import { AppDataService } from "../../shared/services/app-data.service";
 import { AppItem } from "../../shared/models/app-item.model";
 import { ItemsService } from "../../shared/services/items.service";
 import { SaveActionService } from "../../shared/services/save-action.service";
@@ -22,10 +21,10 @@ export class ItemDetailComponent implements OnInit {
 
   // services
   private readonly route: ActivatedRoute = inject(ActivatedRoute);
-  private readonly appDataService: AppDataService = inject(AppDataService);
   private readonly itemsService = inject(ItemsService);
   private readonly saveActionService = inject(SaveActionService);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly router = inject(Router);
 
   private readonly destroy$ = new Subject<void>();
   private savedFeedbackTimeoutId?: ReturnType<typeof setTimeout>;
@@ -128,6 +127,18 @@ export class ItemDetailComponent implements OnInit {
       this.itemForm.markAsDirty();
     }
     this.closeTodoEditModal();
+  }
+
+  /**
+   * 
+   */
+  public deleteItem(): void {
+    this.itemsService.deleteItem(this.item!.id).subscribe({
+      next: () => {
+        this.router.navigate(['/']);
+      },
+      error: () => console.log('Error deleting item')
+    })
   }
 
   public onTodoStatusChange(subItemForm: FormGroup, isChecked: boolean): void {
