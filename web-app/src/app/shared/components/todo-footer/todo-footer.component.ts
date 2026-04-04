@@ -3,6 +3,7 @@ import { Component, ElementRef, Input, OnDestroy, ViewChild } from "@angular/cor
 import { NavigationEnd, Router, RouterLink } from "@angular/router";
 import { Chart, ChartConfiguration, registerables } from "chart.js";
 import { Subject, filter, takeUntil } from "rxjs";
+import { SaveActionService } from "../../services/save-action.service";
 
 Chart.register(...registerables);
 
@@ -22,7 +23,10 @@ export class TodoFooterComponent implements OnDestroy {
 
     private progressCanvas?: HTMLCanvasElement;
 
-    constructor(private readonly router: Router) {
+    constructor(
+        private readonly router: Router,
+        private readonly saveActionService: SaveActionService
+    ) {
         this.updateCenterActionFromUrl(this.router.url);
         this.router.events
             .pipe(
@@ -39,8 +43,7 @@ export class TodoFooterComponent implements OnDestroy {
      */
     public onBoardClick(): void {
         if (this.showSaveIcon) {
-
-
+            this.saveActionService.triggerSave();
             return;
         }
         // todo: display stats recap...
@@ -140,7 +143,6 @@ export class TodoFooterComponent implements OnDestroy {
         }
 
         const segments = normalizedPath.split('/').filter(Boolean);
-        console.log('URL segments:', segments);
 
         this.showSaveIcon = segments.length > 1 && segments[0] === 'item' && segments[1] != null; 
     }

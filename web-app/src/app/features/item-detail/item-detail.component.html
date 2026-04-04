@@ -3,6 +3,7 @@
     <article class="detail-card" [class]="'type-' + item.type">
       <span class="detail-card-title">
         <input
+          #titleInput
           type="text"
           class="editable title-editable"
           [(ngModel)]="item.title"

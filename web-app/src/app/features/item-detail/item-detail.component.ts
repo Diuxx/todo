@@ -1,9 +1,11 @@
 import { Component, ElementRef, OnInit, ViewChild, inject } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { FormsModule } from "@angular/forms";
+import { Subject, takeUntil } from "rxjs";
 import { AppDataService } from "../../shared/services/app-data.service";
 import { AppItem } from "../../shared/models/app-item.model";
 import { ItemsService } from "../../shared/services/items.service";
+import { SaveActionService } from "../../shared/services/save-action.service";
 
 @Component({
   standalone: true,
@@ -17,11 +19,21 @@ export class ItemDetailComponent implements OnInit {
   private readonly route: ActivatedRoute = inject(ActivatedRoute);
   private readonly appDataService: AppDataService = inject(AppDataService);
   private readonly itemsService = inject(ItemsService);
+  private readonly saveActionService = inject(SaveActionService);
+
+  private readonly destroy$ = new Subject<void>();
+  private savedFeedbackTimeoutId?: ReturnType<typeof setTimeout>;
 
   private pendingTextareaFocus: boolean = false;
+  private contentTextareaElement?: HTMLTextAreaElement;
+
+  @ViewChild('titleInput')
+  private titleInputRef?: ElementRef<HTMLInputElement>;
 
   @ViewChild('contentTextarea')
   private set contentTextareaRef(textareaRef: ElementRef<HTMLTextAreaElement> | undefined) {
+    this.contentTextareaElement = textareaRef?.nativeElement;
+
     if (!textareaRef || !this.pendingTextareaFocus) {
       return;
     }
@@ -52,13 +64,48 @@ export class ItemDetailComponent implements OnInit {
         this.item = foundItem;
         this.pendingTextareaFocus = !!foundItem && !(foundItem.type === 'todo' && foundItem.todoContent?.length);
       });
+
+    this.saveActionService.save$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.saveElement());
   }
 
   public saveElement(): void {
     if (!this.item) {
       return;
     }
-    // this.itemsService.updateItem(this.item).subscribe();
+
+    // --
+    this.itemsService.updateItem(this.item).subscribe({
+        next: () => this.triggerSavedFeedback(),
+        error: () => console.log('Error updating item')
+    });
+  }
+
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    if (this.savedFeedbackTimeoutId) {
+      clearTimeout(this.savedFeedbackTimeoutId);
+    }
+  }
+
+  private triggerSavedFeedback(): void {
+    const titleInput = this.titleInputRef?.nativeElement;
+    const contentTextarea = this.contentTextareaElement;
+
+    titleInput?.classList.add('saved-feedback');
+    contentTextarea?.classList.add('saved-feedback');
+
+    if (this.savedFeedbackTimeoutId) {
+      clearTimeout(this.savedFeedbackTimeoutId);
+    }
+
+    this.savedFeedbackTimeoutId = setTimeout(() => {
+      titleInput?.classList.remove('saved-feedback');
+      contentTextarea?.classList.remove('saved-feedback');
+    }, 1200);
   }
 
 }
