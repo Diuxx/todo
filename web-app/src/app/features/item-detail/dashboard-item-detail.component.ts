@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { AppDataService } from "../../shared/services/app-data.service";
 import { AppItem } from "../../shared/models/app-item.model";
+import { ItemsService } from "../../shared/services/items.service";
 
 @Component({
   standalone: true,
@@ -14,6 +15,7 @@ export class DashboardItemDetailComponent implements OnInit {
 
   private readonly route: ActivatedRoute = inject(ActivatedRoute);
   private readonly appDataService: AppDataService = inject(AppDataService);
+  private readonly itemsService = inject(ItemsService);
 
   public item: AppItem | undefined;
 

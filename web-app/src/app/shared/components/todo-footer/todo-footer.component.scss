@@ -17,17 +17,26 @@
         width: 90px;
         height: 90px;
         border-radius: 50%;
-        background-color: white;
+        background-color: var(--footer-bg-color);
         bottom: 45px;
-        // left: calc(100vw / 2 - 45px);
+        border-top: 1px solid var(--footer-border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+
+        .board-chart {
+            width: 100%;
+            height: 100%;
+        }
     }
     .footer-menu {
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: white;
+        background-color: var(--footer-bg-color);
         max-height: 60px;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid var(--footer-border-color);
         .footer-menu-item {
             display: flex;
             flex-direction: column;

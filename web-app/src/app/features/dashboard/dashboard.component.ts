@@ -4,6 +4,7 @@ import { NgClass } from "@angular/common";
 import { AppDataService } from "../../shared/services/app-data.service";
 import { AppData } from "../../shared/models/app-data.model";
 import { AppItem } from "../../shared/models/app-item.model";
+import { ItemsService } from "../../shared/services/items.service";
 
 @Component({
   standalone: true,
@@ -14,7 +15,8 @@ import { AppItem } from "../../shared/models/app-item.model";
 })
 export class DashboardComponent implements OnInit {
 
-  private readonly appDataService: AppDataService = inject(AppDataService);
+  // -- variables --
+  private readonly itemsService = inject(ItemsService);
   private readonly router: Router = inject(Router);
 
   public data: AppData | null = null;
@@ -22,22 +24,18 @@ export class DashboardComponent implements OnInit {
   public items: AppItem[] = [];
   public selectedItemId: string | null = null;
 
-  // functions -----------
+  // -- functions --
   public ngOnInit(): void {
     this.getData();
   }
 
+  /**
+   * Displays the details of the selected item.
+   * @param item The item to display details for.
+   */
   public displayItemDetails(item: AppItem): void {
     this.selectedItemId = item.id;
-
-    setTimeout(() => {
-      this.router.navigate([item.id]);
-    }, 220);
-  }
-
-  public navigateToConfiguration(): void {
-    // this.router.navigate(['/configuration']);
-    // setTimeout(() => this.isClicked = false, 300);
+    setTimeout(() => this.router.navigate([item.id]), 220);
   }
 
   /**
@@ -45,18 +43,11 @@ export class DashboardComponent implements OnInit {
    * @returns void
    */
   private getData(): void {
-    this.appDataService
-      .getAllActiveItems()
+    this.itemsService
+      .getAllActive()
       .subscribe(items => {
         this.items = items;
         console.log('Active items fetched successfully:', items);
       });
-
-    // this.appDataService
-    //   .getAll()
-    //   .subscribe(data => {
-    //     this.data = data;
-    //     console.log('Data fetched successfully:', data);
-    //   });
   }
 }

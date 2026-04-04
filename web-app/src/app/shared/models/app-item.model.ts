@@ -1,4 +1,4 @@
-import { BaseEntity, ItemColor, ItemType, Visibility } from "./base-entity.model";
+import { BaseEntity, ItemColor, ItemType, SimpleBaseEntity, Visibility } from "./base-entity.model";
 import { TodoConfig } from "./todo-config.model";
 
 export interface AppItem extends BaseEntity {
@@ -12,13 +12,13 @@ export interface AppItem extends BaseEntity {
   tags: string[];
 
   // -- Relations hiérarchiques (ex: pour les tâches et sous-tâches)
-  todoContent?: AppItemLight[];
+  todoContent?: TodoInformation[];
 
   // Pour les vues masonry / UI
   coverImageUrl?: string;
 }
 
-export interface AppItemLight extends BaseEntity {
+export interface TodoInformation extends BaseEntity {
   title?: string;
   config?: TodoConfig; // like a pointer to the actual AppItem config for todos;
 }

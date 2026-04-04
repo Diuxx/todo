@@ -34,17 +34,17 @@ export class AppDataService {
     });
 
     // add a todo-config pointer in 'todo' type of item.
-    const todoConfigIncluded = activeItems.map(a => {
-      if (a.type === 'todo' && a.todoContent) {
-        a.todoContent = a.todoContent.map(sub => ({
-          ...sub,
-          config: appDataExample.todoConfigs.find(config => config.itemId === sub.id)
-        }));
-      }
-      return a;
-    }) 
+    // const todoConfigIncluded = activeItems.map(a => {
+    //   if (a.type === 'todo' && a.todoContent) {
+    //     a.todoContent = a.todoContent.map(sub => ({
+    //       ...sub,
+    //       config: appDataExample.todoConfigs.find(config => config.itemId === sub.id)
+    //     }));
+    //   }
+    //   return a;
+    // }) 
 
-    return of(todoConfigIncluded);
+    return of(sortedItems);
   }
 
   /**

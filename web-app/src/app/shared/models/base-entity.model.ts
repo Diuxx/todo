@@ -19,6 +19,12 @@ export type TodoStatus = "pending" | "done";
 
 export type Visibility = "private" | "public";
 
+
+export interface SimpleBaseEntity {
+  createdAt: string; // ISO date
+  updatedAt: string; // ISO date
+}
+
 export interface BaseEntity {
   id: string;
   createdAt: string; // ISO date

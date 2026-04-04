@@ -8,7 +8,6 @@ import { TodoHistoryEntry } from "./todo-history.model";
 export interface AppData {
   id: string; // to backup/restore data from database.
   items: AppItem[];
-  todoConfigs: TodoConfig[];
   todoHistory: TodoHistoryEntry[];
   citationsMeta: CitationMeta[];
   imagesMeta: ImageMeta[];

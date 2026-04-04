@@ -13,9 +13,19 @@
             </a>
         </div>
         <div class="footer-board">
-
+            <canvas #progressChart class="board-chart" width="90" height="90" aria-label="Progression jour semaine mois"></canvas>
         </div>
-        <div class="footer-menu"></div>
-        <div class="footer-menu"></div>
+        <div class="footer-menu">
+            <a [routerLink]="['/dashboard']" class="footer-menu-item">
+                <img width="32px" src="/svgs/book.svg" alt="citation" class="footer-logo">
+                <span>Citations</span>
+            </a>
+        </div>
+        <div class="footer-menu">
+            <a [routerLink]="['/dashboard']" class="footer-menu-item">
+                <img width="32px" src="/svgs/cog-1.svg" alt="parametre" class="footer-logo">
+                <span>Paramètres</span>
+            </a>
+        </div>
     </footer>
 }

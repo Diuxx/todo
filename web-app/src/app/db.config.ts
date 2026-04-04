@@ -10,7 +10,6 @@ import { AppData } from './shared/models/app-data.model';
 
 /*
 table items
-table todoConfigs
 table todoHistory
 table citationsMeta
 table imagesMeta
@@ -19,7 +18,6 @@ table settings
 
 export class AppDb extends Dexie {
   items!: Table<AppItem, string>;
-  todoConfigs!: Table<TodoConfig, string>;
   todoHistory!: Table<TodoHistoryEntry, string>;
   citationsMeta!: Table<CitationMeta, string>;
   imagesMeta!: Table<ImageMeta, string>;
@@ -29,7 +27,6 @@ export class AppDb extends Dexie {
     super(dbName);
     this.version(dbVersion).stores({
       items: 'id, type, createdAt, updatedAt',
-      todoConfigs: 'id, itemId, recurrenceType',
       todoHistory: 'id, todoItemId, status, completedAt',
       citationsMeta: 'id, itemId, author',
       imagesMeta: 'id, itemId',
@@ -45,14 +42,12 @@ export class AppDb extends Dexie {
 async function exportAppData(): Promise<AppData> {
   const [
     items,
-    todoConfigs,
     todoHistory,
     citationsMeta,
     imagesMeta,
     settingsList
   ] = await Promise.all([
     db.items.toArray(),
-    db.todoConfigs.toArray(),
     db.todoHistory.toArray(),
     db.citationsMeta.toArray(),
     db.imagesMeta.toArray(),
@@ -62,7 +57,6 @@ async function exportAppData(): Promise<AppData> {
   return {
     id: 'app-data',
     items,
-    todoConfigs,
     todoHistory,
     citationsMeta,
     imagesMeta,

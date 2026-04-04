@@ -42,9 +42,8 @@ export class DatabaseService {
      * Seed the database with default data for development or first-time users.
      */
     private async seedDefaultData(): Promise<void> {
-        // Add default items, todoConfigs, etc. here if needed.
+        // Add default items, etc. here if needed.
         await db.items.bulkAdd([...appDataExample.items]);
-        await db.todoConfigs.bulkAdd([...appDataExample.todoConfigs]);
         await db.todoHistory.bulkAdd([...appDataExample.todoHistory]);
         await db.citationsMeta.bulkAdd([...appDataExample.citationsMeta]);
         await db.imagesMeta.bulkAdd([...appDataExample.imagesMeta]);
