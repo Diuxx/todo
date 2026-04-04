@@ -136,6 +136,17 @@ export class ItemDetailComponent implements OnInit {
     this.itemForm.markAsDirty();
   }
 
+  public toggleFavorite(): void {
+    const isFavoriteControl = this.itemForm.get('isFavorite');
+    if (!isFavoriteControl) {
+      return;
+    }
+
+    isFavoriteControl.setValue(!isFavoriteControl.value);
+    isFavoriteControl.markAsDirty();
+    this.itemForm.markAsDirty();
+  }
+
   public get todoSubItemsControls(): FormGroup[] {
     return getTodoSubItemFormGroups(this.itemForm);
   }

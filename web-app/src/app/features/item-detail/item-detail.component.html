@@ -2,7 +2,6 @@
   @if (item && itemForm) {
     <article 
       [class]="'type-' + item.type + ' detail-card'"
-      [ngClass]="{ 'to-be-saved': isFormChanged() }"
       [formGroup]="itemForm">
       <span class="detail-card-title">
         <input
@@ -12,6 +11,13 @@
           [ngClass]="{ 'to-be-saved': isFormChanged() }"
           formControlName="title"
           placeholder="Titre de l'item" />
+        <!-- <button
+          type="button"
+          class="favorite-toggle"
+          (click)="toggleFavorite()"
+          [attr.aria-label]="itemForm.get('isFavorite')?.value ? 'Retirer des favoris' : 'Ajouter aux favoris'">
+        </button> -->
+        <i class="favorite-toggle bi" (click)="toggleFavorite()" [ngClass]="itemForm.get('isFavorite')?.value ? 'bi-star-fill' : 'bi-star'"></i>
       </span>
       @if (item.type === 'todo' && item.todoContent?.length) {
         <div class="todo-list">
@@ -39,7 +45,6 @@
         <textarea
           #contentTextarea
           class="detail-card-content content editable"
-          [ngClass]="{ 'to-be-saved': isFormChanged() }"
           formControlName="content"
           placeholder="Écris ton contenu ici..."></textarea>
       }

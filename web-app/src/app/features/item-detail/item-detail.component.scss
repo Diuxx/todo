@@ -32,6 +32,9 @@
   .detail-card-title {
     display: grid;
     grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: center;
+
   }
 
   &.type-todo { background-color: var(--todo-color); }
@@ -51,6 +54,17 @@
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1.2;
+}
+
+i.favorite-toggle {
+  cursor: pointer;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.favorite-toggle:focus {
+  outline: none;
+  border-color: var(--input-focus-border-color);
 }
 
 .editable {

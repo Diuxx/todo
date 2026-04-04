@@ -4,7 +4,7 @@
   grid-area: header;
   margin-top: 50px;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
   padding: 0.5rem 1rem;
   background-color: var(--app-bg-color);

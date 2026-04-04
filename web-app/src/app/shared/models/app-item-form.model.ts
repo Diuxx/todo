@@ -5,6 +5,7 @@ export function createItemForm(formBuilder: FormBuilder, item?: AppItem): FormGr
   if (!item) {
     return formBuilder.group({
       title: [''],
+      isFavorite: [false],
       content: [''],
       todoContent: formBuilder.array([]),
     });
@@ -16,6 +17,7 @@ export function createItemForm(formBuilder: FormBuilder, item?: AppItem): FormGr
 
   return formBuilder.group({
     title: [item.title ?? ''],
+    isFavorite: [item.isFavorite ?? false],
     content: [item.content ?? ''],
     todoContent: todoContentArray,
   });
@@ -51,6 +53,7 @@ export function mapItemFormToAppItem(itemForm: FormGroup, sourceItem: AppItem): 
   return {
     ...sourceItem,
     title: formValue.title,
+    isFavorite: !!formValue.isFavorite,
     content: sourceItem.type === 'todo' ? sourceItem.content : formValue.content,
     todoContent: sourceItem.type === 'todo' ? todoContent : sourceItem.todoContent,
   };
