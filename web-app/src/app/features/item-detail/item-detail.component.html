@@ -13,8 +13,20 @@
         <div class="todo-list">
           @for (subItem of item.todoContent; track subItem.id) {
             <div class="todo-row">
-              <i class="bi" [class.bi-check2]="subItem.config?.status === 'done'" [class.bi-square]="subItem.config?.status !== 'done'"></i>
-              <span [class.is-done]="subItem.config?.status === 'done'">{{ subItem.title }}</span>
+              <input
+                type="checkbox"
+                class="todo-checkbox"
+                [ngModel]="subItem.config?.status === 'done'"
+                (ngModelChange)="subItem.config ? (subItem.config.status = $event ? 'done' : 'pending') : (subItem.config = { status: $event ? 'done' : 'pending', recurrenceType: 'none', alertEnabled: false })" />
+              <span class="todo-subitem-title" [class.is-done]="subItem.config?.status === 'done'">{{ subItem.title }}</span>
+              <div class="todo-actions">
+                <button type="button" class="todo-action-btn" aria-label="Éditer la sous-tâche">
+                  <i class="bi bi-pencil-fill" style="color: #576072;"></i>
+                </button>
+                <button type="button" class="todo-action-btn" aria-label="Supprimer la sous-tâche">
+                  <i class="bi bi-trash-fill" style="color: #F95E5E;"></i>
+                </button>
+              </div>
             </div>
           }
         </div>

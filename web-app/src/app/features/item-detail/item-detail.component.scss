@@ -77,13 +77,49 @@
 .todo-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .todo-row {
-  display: flex;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
   align-items: center;
+  border: 1px solid var(--todo-item-border-color);
+  padding: 10px;
+  border-radius: 12px;
+  background-color: var(--todo-item-color);
+
+  .todo-checkbox {
+    width: 1.35rem;
+    height: 1.35rem;
+    accent-color: var(--app-color-green);
+  }
+
+  .todo-subitem-title {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+  }
+
+  .todo-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .todo-action-btn {
+    border: none;
+    background: transparent;
+    color: var(--app-fg-color);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 6px;
+  }
 
   .is-done {
     text-decoration: line-through;
