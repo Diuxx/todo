@@ -6,7 +6,7 @@ import { AppDataService } from "../../shared/services/app-data.service";
 import { AppItem, TodoInformation } from "../../shared/models/app-item.model";
 import { ItemsService } from "../../shared/services/items.service";
 import { SaveActionService } from "../../shared/services/save-action.service";
-import { TodoEditModalComponent } from "./todo-edit-modal.component";
+import { TodoEditModalComponent } from "./todo-edit-modal/todo-edit-modal.component";
 
 @Component({
   standalone: true,

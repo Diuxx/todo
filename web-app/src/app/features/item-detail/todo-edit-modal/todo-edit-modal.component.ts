@@ -1,8 +1,8 @@
 import { NgClass } from "@angular/common";
 import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { RecurrenceType } from "../../shared/models/base-entity.model";
-import { TodoInformation } from "../../shared/models/app-item.model";
+import { RecurrenceType } from "../../../shared/models/base-entity.model";
+import { TodoInformation } from "../../../shared/models/app-item.model";
 
 @Component({
   standalone: true,

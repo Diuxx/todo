@@ -58,7 +58,7 @@
   height: 100%;
   min-height: 40px;
   padding: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--input-border-color);
   border-radius: 8px;
   background: transparent;
   color: inherit;
@@ -66,7 +66,7 @@
 }
 .editable:focus {
   outline: none;
-  border-color: var(--app-color-blue);
+  border-color: var(--input-focus-border-color);
 }
 
 .editable.saved-feedback {

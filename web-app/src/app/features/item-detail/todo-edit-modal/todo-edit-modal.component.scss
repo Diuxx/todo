@@ -18,7 +18,7 @@
 
 .todo-modal {
   width: min(520px, 100%);
-  background: var(--app-bg-color);
+  background: var(--todo-color);
   border: 1px solid var(--box-border);
   border-radius: 12px;
   padding: 1rem;
@@ -34,11 +34,15 @@
 .modal-textarea,
 .alert-time-input {
   width: 100%;
-  border: 1px solid var(--box-border);
+  border: 1px solid var(--input-border-color);
   border-radius: 8px;
   background: transparent;
   color: inherit;
   padding: 0.5rem 0.65rem;
+  &:focus {
+    outline: none;
+    border-color: var(--input-focus-border-color);
+  }
 }
 
 .modal-textarea {
@@ -64,7 +68,7 @@
 .modal-btn {
   border: 1px solid var(--box-border);
   border-radius: 8px;
-  background: transparent;
+  background: var(--todo-item-color);
   color: var(--app-fg-color);
   padding: 0.4rem 0.7rem;
   cursor: pointer;
@@ -72,8 +76,8 @@
 
 .recurrence-btn.is-active,
 .alert-toggle-btn.is-active {
-  border-color: var(--app-color-blue);
-  color: var(--app-color-blue);
+  border-color: var(--todo-item-border-color);
+  color: var(--app-fg-color);
 }
 
 .modal-actions {
@@ -83,6 +87,10 @@
 }
 
 .modal-btn-primary {
-  border-color: var(--app-color-green);
-  color: var(--app-color-green);
+  border-color: var(--todo-item-border-color);
+  color: var(--app-fg-color);
+}
+
+.modal-btn-alert {
+  background-color: var(--app-color-red);
 }
