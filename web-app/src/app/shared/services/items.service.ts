@@ -31,6 +31,15 @@ export class ItemsService {
     }
 
     /**
+     * Retrieves a single item by its ID.
+     * @param id The ID of the item to retrieve.
+     * @returns An observable that emits the AppItem object if found, or undefined if not found.
+     */
+    public getItemById(id: string): Observable<AppItem | undefined> {
+        return from(db.items.get(id));
+    }
+
+    /**
      * Updates an existing item in the database.
      * @param item The item to update.
      * @returns An observable that emits the updated item.

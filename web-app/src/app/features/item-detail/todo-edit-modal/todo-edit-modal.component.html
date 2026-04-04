@@ -1,13 +1,12 @@
-@if (visible && subItem) {
+@if (visible && subItemForm) {
   <div class="todo-modal-overlay" (click)="closeModal()">
-    <div class="todo-modal" (click)="$event.stopPropagation()">
+    <div class="todo-modal" (click)="$event.stopPropagation()" [formGroup]="subItemForm">
       <h3>Éditer la tâche</h3>
 
       <label class="modal-label">Texte</label>
       <textarea
         class="modal-textarea"
-        [ngModel]="subItem.title ?? ''"
-        (ngModelChange)="subItem.title = $event"
+        formControlName="title"
         placeholder="Texte de la sous-tâche"></textarea>
 
       <label class="modal-label">Récurrence</label>
@@ -16,7 +15,7 @@
           <button
             type="button"
             class="recurrence-btn"
-            [ngClass]="{ 'is-active': subItem.config?.recurrenceType === option }"
+            [ngClass]="{ 'is-active': subItemForm.get('recurrenceType')?.value === option }"
             (click)="selectRecurrence(option)">
             {{ option }}
           </button>
@@ -26,18 +25,17 @@
           <button
             type="button"
             class="alert-toggle-btn"
-            [ngClass]="{ 'is-active': subItem.config?.alertEnabled }"
+            [ngClass]="{ 'is-active': subItemForm.get('alertEnabled')?.value }"
             (click)="toggleAlert()">
             Alertes
           </button>
-          @if (subItem.config?.alertEnabled) {
+          @if (subItemForm.get('alertEnabled')?.value) {
             <div class="alert-time-wrap">
               <label class="modal-label">Heure</label>
               <input
                 type="time"
                 class="alert-time-input"
-                [ngModel]="subItem.config?.alertAt ?? ''"
-                (ngModelChange)="updateAlertAt($event)" />
+                formControlName="alertAt" />
             </div>
           }
       </div>    
