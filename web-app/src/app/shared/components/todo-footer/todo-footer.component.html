@@ -12,8 +12,11 @@
                 <span>Todo</span>
             </a>
         </div>
-        <div class="footer-board" [ngClass]="{ 'save-icon-showed': showSaveIcon }" (click)="onBoardClick()">
-            @if (showSaveIcon) {
+        <div class="footer-board" [ngClass]="{ 'save-icon-showed': showSaveIcon && !todoProgress }" (click)="onBoardClick()">
+            @if (todoProgress) {
+                <canvas #todoProgressChart class="board-chart" width="90" height="90" aria-label="Progression todo"></canvas>
+                <span class="todo-progress-label">{{ todoProgress.done }}/{{ todoProgress.total }}</span>
+            } @else if (showSaveIcon) {
                 <i class="bi bi-floppy"></i>
             } @else {
                 <canvas #progressChart class="board-chart" width="90" height="90" aria-label="Progression jour semaine mois"></canvas>

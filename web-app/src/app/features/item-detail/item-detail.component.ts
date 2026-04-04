@@ -78,6 +78,7 @@ export class ItemDetailComponent implements OnInit {
         this.item = foundItem;
         this.itemForm = createItemForm(this.formBuilder, foundItem);
         this.setupAutoSaveSubscriptions();
+        this.emitTodoProgress();
         this.pendingTextareaFocus = !!foundItem && !(foundItem.type === 'todo' && foundItem.todoContent?.length);
       });
 
@@ -100,6 +101,8 @@ export class ItemDetailComponent implements OnInit {
     if (this.todoStatusAutoSaveTimeoutId) {
       clearTimeout(this.todoStatusAutoSaveTimeoutId);
     }
+
+    this.saveActionService.updateTodoProgress(null);
   }
 
   public isFormChanged(): boolean {
@@ -167,6 +170,7 @@ export class ItemDetailComponent implements OnInit {
     todoContentArray.push(subItemForm);
     subItemForm.markAsDirty();
     this.itemForm.markAsDirty();
+    this.emitTodoProgress();
 
     this.openTodoEditModal(subItemForm);
   }
@@ -195,6 +199,7 @@ export class ItemDetailComponent implements OnInit {
 
     todoContentArray.removeAt(index);
     this.itemForm.markAsDirty();
+    this.emitTodoProgress();
   }
 
   /**
@@ -238,6 +243,7 @@ export class ItemDetailComponent implements OnInit {
     subItemForm.get('status')?.setValue(isChecked ? 'done' : 'pending');
     subItemForm.markAsDirty();
     this.itemForm.markAsDirty();
+    this.emitTodoProgress();
     this.scheduleAutoSaveAfterTitleIdle();
   }
 
@@ -254,6 +260,17 @@ export class ItemDetailComponent implements OnInit {
 
   public get todoSubItemsControls(): FormGroup[] {
     return getTodoSubItemFormGroups(this.itemForm);
+  }
+
+  private emitTodoProgress(): void {
+    if (this.item?.type !== 'todo') {
+      return;
+    }
+
+    const controls = getTodoSubItemFormGroups(this.itemForm);
+    const total = controls.length;
+    const done = controls.filter(fg => fg.get('status')?.value === 'done').length;
+    this.saveActionService.updateTodoProgress({ done, total });
   }
 
   /**

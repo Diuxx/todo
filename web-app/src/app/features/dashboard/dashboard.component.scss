@@ -2,6 +2,8 @@
 
 :host {
   grid-area: main;
+  margin-top: 110px;
+  margin-bottom: 60px;
   padding: 1rem;
   padding-bottom: calc(60px + 1rem); /* To prevent content from being hidden behind the fixed footer */
   overflow-y: scroll;
@@ -30,7 +32,9 @@
 
     .dashboard-card-title {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.5rem;
+      align-items: center;
       h2 {
         font-size: 1.25rem;
         font-weight: 600;

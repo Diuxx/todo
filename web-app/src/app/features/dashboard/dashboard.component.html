@@ -4,6 +4,9 @@
     <div class="dashboard-card" [ngClass]="['type-' + item.type, selectedItemId === item.id ? 'is-selected' : '']" (click)="displayItemDetails(item)">
       <div class="dashboard-card-title">
         <h2>{{ item.title }}</h2>
+        @if (item.type === 'todo') {
+          <span style="font-size: 0.6em;">{{ formatTodoProgress(item) }}</span>
+        }
         @if (item.isFavorite) {
           <i class="bi bi-star-fill"></i>
         } 
@@ -13,7 +16,7 @@
       </div>
       @if (item.type == 'todo' && item.todoContent && item.todoContent.length > 0) {
         <div class="dashboard-card-content">
-            @for (subItem of item.todoContent; track subItem.id) {
+            @for (subItem of item.todoContent.slice(0, 3); track subItem.id) {
               <div class="dashboard-card-content-todo-item">
                 <span class="dashboard-card-content-todo-item-status">
                   @if (subItem.config?.status == 'done') {

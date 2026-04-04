@@ -37,6 +37,18 @@ export class DashboardComponent implements OnInit {
   }
 
   /**
+   * Formats the progress of a todo item as a string in the format "done / total".
+   * If the item is not a todo or has no todo content, it returns "0 / 0".
+   * @param item The item for which to format the progress.
+   * @returns A string representing the progress of the todo item.
+   */
+  public formatTodoProgress(item: AppItem): string {
+    const total = item.todoContent?.length || 0;
+    const done = item.todoContent?.filter(subItem => subItem.config?.status === 'done').length || 0;
+    return `${done} / ${total}`;
+  }
+
+  /**
    * Displays the details of the selected item.
    * @param item The item to display details for.
    */

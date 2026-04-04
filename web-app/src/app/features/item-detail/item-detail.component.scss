@@ -2,7 +2,10 @@
   display: block;
   grid-area: main;
   padding: 1rem;
-  padding-bottom: calc(60px + 1rem); /* To prevent content from being hidden behind the fixed footer */
+  padding-bottom: 1rem; /* To prevent content from being hidden behind the fixed footer */
+  margin-top: 110px;
+  margin-bottom: 60px;
+  overflow-y: auto;
 }
 
 .detail-container {

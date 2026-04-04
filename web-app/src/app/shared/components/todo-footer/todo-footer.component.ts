@@ -3,7 +3,7 @@ import { Component, ElementRef, Input, OnDestroy, ViewChild } from "@angular/cor
 import { NavigationEnd, Router, RouterLink } from "@angular/router";
 import { Chart, ChartConfiguration, registerables } from "chart.js";
 import { Subject, filter, takeUntil } from "rxjs";
-import { SaveActionService } from "../../services/save-action.service";
+import { SaveActionService, TodoProgress } from "../../services/save-action.service";
 import { SelectItemTypeModalComponent } from "../select-item-type-modal/select-item-type-modal.component";
 import { ItemsService } from "../../services/items.service";
 import { AppItem } from "../../models/app-item.model";
@@ -21,11 +21,14 @@ export class TodoFooterComponent implements OnDestroy {
     @Input() visible: boolean = true;
     public showSaveIcon: boolean = false;
     public isSelectTypeModalVisible: boolean = false;
+    public todoProgress: TodoProgress | null = null;
 
     private readonly destroy$ = new Subject<void>();
     private readonly staticRoutes = new Set(['settings']);
 
     private progressCanvas?: HTMLCanvasElement;
+    private todoProgressCanvas?: HTMLCanvasElement;
+    private todoProgressChart?: Chart;
 
     constructor(
         private readonly router: Router,
@@ -40,6 +43,17 @@ export class TodoFooterComponent implements OnDestroy {
             )
             .subscribe((event) => {
                 this.updateCenterActionFromUrl(event.urlAfterRedirects);
+            });
+
+        this.saveActionService.todoProgress$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(progress => {
+                this.todoProgress = progress;
+                if (this.todoProgressCanvas && progress) {
+                    this.renderTodoProgressChart();
+                } else if (!progress) {
+                    this.destroyTodoChart();
+                }
             });
     }
 
@@ -90,6 +104,20 @@ export class TodoFooterComponent implements OnDestroy {
         });
     }
 
+    @ViewChild('todoProgressChart')
+    private set todoProgressChartRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
+        const canvas = ref?.nativeElement;
+
+        if (!canvas) {
+            this.destroyTodoChart();
+            this.todoProgressCanvas = undefined;
+            return;
+        }
+
+        this.todoProgressCanvas = canvas;
+        this.renderTodoProgressChart();
+    }
+
     @ViewChild('progressChart')
     private set progressChartRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
         const canvas = ref?.nativeElement;
@@ -112,6 +140,7 @@ export class TodoFooterComponent implements OnDestroy {
 
     public ngOnDestroy(): void {
         this.destroyChart();
+        this.destroyTodoChart();
         this.destroy$.next();
         this.destroy$.complete();
     }
@@ -173,6 +202,42 @@ export class TodoFooterComponent implements OnDestroy {
     private destroyChart(): void {
         this.progressChart?.destroy();
         this.progressChart = undefined;
+    }
+
+    private renderTodoProgressChart(): void {
+        if (!this.todoProgressCanvas || !this.todoProgress) {
+            return;
+        }
+
+        this.destroyTodoChart();
+
+        const { done, total } = this.todoProgress;
+        const remaining = Math.max(0, total - done);
+
+        const config: ChartConfiguration<'doughnut'> = {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: total === 0 ? [1] : [done, remaining],
+                    backgroundColor: total === 0 ? ['#E5E7EB'] : ['#32c493', '#E5E7EB'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '60%',
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                animation: false,
+                events: []
+            }
+        };
+
+        this.todoProgressChart = new Chart(this.todoProgressCanvas, config);
+    }
+
+    private destroyTodoChart(): void {
+        this.todoProgressChart?.destroy();
+        this.todoProgressChart = undefined;
     }
 
     private updateCenterActionFromUrl(url: string): void {
