@@ -1,14 +1,13 @@
 <div class="detail-container">
   @if (item) {
     <article class="detail-card" [class]="'type-' + item.type">
-      <h1>{{ item.title || 'Détail de l’item' }}</h1>
-
-      @if (item.content) {
-        <p class="content">
-          {{ item.content }}
-        </p>
-      }
-
+      <span class="detail-card-title">
+        <input
+          type="text"
+          class="editable title-editable"
+          [(ngModel)]="item.title"
+          placeholder="Titre de l'item" />
+      </span>
       @if (item.type === 'todo' && item.todoContent?.length) {
         <div class="todo-list">
           @for (subItem of item.todoContent; track subItem.id) {
@@ -19,7 +18,13 @@
           }
         </div>
       }
-
+      @else {
+        <textarea
+          #contentTextarea
+          class="detail-card-content content editable"
+          [(ngModel)]="item.content"
+          placeholder="Écris ton contenu ici..."></textarea>
+      }
       <div class="tags">
         @for (tag of item.tags; track tag) {
           <span>{{ tag }}</span>

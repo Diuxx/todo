@@ -1,6 +1,8 @@
+import { NgClass } from "@angular/common";
 import { Component, ElementRef, Input, OnDestroy, ViewChild } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { NavigationEnd, Router, RouterLink } from "@angular/router";
 import { Chart, ChartConfiguration, registerables } from "chart.js";
+import { Subject, filter, takeUntil } from "rxjs";
 
 Chart.register(...registerables);
 
@@ -8,13 +10,41 @@ Chart.register(...registerables);
     selector: 'todo-footer',
     templateUrl: './todo-footer.component.html',
     styleUrls: ['./todo-footer.component.scss'],
-    imports: [RouterLink]
+    imports: [RouterLink, NgClass]
 })
 export class TodoFooterComponent implements OnDestroy {
 
     @Input() visible: boolean = true;
+    public showSaveIcon: boolean = false;
+
+    private readonly destroy$ = new Subject<void>();
+    private readonly staticRoutes = new Set(['settings']);
 
     private progressCanvas?: HTMLCanvasElement;
+
+    constructor(private readonly router: Router) {
+        this.updateCenterActionFromUrl(this.router.url);
+        this.router.events
+            .pipe(
+                filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+                takeUntil(this.destroy$)
+            )
+            .subscribe((event) => {
+                this.updateCenterActionFromUrl(event.urlAfterRedirects);
+            });
+    }
+
+    /**
+     * Handles the click event on the board menu item. Currently, this method is a placeholder and does not perform any actions.
+     */
+    public onBoardClick(): void {
+        if (this.showSaveIcon) {
+
+
+            return;
+        }
+        // todo: display stats recap...
+    }
 
     @ViewChild('progressChart')
     private set progressChartRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
@@ -38,6 +68,8 @@ export class TodoFooterComponent implements OnDestroy {
 
     public ngOnDestroy(): void {
         this.destroyChart();
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 
     private renderProgressChart(): void {
@@ -97,6 +129,20 @@ export class TodoFooterComponent implements OnDestroy {
     private destroyChart(): void {
         this.progressChart?.destroy();
         this.progressChart = undefined;
+    }
+
+    private updateCenterActionFromUrl(url: string): void {
+        const normalizedPath = url.split('?')[0].replace(/^\//, '');
+
+        if (!normalizedPath) {
+            this.showSaveIcon = false;
+            return;
+        }
+
+        const segments = normalizedPath.split('/').filter(Boolean);
+        console.log('URL segments:', segments);
+
+        this.showSaveIcon = segments.length > 1 && segments[0] === 'item' && segments[1] != null; 
     }
 
 }

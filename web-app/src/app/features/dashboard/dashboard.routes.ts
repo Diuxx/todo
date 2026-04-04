@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { DashboardComponent } from './dashboard.component';
-import { DashboardItemDetailComponent } from '../item-detail/dashboard-item-detail.component';
+import { ItemDetailComponent } from '../item-detail/item-detail.component';
 
 export const DASHBOARD_ROUTES: Routes = [
   { 
@@ -9,8 +9,13 @@ export const DASHBOARD_ROUTES: Routes = [
     title: 'Dashboard'
   },
   {
-    path: ':id',
-    component: DashboardItemDetailComponent,
+    path: 'item/:id',
+    component: ItemDetailComponent,
     title: 'Item details'
+  },
+  {
+    path: 'settings',
+    loadComponent: () => import('../settings/settings.component').then(m => m.SettingsComponent),
+    title: 'Settings'
   }
 ];

@@ -1,7 +1,6 @@
 import { Component, inject, OnInit } from "@angular/core";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { NgClass } from "@angular/common";
-import { AppDataService } from "../../shared/services/app-data.service";
 import { AppData } from "../../shared/models/app-data.model";
 import { AppItem } from "../../shared/models/app-item.model";
 import { ItemsService } from "../../shared/services/items.service";
@@ -18,15 +17,23 @@ export class DashboardComponent implements OnInit {
   // -- variables --
   private readonly itemsService = inject(ItemsService);
   private readonly router: Router = inject(Router);
+  private readonly route: ActivatedRoute = inject(ActivatedRoute);
 
   public data: AppData | null = null;
+  public filter: string | null = null;
 
   public items: AppItem[] = [];
   public selectedItemId: string | null = null;
 
   // -- functions --
   public ngOnInit(): void {
-    this.getData();
+    console.log('DashboardComponent initialized');
+    this.route.queryParamMap.subscribe(params => {
+      this.filter = params.get('filter') || null;
+      console.log('filter:', this.filter);
+
+      this.getData(this.filter);
+    });
   }
 
   /**
@@ -35,16 +42,17 @@ export class DashboardComponent implements OnInit {
    */
   public displayItemDetails(item: AppItem): void {
     this.selectedItemId = item.id;
-    setTimeout(() => this.router.navigate([item.id]), 220);
+    setTimeout(() => this.router.navigate([`item/${item.id}`]), 220);
   }
 
   /**
    * Fetches the application data and updates the component state.
    * @returns void
    */
-  private getData(): void {
+  private getData(filter: string | null = null): void {
+    console.log('Fetching active items with filter:', filter);
     this.itemsService
-      .getAllActive()
+      .getAllActive(filter)
       .subscribe(items => {
         this.items = items;
         console.log('Active items fetched successfully:', items);

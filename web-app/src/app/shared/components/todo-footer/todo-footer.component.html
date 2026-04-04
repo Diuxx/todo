@@ -1,28 +1,32 @@
 @if (visible) {
     <footer>
-        <div class="footer-menu">
-            <a [routerLink]="['/dashboard']" class="footer-menu-item">
+        <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
+            <a [routerLink]="['/']" [queryParams]="{ filter: 'note' }" class="footer-menu-item">
                 <img width="32px" src="/svgs/note.svg" alt="Note" class="footer-logo">
                 <span>Notes</span>
             </a>
         </div>
-        <div class="footer-menu">
-            <a [routerLink]="['/dashboard']" class="footer-menu-item">
+        <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
+            <a [routerLink]="['/']" [queryParams]="{ filter: 'todo' }" class="footer-menu-item">
                 <img width="32px" src="/svgs/todo-2.svg" alt="Todo" class="footer-logo">
                 <span>Todo</span>
             </a>
         </div>
-        <div class="footer-board">
-            <canvas #progressChart class="board-chart" width="90" height="90" aria-label="Progression jour semaine mois"></canvas>
+        <div class="footer-board" [ngClass]="{ 'save-icon-showed': showSaveIcon }" (click)="onBoardClick()">
+            @if (showSaveIcon) {
+                <i class="bi bi-floppy"></i>
+            } @else {
+                <canvas #progressChart class="board-chart" width="90" height="90" aria-label="Progression jour semaine mois"></canvas>
+            }
         </div>
-        <div class="footer-menu">
-            <a [routerLink]="['/dashboard']" class="footer-menu-item">
+        <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
+            <a [routerLink]="['/']" [queryParams]="{ filter: 'citation' }" class="footer-menu-item">
                 <img width="32px" src="/svgs/book.svg" alt="citation" class="footer-logo">
                 <span>Citations</span>
             </a>
         </div>
-        <div class="footer-menu">
-            <a [routerLink]="['/dashboard']" class="footer-menu-item">
+        <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
+            <a [routerLink]="['/settings']" class="footer-menu-item">
                 <img width="32px" src="/svgs/cog-1.svg" alt="parametre" class="footer-logo">
                 <span>Paramètres</span>
             </a>
