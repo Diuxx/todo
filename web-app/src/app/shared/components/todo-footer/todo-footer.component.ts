@@ -29,6 +29,7 @@ export class TodoFooterComponent implements OnDestroy {
     private progressCanvas?: HTMLCanvasElement;
     private todoProgressCanvas?: HTMLCanvasElement;
     private todoProgressChart?: Chart;
+    private progressStats = { dayDone: 0, dayTotal: 0, weekDone: 0, weekTotal: 0, monthDone: 0, monthTotal: 0 };
 
     constructor(
         private readonly router: Router,
@@ -36,6 +37,8 @@ export class TodoFooterComponent implements OnDestroy {
         private readonly itemsService: ItemsService
     ) {
         this.updateCenterActionFromUrl(this.router.url);
+        this.loadProgressStats();
+
         this.router.events
             .pipe(
                 filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -43,7 +46,12 @@ export class TodoFooterComponent implements OnDestroy {
             )
             .subscribe((event) => {
                 this.updateCenterActionFromUrl(event.urlAfterRedirects);
+                this.loadProgressStats();
             });
+
+        this.saveActionService.save$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(() => this.loadProgressStats());
 
         this.saveActionService.todoProgress$
             .pipe(takeUntil(this.destroy$))
@@ -152,12 +160,46 @@ export class TodoFooterComponent implements OnDestroy {
 
         this.destroyChart();
 
-        const dayDone = 3;
-        const dayTotal = 8;
-        const weekDone = 11;
-        const weekTotal = 20;
-        const monthDone = 16;
-        const monthTotal = 40;
+        const { dayDone, dayTotal, weekDone, weekTotal, monthDone, monthTotal } = this.progressStats;
+
+        const safe = (done: number, total: number) =>
+            total === 0 ? [0, 1] : [done, Math.max(0, total - done)];
+
+        const legendItems = [
+            { label: 'J', color: dayTotal === 0 ? '#C0C5CC' : '#32c493' },
+            { label: 'S', color: weekTotal === 0 ? '#C0C5CC' : '#6378FF' },
+            { label: 'M', color: monthTotal === 0 ? '#C0C5CC' : '#FFB85C' },
+        ];
+
+        const centerPlugin: any = {
+            id: 'centerLegend',
+            afterDraw(chart: any) {
+                const { ctx, chartArea } = chart;
+                if (!chartArea) { return; }
+                const cx = ((chartArea.left + chartArea.right) / 2) + 5;
+                const cy = ((chartArea.top + chartArea.bottom) / 2);
+                const rowH = 12;
+                const totalH = (legendItems.length - 1) * rowH;
+                let y = cy - totalH / 2;
+
+                ctx.save();
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.font = 'bold 9px sans-serif';
+
+                for (const item of legendItems) {
+                    ctx.beginPath();
+                    ctx.arc(cx - 8, y, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = item.color;
+                    ctx.fill();
+                    ctx.fillStyle = '#888';
+                    ctx.fillText(item.label, cx - 3, y);
+                    y += rowH;
+                }
+
+                ctx.restore();
+            }
+        };
 
         const chartConfig: ChartConfiguration<'doughnut'> = {
             type: 'doughnut',
@@ -166,34 +208,35 @@ export class TodoFooterComponent implements OnDestroy {
                 datasets: [
                     {
                         label: 'Jour',
-                        data: [dayDone, Math.max(0, dayTotal - dayDone)],
-                        backgroundColor: ['#32c493', '#E5E7EB'],
+                        data: safe(dayDone, dayTotal),
+                        backgroundColor: dayTotal === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#32c493', '#E5E7EB'],
                         borderWidth: 0,
                     },
                     {
                         label: 'Semaine',
-                        data: [weekDone, Math.max(0, weekTotal - weekDone)],
-                        backgroundColor: ['#6378FF', '#E5E7EB'],
+                        data: safe(weekDone, weekTotal),
+                        backgroundColor: weekTotal === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#6378FF', '#E5E7EB'],
                         borderWidth: 0,
                     },
                     {
                         label: 'Mois',
-                        data: [monthDone, Math.max(0, monthTotal - monthDone)],
-                        backgroundColor: ['#FFB85C', '#E5E7EB'],
+                        data: safe(monthDone, monthTotal),
+                        backgroundColor: monthTotal === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#FFB85C', '#E5E7EB'],
                         borderWidth: 0,
                     }
                 ]
             },
             options: {
                 responsive: true,
-                cutout: '18%',
+                cutout: '55%',
                 plugins: {
                     legend: { display: false },
                     tooltip: { enabled: false }
                 },
                 animation: true,
                 events: []
-            }
+            },
+            plugins: [centerPlugin]
         };
 
         this.progressChart = new Chart(this.progressCanvas, chartConfig);
@@ -202,6 +245,39 @@ export class TodoFooterComponent implements OnDestroy {
     private destroyChart(): void {
         this.progressChart?.destroy();
         this.progressChart = undefined;
+    }
+
+    private loadProgressStats(): void {
+        this.itemsService.getAllActive().subscribe(items => {
+            const stats = { dayDone: 0, dayTotal: 0, weekDone: 0, weekTotal: 0, monthDone: 0, monthTotal: 0 };
+
+            for (const item of items) {
+                if (item.type !== 'todo' || !item.todoContent?.length) {
+                    continue;
+                }
+
+                for (const sub of item.todoContent) {
+                    const rt = sub.config?.recurrenceType ?? 'none';
+                    const isDone = sub.config?.status === 'done';
+
+                    if (rt === 'none' || rt === 'daily') {
+                        stats.dayTotal++;
+                        if (isDone) stats.dayDone++;
+                    } else if (rt === 'weekly') {
+                        stats.weekTotal++;
+                        if (isDone) stats.weekDone++;
+                    } else if (rt === 'monthly') {
+                        stats.monthTotal++;
+                        if (isDone) stats.monthDone++;
+                    }
+                }
+            }
+
+            this.progressStats = stats;
+            if (this.progressCanvas) {
+                this.renderProgressChart();
+            }
+        });
     }
 
     private renderTodoProgressChart(): void {

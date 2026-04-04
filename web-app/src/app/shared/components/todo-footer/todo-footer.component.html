@@ -16,9 +16,8 @@
             @if (todoProgress) {
                 <canvas #todoProgressChart class="board-chart" width="90" height="90" aria-label="Progression todo"></canvas>
                 <span class="todo-progress-label">{{ todoProgress.done }}/{{ todoProgress.total }}</span>
-            } @else if (showSaveIcon) {
-                <i class="bi bi-floppy"></i>
-            } @else {
+            }
+            @else {
                 <canvas #progressChart class="board-chart" width="90" height="90" aria-label="Progression jour semaine mois"></canvas>
             }
         </div>

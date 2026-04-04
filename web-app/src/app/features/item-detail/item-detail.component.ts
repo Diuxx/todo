@@ -15,8 +15,7 @@ import { generateUUID } from "../../shared/utils";
   selector: 'item-detail',
   templateUrl: './item-detail.component.html',
   styleUrls: ['./item-detail.component.scss'],
-  imports: [ReactiveFormsModule, TodoEditModalComponent, NgClass],
-  
+  imports: [ReactiveFormsModule, TodoEditModalComponent, NgClass], 
 })
 export class ItemDetailComponent implements OnInit {
 

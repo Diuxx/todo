@@ -1,0 +1,21 @@
+:host {
+  display: block;
+  grid-area: main;
+  padding: 1rem;
+  padding-bottom: 1rem; /* To prevent content from being hidden behind the fixed footer */
+  margin-top: 110px;
+  margin-bottom: 60px;
+  overflow-y: auto;
+}
+
+.settings-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: var(--shadow);
+  background-color: var(--app-bg-color);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 1rem;
+  height: 100%;
+}
