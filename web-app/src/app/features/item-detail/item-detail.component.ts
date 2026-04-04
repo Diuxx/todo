@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild, inject } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { Subject, takeUntil } from "rxjs";
+import { Subject, debounceTime, takeUntil } from "rxjs";
 import { AppItem } from "../../shared/models/app-item.model";
 import { ItemsService } from "../../shared/services/items.service";
 import { SaveActionService } from "../../shared/services/save-action.service";
@@ -28,7 +28,10 @@ export class ItemDetailComponent implements OnInit {
   private readonly router = inject(Router);
 
   private readonly destroy$ = new Subject<void>();
+  private readonly formSubscriptionsDestroy$ = new Subject<void>();
   private savedFeedbackTimeoutId?: ReturnType<typeof setTimeout>;
+  private todoStatusAutoSaveTimeoutId?: ReturnType<typeof setTimeout>;
+  private lastTitleInputAt: number = 0;
 
   private pendingTextareaFocus: boolean = false;
   private contentTextareaElement?: HTMLTextAreaElement;
@@ -74,6 +77,7 @@ export class ItemDetailComponent implements OnInit {
       .subscribe(foundItem => {
         this.item = foundItem;
         this.itemForm = createItemForm(this.formBuilder, foundItem);
+        this.setupAutoSaveSubscriptions();
         this.pendingTextareaFocus = !!foundItem && !(foundItem.type === 'todo' && foundItem.todoContent?.length);
       });
 
@@ -83,11 +87,18 @@ export class ItemDetailComponent implements OnInit {
   }
 
   public ngOnDestroy(): void {
+    this.formSubscriptionsDestroy$.next();
+    this.formSubscriptionsDestroy$.complete();
+
     this.destroy$.next();
     this.destroy$.complete();
 
     if (this.savedFeedbackTimeoutId) {
       clearTimeout(this.savedFeedbackTimeoutId);
+    }
+
+    if (this.todoStatusAutoSaveTimeoutId) {
+      clearTimeout(this.todoStatusAutoSaveTimeoutId);
     }
   }
 
@@ -113,7 +124,7 @@ export class ItemDetailComponent implements OnInit {
    * @returns void
    */
   public saveElement(): void {
-    if (!this.item) {
+    if (!this.item || !this.itemForm.dirty) {
       return;
     }
 
@@ -130,7 +141,11 @@ export class ItemDetailComponent implements OnInit {
     });
   }
 
-
+  /**
+   * Adds a new sub-item to the todo content and opens the edit modal for it.
+   * Does nothing if the current item is not a todo.
+   * @returns void
+   */
   public addTodoSubItem(): void {
     if (this.item?.type !== 'todo') {
       return;
@@ -159,6 +174,8 @@ export class ItemDetailComponent implements OnInit {
   /**
    * Deletes a sub-item from the todo content.
    * If the deleted sub-item is currently being edited, it also closes the edit modal.
+   * @param subItemForm The form group of the sub-item to delete.
+   * @returns void
    */
   public deleteTodoSubItem(subItemForm: FormGroup): void {
     if (this.item?.type !== 'todo') {
@@ -173,21 +190,40 @@ export class ItemDetailComponent implements OnInit {
     }
 
     if (this.editingSubItemForm === subItemForm) {
-      this.closeTodoEditModal();
+      this.closeTodoEditModal(false);
     }
 
     todoContentArray.removeAt(index);
     this.itemForm.markAsDirty();
   }
 
+  /**
+   * Opens the todo edit modal for a given sub-item form.
+   * @param subItemForm The form group of the sub-item to edit.
+   * @returns void
+   */
   public openTodoEditModal(subItemForm: FormGroup): void {
     this.editingSubItemForm = subItemForm;
     this.isTodoEditModalVisible = true;
   }
 
-  public closeTodoEditModal(): void {
+  /**
+   * Closes the todo edit modal.
+   * @param shouldAutoSave Determines whether the changes should be automatically saved.
+   * @returns void
+   */
+  public closeTodoEditModal(shouldAutoSave: boolean = true): void {
     this.isTodoEditModalVisible = false;
+
+    if (this.editingSubItemForm?.dirty) {
+      this.itemForm.markAsDirty();
+    }
+
     this.editingSubItemForm = undefined;
+
+    if (shouldAutoSave) {
+      this.saveElement();
+    }
   }
 
   public saveTodoModal(): void {
@@ -202,6 +238,7 @@ export class ItemDetailComponent implements OnInit {
     subItemForm.get('status')?.setValue(isChecked ? 'done' : 'pending');
     subItemForm.markAsDirty();
     this.itemForm.markAsDirty();
+    this.scheduleAutoSaveAfterTitleIdle();
   }
 
   public toggleFavorite(): void {
@@ -217,6 +254,49 @@ export class ItemDetailComponent implements OnInit {
 
   public get todoSubItemsControls(): FormGroup[] {
     return getTodoSubItemFormGroups(this.itemForm);
+  }
+
+  /**
+   * Sets up subscriptions to form control value changes to enable auto-saving after a debounce time.
+   * Also tracks the last time the title was modified to ensure that auto-saving only occurs after the user has stopped typing for a certain period.
+   * @returns void
+   */
+  private setupAutoSaveSubscriptions(): void {
+    this.formSubscriptionsDestroy$.next();
+
+    const titleControl = this.itemForm.get('title');
+    const contentControl = this.itemForm.get('content');
+
+    titleControl?.valueChanges
+      .pipe(takeUntil(this.formSubscriptionsDestroy$), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.lastTitleInputAt = Date.now();
+      });
+
+    titleControl?.valueChanges
+      .pipe(debounceTime(1000), takeUntil(this.formSubscriptionsDestroy$), takeUntil(this.destroy$))
+      .subscribe(() => this.saveElement());
+
+    contentControl?.valueChanges
+      .pipe(debounceTime(1000), takeUntil(this.formSubscriptionsDestroy$), takeUntil(this.destroy$))
+      .subscribe(() => this.saveElement());
+  }
+
+  private scheduleAutoSaveAfterTitleIdle(): void {
+    if (this.todoStatusAutoSaveTimeoutId) {
+      clearTimeout(this.todoStatusAutoSaveTimeoutId);
+    }
+
+    this.todoStatusAutoSaveTimeoutId = setTimeout(() => {
+      const isTitleIdle = Date.now() - this.lastTitleInputAt >= 1000;
+
+      if (!isTitleIdle) {
+        this.scheduleAutoSaveAfterTitleIdle();
+        return;
+      }
+
+      this.saveElement();
+    }, 1000);
   }
 
   private triggerSavedFeedback(): void {
