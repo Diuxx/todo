@@ -34,6 +34,7 @@ export class DatabaseService {
             language: 'fr',
             dailyAffirmationEnabled: false,
             showArchivedItems: false,
+            userName: 'Nouvel Utilisateur',
             userId: generateUUID()
         });
     }

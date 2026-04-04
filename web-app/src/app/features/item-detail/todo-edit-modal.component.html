@@ -1,0 +1,50 @@
+@if (visible && subItem) {
+  <div class="todo-modal-overlay" (click)="closeModal()">
+    <div class="todo-modal" (click)="$event.stopPropagation()">
+      <h3>Éditer la tâche</h3>
+
+      <label class="modal-label">Texte</label>
+      <textarea
+        class="modal-textarea"
+        [ngModel]="subItem.title ?? ''"
+        (ngModelChange)="subItem.title = $event"
+        placeholder="Texte de la sous-tâche"></textarea>
+
+      <label class="modal-label">Récurrence</label>
+      <div class="recurrence-actions">
+        @for (option of recurrenceOptions; track option) {
+          <button
+            type="button"
+            class="recurrence-btn"
+            [ngClass]="{ 'is-active': subItem.config?.recurrenceType === option }"
+            (click)="selectRecurrence(option)">
+            {{ option }}
+          </button>
+        }
+      </div>
+      <div class="alert-section">
+          <button
+            type="button"
+            class="alert-toggle-btn"
+            [ngClass]="{ 'is-active': subItem.config?.alertEnabled }"
+            (click)="toggleAlert()">
+            Alertes
+          </button>
+          @if (subItem.config?.alertEnabled) {
+            <div class="alert-time-wrap">
+              <label class="modal-label">Heure</label>
+              <input
+                type="time"
+                class="alert-time-input"
+                [ngModel]="subItem.config?.alertAt ?? ''"
+                (ngModelChange)="updateAlertAt($event)" />
+            </div>
+          }
+      </div>    
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" (click)="closeModal()">Annuler</button>
+        <button type="button" class="modal-btn modal-btn-primary" (click)="saveModal()">Valider</button>
+      </div>
+    </div>
+  </div>
+}

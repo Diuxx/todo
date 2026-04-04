@@ -133,6 +133,7 @@ export const appDataExample: AppData = {
     language: "fr",
     dailyAffirmationEnabled: true,
     showArchivedItems: false,
+    userName: "Nico test",
     userId: "user_123",
   },
 };

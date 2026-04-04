@@ -20,7 +20,7 @@
                 (ngModelChange)="subItem.config ? (subItem.config.status = $event ? 'done' : 'pending') : (subItem.config = { status: $event ? 'done' : 'pending', recurrenceType: 'none', alertEnabled: false })" />
               <span class="todo-subitem-title" [class.is-done]="subItem.config?.status === 'done'">{{ subItem.title }}</span>
               <div class="todo-actions">
-                <button type="button" class="todo-action-btn" aria-label="Éditer la sous-tâche">
+                <button type="button" class="todo-action-btn" aria-label="Éditer la sous-tâche" (click)="openTodoEditModal(subItem)">
                   <i class="bi bi-pencil-fill" style="color: #576072;"></i>
                 </button>
                 <button type="button" class="todo-action-btn" aria-label="Supprimer la sous-tâche">
@@ -49,3 +49,10 @@
     <p>Item introuvable.</p>
   }
 </div>
+
+<todo-edit-modal
+  [visible]="isTodoEditModalVisible"
+  [subItem]="editingSubItem"
+  (close)="closeTodoEditModal()"
+  (save)="saveTodoModal()">
+</todo-edit-modal>

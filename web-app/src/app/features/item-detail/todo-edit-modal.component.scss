@@ -1,0 +1,88 @@
+:host {
+    display: block;
+    position: fixed;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.todo-modal-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.todo-modal {
+  width: min(520px, 100%);
+  background: var(--app-bg-color);
+  border: 1px solid var(--box-border);
+  border-radius: 12px;
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.modal-label {
+  font-size: 0.85rem;
+  color: var(--app-fg-color);
+}
+
+.modal-textarea,
+.alert-time-input {
+  width: 100%;
+  border: 1px solid var(--box-border);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  padding: 0.5rem 0.65rem;
+}
+
+.modal-textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.recurrence-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.alert-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    align-items: end;
+}
+
+.recurrence-btn,
+.alert-toggle-btn,
+.modal-btn {
+  border: 1px solid var(--box-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--app-fg-color);
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+}
+
+.recurrence-btn.is-active,
+.alert-toggle-btn.is-active {
+  border-color: var(--app-color-blue);
+  color: var(--app-color-blue);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.modal-btn-primary {
+  border-color: var(--app-color-green);
+  color: var(--app-color-green);
+}

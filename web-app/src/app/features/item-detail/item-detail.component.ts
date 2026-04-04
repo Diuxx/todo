@@ -3,16 +3,17 @@ import { ActivatedRoute } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { Subject, takeUntil } from "rxjs";
 import { AppDataService } from "../../shared/services/app-data.service";
-import { AppItem } from "../../shared/models/app-item.model";
+import { AppItem, TodoInformation } from "../../shared/models/app-item.model";
 import { ItemsService } from "../../shared/services/items.service";
 import { SaveActionService } from "../../shared/services/save-action.service";
+import { TodoEditModalComponent } from "./todo-edit-modal.component";
 
 @Component({
   standalone: true,
   selector: 'item-detail',
   templateUrl: './item-detail.component.html',
   styleUrls: ['./item-detail.component.scss'],
-  imports: [FormsModule]
+  imports: [FormsModule, TodoEditModalComponent]
 })
 export class ItemDetailComponent implements OnInit {
 
@@ -26,6 +27,9 @@ export class ItemDetailComponent implements OnInit {
 
   private pendingTextareaFocus: boolean = false;
   private contentTextareaElement?: HTMLTextAreaElement;
+  public editingSubItem?: TodoInformation;
+
+  public isTodoEditModalVisible: boolean = false;
 
   @ViewChild('titleInput')
   private titleInputRef?: ElementRef<HTMLInputElement>;
@@ -80,6 +84,20 @@ export class ItemDetailComponent implements OnInit {
         next: () => this.triggerSavedFeedback(),
         error: () => console.log('Error updating item')
     });
+  }
+
+  public openTodoEditModal(subItem: TodoInformation): void {
+    this.editingSubItem = subItem;
+    this.isTodoEditModalVisible = true;
+  }
+
+  public closeTodoEditModal(): void {
+    this.isTodoEditModalVisible = false;
+    this.editingSubItem = undefined;
+  }
+
+  public saveTodoModal(): void {
+    this.closeTodoEditModal();
   }
 
   public ngOnDestroy(): void {
