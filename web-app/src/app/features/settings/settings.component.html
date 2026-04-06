@@ -1,9 +1,120 @@
-<div class="settings-container">
-    <div class="settings-card">
-      <h1 class="settings-card-title">Options</h1>
-      <div [formGroup]="itemForm">
+@if (settingsForm) {
+<div class="settings-container" [formGroup]="settingsForm">
 
-      </div>
+  <div class="settings-card">
+    <div class="settings-card-header">
+      <h1 class="settings-card-title">Options</h1>
+      <span class="save-badge" [ngClass]="{ visible: savedFeedback }">
+        <i class="bi bi-check2"></i> Enregistré
+      </span>
     </div>
 
+    <!-- Profil -->
+    <section class="settings-section">
+      <h2 class="settings-section-title">
+        <i class="bi bi-person-fill"></i> Profil
+      </h2>
+
+      <div class="form-field">
+        <label class="form-label" for="userName">Nom d'utilisateur</label>
+        <input
+          id="userName"
+          type="text"
+          class="form-input"
+          formControlName="userName"
+          placeholder="Votre nom" />
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="userId">ID utilisateur</label>
+        <input
+          id="userId"
+          type="text"
+          class="form-input readonly"
+          formControlName="userId"
+          readonly />
+        <span class="form-hint">Utilisé pour la sauvegarde et restauration des données.</span>
+      </div>
+    </section>
+
+    <!-- Apparence -->
+    <section class="settings-section">
+      <h2 class="settings-section-title">
+        <i class="bi bi-palette-fill"></i> Apparence
+      </h2>
+
+      <div class="form-field">
+        <label class="form-label">Thème</label>
+        <div class="btn-group">
+          <button type="button"
+            class="btn-option"
+            [ngClass]="{ active: settingsForm.get('theme')?.value === 'light' }"
+            (click)="setTheme('light')">
+            <i class="bi bi-sun-fill"></i> Clair
+          </button>
+          <button type="button"
+            class="btn-option"
+            [ngClass]="{ active: settingsForm.get('theme')?.value === 'system' }"
+            (click)="setTheme('system')">
+            <i class="bi bi-circle-half"></i> Système
+          </button>
+          <button type="button"
+            class="btn-option"
+            [ngClass]="{ active: settingsForm.get('theme')?.value === 'dark' }"
+            (click)="setTheme('dark')">
+            <i class="bi bi-moon-fill"></i> Sombre
+          </button>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Langue</label>
+        <div class="btn-group">
+          <button type="button"
+            class="btn-option"
+            [ngClass]="{ active: settingsForm.get('language')?.value === 'fr' }"
+            (click)="setLanguage('fr')">
+            Français
+          </button>
+          <button type="button"
+            class="btn-option"
+            [ngClass]="{ active: settingsForm.get('language')?.value === 'en' }"
+            (click)="setLanguage('en')">
+            English
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Préférences -->
+    <section class="settings-section">
+      <h2 class="settings-section-title">
+        <i class="bi bi-sliders"></i> Préférences
+      </h2>
+
+      <div class="toggle-field">
+        <div class="toggle-field-info">
+          <span class="toggle-label">Affirmation du jour</span>
+          <span class="toggle-hint">Affiche une affirmation positive au démarrage.</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" formControlName="dailyAffirmationEnabled" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-field">
+        <div class="toggle-field-info">
+          <span class="toggle-label">Éléments archivés</span>
+          <span class="toggle-hint">Affiche les éléments archivés dans le tableau de bord.</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" formControlName="showArchivedItems" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </section>
+
+  </div>
 </div>
+}

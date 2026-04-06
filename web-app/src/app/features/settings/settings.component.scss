@@ -2,20 +2,237 @@
   display: block;
   grid-area: main;
   padding: 1rem;
-  padding-bottom: 1rem; /* To prevent content from being hidden behind the fixed footer */
+  padding-bottom: 1rem;
   margin-top: 110px;
   margin-bottom: 60px;
   overflow-y: auto;
 }
 
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .settings-card {
   border: 1px solid #e5e7eb;
   border-radius: 0.75rem;
-  padding: 1rem;
+  padding: 1.25rem;
   box-shadow: var(--shadow);
   background-color: var(--app-bg-color);
-  display: grid;
-  grid-template-rows: auto 1fr;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-card-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--app-fg-color);
+}
+
+.save-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--app-color-green);
+  background-color: var(--app-color-green-light);
+  border-radius: 999px;
+  padding: 0.2rem 0.75rem;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Section ─────────────────────────────────────────────── */
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
-  height: 100%;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+
+  &:first-of-type {
+    border-top: none;
+    padding-top: 0;
+  }
+}
+
+.settings-section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--app-color-grey);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ── Form fields ─────────────────────────────────────────── */
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--app-fg-color);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--input-border-color);
+  border-radius: 0.5rem;
+  background: white;
+  color: var(--app-fg-color);
+  font-size: 0.95rem;
+  transition: border-color 0.15s;
+
+  &:focus {
+    outline: none;
+    border-color: var(--input-focus-border-color);
+  }
+
+  &.readonly {
+    background: #f9fafb;
+    color: var(--app-color-grey);
+    cursor: default;
+  }
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  color: var(--app-color-grey);
+}
+
+/* ── Button group ────────────────────────────────────────── */
+
+.btn-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-option {
+  padding: 0.45rem 1rem;
+  border: 1.5px solid var(--input-border-color);
+  border-radius: 0.5rem;
+  background: white;
+  color: var(--app-fg-color);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  &:hover {
+    border-color: var(--app-color-blue);
+  }
+
+  &.active {
+    border-color: var(--app-color-blue);
+    background-color: var(--app-color-blue-light);
+    color: var(--app-color-blue);
+  }
+}
+
+/* ── Toggle switch ───────────────────────────────────────── */
+
+.toggle-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.toggle-field-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.toggle-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--app-fg-color);
+}
+
+.toggle-hint {
+  font-size: 0.78rem;
+  color: var(--app-color-grey);
+}
+
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+  cursor: pointer;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background-color: #d1d5db;
+  transition: background-color 0.2s;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+}
+
+.toggle input:checked + .toggle-slider {
+  background-color: var(--app-color-green);
+}
+
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(20px);
 }
