@@ -1,4 +1,4 @@
-<div class="detail-container">
+<div class="detail-container" [ngStyle]="{ height: item?.type != 'todo' ? '100%' : null }">
   @if (item && itemForm) {
     <article 
       [class]="'type-' + item.type + ' detail-card'"
@@ -11,8 +11,20 @@
           [ngClass]="{ 'to-be-saved': isFormChanged() }"
           formControlName="title"
           placeholder="Titre de l'item" />
-        <i class="favorite-toggle bi" (click)="toggleFavorite()" [ngClass]="itemForm.get('isFavorite')?.value ? 'bi-star-fill' : 'bi-star'"></i>
-        <i class="delete-btn bi bi-trash-fill" (click)="deleteItem()"></i>
+        <button
+          type="button"
+          class="icon-action-btn favorite-toggle"
+          [attr.aria-label]="itemForm.get('isFavorite')?.value ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+          (click)="toggleFavorite()">
+          <i class="bi" [ngClass]="itemForm.get('isFavorite')?.value ? 'bi-star-fill' : 'bi-star'"></i>
+        </button>
+        <button
+          type="button"
+          class="icon-action-btn delete-btn"
+          aria-label="Supprimer l'item"
+          (click)="deleteItem()">
+          <i class="bi bi-trash-fill"></i>
+        </button>
       </span>
       @if (item.type === 'todo') {
         <div class="todo-list">

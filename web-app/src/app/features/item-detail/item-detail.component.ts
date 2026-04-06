@@ -7,7 +7,7 @@ import { ItemsService } from "../../shared/services/items.service";
 import { SaveActionService } from "../../shared/services/save-action.service";
 import { TodoEditModalComponent } from "./todo-edit-modal/todo-edit-modal.component";
 import { createItemForm, getTodoContentFormArray, getTodoSubItemFormGroups, mapItemFormToAppItem } from "../../shared/models/app-item-form.model";
-import { NgClass } from "@angular/common";
+import { NgClass, NgStyle } from "@angular/common";
 import { generateUUID } from "../../shared/utils";
 
 @Component({
@@ -15,7 +15,7 @@ import { generateUUID } from "../../shared/utils";
   selector: 'item-detail',
   templateUrl: './item-detail.component.html',
   styleUrls: ['./item-detail.component.scss'],
-  imports: [ReactiveFormsModule, TodoEditModalComponent, NgClass], 
+  imports: [ReactiveFormsModule, TodoEditModalComponent, NgClass, NgStyle], 
 })
 export class ItemDetailComponent implements OnInit {
 
