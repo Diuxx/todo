@@ -66,7 +66,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--app-color-white-75);
   color: var(--app-fg-color);
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
@@ -78,43 +78,43 @@
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 6px 16px var(--app-color-black-12);
   }
 
   &:active {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px var(--app-color-black-08);
   }
 
   &:focus-visible {
     outline: none;
     border-color: var(--app-color-blue);
-    box-shadow: 0 0 0 3px rgba(99, 120, 255, 0.2);
+    box-shadow: 0 0 0 3px var(--app-color-blue-focus-20);
   }
 }
 
 .favorite-toggle {
-  border-color: rgba(255, 184, 92, 0.35);
-  color: #8a6a18;
+  border-color: var(--app-color-yellow-border-35);
+  color: var(--app-color-yellow-ink);
 
   &:hover {
-    background-color: #fff8e6;
-    border-color: rgba(255, 184, 92, 0.7);
+    background-color: var(--app-color-yellow-light);
+    border-color: var(--app-color-yellow-border-70);
   }
 
   i.bi-star-fill {
-    color: #f5a524;
-    filter: drop-shadow(0 1px 2px rgba(245, 165, 36, 0.35));
+    color: var(--app-color-yellow-star);
+    filter: drop-shadow(0 1px 2px var(--app-color-yellow-star-shadow));
   }
 }
 
 .delete-btn {
-  border-color: rgba(249, 94, 94, 0.35);
-  color: #c53f3f;
+  border-color: var(--app-color-red-border-35);
+  color: var(--app-color-red-ink);
 
   &:hover {
-    background-color: #fee2e2;
-    border-color: rgba(249, 94, 94, 0.7);
+    background-color: var(--app-color-red-light);
+    border-color: var(--app-color-red-border-70);
   }
 }
 

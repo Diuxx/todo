@@ -9,6 +9,7 @@
   --app-bg-color: #F2F2F2;
   --app-fg-color: #4F4E56;
   --app-color-black: #000000;
+  --app-color-white: #FFFFFF;
   --app-color-grey: #576072;
   --app-color-red: #F95E5E;
   --app-color-orange: #FF8C42;
@@ -23,9 +24,46 @@
   --app-color-purple: #695CFF;
   --app-color-purple-light: #E8E6FF;
 
+  --app-color-white-90: rgba(255, 255, 255, 0.9);
+  --app-color-white-80: rgba(255, 255, 255, 0.8);
+  --app-color-white-75: rgba(255, 255, 255, 0.75);
+  --app-color-white-72: rgba(255, 255, 255, 0.72);
+  --app-color-white-30: rgba(255, 255, 255, 0.3);
+
+  --app-color-black-45: rgba(0, 0, 0, 0.45);
+  --app-color-black-22: rgba(0, 0, 0, 0.22);
+  --app-color-black-20: rgba(0, 0, 0, 0.2);
+  --app-color-black-12: rgba(0, 0, 0, 0.12);
+  --app-color-black-08: rgba(0, 0, 0, 0.08);
+
+  --app-color-blue-45: rgba(99, 120, 255, 0.45);
+  --app-color-blue-focus-22: rgba(99, 120, 255, 0.22);
+  --app-color-blue-focus-20: rgba(99, 120, 255, 0.2);
+  --app-color-blue-focus-18: rgba(99, 120, 255, 0.18);
+  --app-color-blue-focus-15: rgba(99, 120, 255, 0.15);
+
+  --app-color-yellow-ink: #8A6A18;
+  --app-color-yellow-star: #F5A524;
+  --app-color-yellow-star-shadow: rgba(245, 165, 36, 0.35);
+  --app-color-yellow-border-35: rgba(255, 184, 92, 0.35);
+  --app-color-yellow-border-70: rgba(255, 184, 92, 0.7);
+  --app-color-yellow-top-light: #FFFCE9;
+
+  --app-color-red-ink: #C53F3F;
+  --app-color-red-ink-dark: #B13F3F;
+  --app-color-red-border-35: rgba(249, 94, 94, 0.35);
+  --app-color-red-border-45: rgba(249, 94, 94, 0.45);
+  --app-color-red-border-70: rgba(249, 94, 94, 0.7);
+
+  --app-border-soft: rgba(0, 0, 0, 0.08);
+  --surface-muted: #F9FAFB;
+  --border-light: #F3F4F6;
+  --toggle-off-bg: #D1D5DB;
+  --app-color-green-ink: #147457;
+
   --border-to-be-saved-color: var(--app-color-orange);
 
-  --footer-bg-color: white;
+  --footer-bg-color: var(--app-color-white);
   --footer-border-color: #e5e7eb;
   --footer-save-border-color: #32c493;
 
