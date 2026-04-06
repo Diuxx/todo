@@ -6,10 +6,11 @@ import { TodoHeaderComponent } from './shared/components/todo-header/todo-header
 import { TodoFooterComponent } from './shared/components/todo-footer/todo-footer.component';
 import { NavigationService } from './shared/services/navigation.service';
 import { DatabaseService } from './shared/services/database.service';
+import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TodoHeaderComponent, TodoFooterComponent],
+  imports: [RouterOutlet, TodoHeaderComponent, TodoFooterComponent, ConfirmDialogComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })

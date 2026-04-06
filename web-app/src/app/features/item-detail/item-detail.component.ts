@@ -9,6 +9,7 @@ import { TodoEditModalComponent } from "./todo-edit-modal/todo-edit-modal.compon
 import { createItemForm, getTodoContentFormArray, getTodoSubItemFormGroups, mapItemFormToAppItem } from "../../shared/models/app-item-form.model";
 import { NgClass, NgStyle } from "@angular/common";
 import { generateUUID } from "../../shared/utils";
+import { ConfirmDialogService } from "../../shared/services/confirm-dialog.service";
 
 @Component({
   standalone: true,
@@ -23,6 +24,7 @@ export class ItemDetailComponent implements OnInit {
   private readonly route: ActivatedRoute = inject(ActivatedRoute);
   private readonly itemsService = inject(ItemsService);
   private readonly saveActionService = inject(SaveActionService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
 
@@ -113,12 +115,31 @@ export class ItemDetailComponent implements OnInit {
    * @returns void
    */
   public deleteItem(): void {
-    this.itemsService.deleteItem(this.item!.id).subscribe({
-      next: () => {
-        this.router.navigate(['/']);
-      },
-      error: () => console.log('Error deleting item')
-    })
+    if (!this.item) {
+      return;
+    }
+
+    this.confirmDialogService
+      .confirm({
+        title: 'Supprimer cet item ?',
+        message: `Cette action supprimera "${this.item.title}" définitivement.`,
+        confirmText: 'Supprimer',
+        cancelText: 'Annuler',
+        variant: 'danger',
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(confirmed => {
+        if (!confirmed || !this.item) {
+          return;
+        }
+
+        this.itemsService.deleteItem(this.item.id).subscribe({
+          next: () => {
+            this.router.navigate(['/']);
+          },
+          error: () => console.log('Error deleting item')
+        });
+      });
   }
 
   /**
@@ -185,20 +206,26 @@ export class ItemDetailComponent implements OnInit {
       return;
     }
 
-    const todoContentArray = getTodoContentFormArray(this.itemForm);
-    const index = todoContentArray.controls.indexOf(subItemForm);
+    const subItemTitle = `${subItemForm.get('title')?.value ?? ''}`.trim();
 
-    if (index < 0) {
-      return;
-    }
+    this.confirmDialogService
+      .confirm({
+        title: 'Supprimer la sous-tâche ?',
+        message: subItemTitle
+          ? `Cette action supprimera "${subItemTitle}" définitivement.`
+          : 'Cette action supprimera la sous-tâche définitivement.',
+        confirmText: 'Supprimer',
+        cancelText: 'Annuler',
+        variant: 'danger',
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(confirmed => {
+        if (!confirmed) {
+          return;
+        }
 
-    if (this.editingSubItemForm === subItemForm) {
-      this.closeTodoEditModal(false);
-    }
-
-    todoContentArray.removeAt(index);
-    this.itemForm.markAsDirty();
-    this.emitTodoProgress();
+        this.removeTodoSubItem(subItemForm);
+      });
   }
 
   /**
@@ -270,6 +297,23 @@ export class ItemDetailComponent implements OnInit {
     const total = controls.length;
     const done = controls.filter(fg => fg.get('status')?.value === 'done').length;
     this.saveActionService.updateTodoProgress({ done, total });
+  }
+
+  private removeTodoSubItem(subItemForm: FormGroup): void {
+    const todoContentArray = getTodoContentFormArray(this.itemForm);
+    const index = todoContentArray.controls.indexOf(subItemForm);
+
+    if (index < 0) {
+      return;
+    }
+
+    if (this.editingSubItemForm === subItemForm) {
+      this.closeTodoEditModal(false);
+    }
+
+    todoContentArray.removeAt(index);
+    this.itemForm.markAsDirty();
+    this.emitTodoProgress();
   }
 
   /**

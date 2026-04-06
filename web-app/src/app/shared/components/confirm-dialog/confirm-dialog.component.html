@@ -1,0 +1,28 @@
+@if (dialogState$ | async; as dialog) {
+  <div class="confirm-overlay" (click)="cancel()">
+    <div class="confirm-dialog" (click)="$event.stopPropagation()" [ngClass]="dialog.variant">
+      <div class="confirm-icon" [ngClass]="dialog.variant">
+        @if (dialog.variant === 'danger') {
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        }
+        @else {
+          <i class="bi bi-question-circle-fill"></i>
+        }
+      </div>
+
+      <h3 class="confirm-title">{{ dialog.title }}</h3>
+      <p class="confirm-message">{{ dialog.message }}</p>
+
+      <div class="confirm-actions">
+        <button type="button" class="confirm-btn cancel" (click)="cancel()">{{ dialog.cancelText }}</button>
+        <button
+          type="button"
+          class="confirm-btn"
+          [ngClass]="dialog.variant === 'danger' ? 'confirm-danger' : 'confirm-primary'"
+          (click)="confirm()">
+          {{ dialog.confirmText }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
