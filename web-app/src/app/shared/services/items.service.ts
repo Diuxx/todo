@@ -1,7 +1,6 @@
 import { Injectable } from "@angular/core";
 import { from, Observable } from "rxjs";
 import { AppItem } from "../models/app-item.model";
-import { TodoConfig } from "../models/todo-config.model";
 import { db } from "../../db.config";
 import { generateUUID } from "../utils";
 

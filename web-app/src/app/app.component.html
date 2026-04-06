@@ -8,7 +8,7 @@
       </span>
     }
   </span>
-  <span class="my-title">Bonjour Nicolas</span>
+  <span class="my-title">Bonjour {{ (settings$ | async)?.userName ?? '' }}</span>
   <span right-section>
     <!-- <i class="bi bi-gear nav-button"></i> -->
   </span>

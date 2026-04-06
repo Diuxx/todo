@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, inject } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { NgClass } from "@angular/common";
 import { Subject, debounceTime, takeUntil } from "rxjs";
-import { AppDataService } from "../../shared/services/app-data.service";
+import { SettingsService } from "../../shared/services/settings.service";
 import { AppSettings } from "../../shared/models/app-settings.model";
 
 @Component({
@@ -14,7 +14,7 @@ import { AppSettings } from "../../shared/models/app-settings.model";
 export class SettingsComponent implements OnInit, OnDestroy {
 
   private readonly fb = inject(FormBuilder);
-  private readonly appDataService = inject(AppDataService);
+  private readonly settingsService = inject(SettingsService);
   private readonly destroy$ = new Subject<void>();
   private savedFeedbackTimeoutId?: ReturnType<typeof setTimeout>;
 
@@ -22,8 +22,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public savedFeedback = false;
 
   public ngOnInit(): void {
-    this.appDataService.getAll().subscribe(data => {
-      this.buildForm(data.settings);
+    this.settingsService.get().subscribe(settings => {
+      if (!settings) {
+        return;
+      }
+      this.buildForm(settings);
       this.setupAutoSave();
     });
   }
@@ -65,12 +68,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   private saveSettings(): void {
-    if (!this.settingsForm.dirty) return;
-    const _settings: AppSettings = this.settingsForm.getRawValue();
-    // TODO: persist via database service
-    console.log('Settings saved:', _settings);
-    this.settingsForm.markAsPristine();
-    this.triggerSavedFeedback();
+    if (!this.settingsForm.dirty) {
+      return;
+    }
+    const settings: AppSettings = this.settingsForm.getRawValue();
+    this.settingsService.update(settings).subscribe(() => {
+      this.settingsForm.markAsPristine();
+      this.triggerSavedFeedback();
+    });
   }
 
   private triggerSavedFeedback(): void {
