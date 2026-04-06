@@ -236,10 +236,19 @@ export class ItemDetailComponent implements OnInit {
    * @returns void
    */
   // Called on cancel: reverts the sub-item form to its state before the modal was opened.
+  // If the item was just created (empty title snapshot), removes it silently.
   public closeTodoEditModal(shouldRevert: boolean = true): void {
     this.isTodoEditModalVisible = false;
 
+    const wasNewItem = !`${this.editingSubItemSnapshot?.['title'] ?? ''}`.trim();
+
     if (shouldRevert && this.editingSubItemForm && this.editingSubItemSnapshot) {
+      if (wasNewItem) {
+        this.removeTodoSubItem(this.editingSubItemForm);
+        this.editingSubItemForm = undefined;
+        this.editingSubItemSnapshot = null;
+        return;
+      }
       this.editingSubItemForm.reset(this.editingSubItemSnapshot);
     }
 
@@ -253,7 +262,21 @@ export class ItemDetailComponent implements OnInit {
    * @returns void
    */
   // Called on validate: keeps changes and lets the auto-save pipeline handle persistence.
+  // If the title is empty, silently removes the sub-item instead of saving it.
   public saveTodoModal(): void {
+    const title = `${this.editingSubItemForm?.get('title')?.value ?? ''}`.trim();
+
+    if (!title) {
+      const formToRemove = this.editingSubItemForm;
+      this.editingSubItemForm = undefined;
+      this.editingSubItemSnapshot = null;
+      this.isTodoEditModalVisible = false;
+      if (formToRemove) {
+        this.removeTodoSubItem(formToRemove);
+      }
+      return;
+    }
+
     if (this.editingSubItemForm?.dirty) {
       this.itemForm.markAsDirty();
     }
