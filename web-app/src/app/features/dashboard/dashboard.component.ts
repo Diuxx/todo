@@ -5,6 +5,9 @@ import { AppData } from "../../shared/models/app-data.model";
 import { AppItem } from "../../shared/models/app-item.model";
 import { ItemsService } from "../../shared/services/items.service";
 import { DashboardSkeletonComponent } from "../../shared/components/dashboard-skeleton/dashboard-skeleton.component";
+import { SettingsService } from "../../shared/services/settings.service";
+import { forkJoin } from "rxjs";
+import { AppSettings } from "../../shared/models/app-settings.model";
 
 @Component({
   standalone: true,
@@ -17,6 +20,7 @@ export class DashboardComponent implements OnInit {
 
   // -- variables --
   private readonly itemsService = inject(ItemsService);
+  private readonly settingsService = inject(SettingsService);
   private readonly router: Router = inject(Router);
   private readonly route: ActivatedRoute = inject(ActivatedRoute);
 
@@ -24,6 +28,7 @@ export class DashboardComponent implements OnInit {
   public filter: string | null = null;
 
   public items: AppItem[] = [];
+  public settings: AppSettings | undefined;
   public selectedItemId: string | null = null;
   public isLoading: boolean = true;
 
@@ -50,6 +55,26 @@ export class DashboardComponent implements OnInit {
     return `${done} / ${total}`;
   }
 
+  public get affirmationItem(): AppItem | undefined {
+    if (this.filter) {
+      return undefined;
+    }
+
+    return this.settings?.dailyAffirmationEnabled
+      ? this.items.find(item => item.type === 'citation' && !!item.isAffirmation)
+      : undefined;
+  }
+
+  public get displayedItems(): AppItem[] {
+    const affirmation = this.affirmationItem;
+
+    if (!affirmation) {
+      return this.items;
+    }
+
+    return this.items.filter(item => item.id !== affirmation.id);
+  }
+
   /**
    * Displays the details of the selected item.
    * @param item The item to display details for.
@@ -65,19 +90,22 @@ export class DashboardComponent implements OnInit {
    */
   private getData(filter: string | null = null): void {
     this.isLoading = true;
-    console.log('Fetching active items with filter:', filter);
-    this.itemsService
-      .getAllActive(filter)
-      .subscribe({
-        next: (items) => {
-          this.items = items;
-          this.isLoading = false;
-          console.log('Active items fetched successfully:', items);
-        },
-        error: () => {
-          this.items = [];
-          this.isLoading = false;
-        },
-      });
+    // console.log('Fetching active items with filter:', filter);
+    forkJoin({
+      items: this.itemsService.getAllActive(filter),
+      config: this.settingsService.get()
+    }).subscribe({
+      next: ({ items, config }) => {
+        this.items = items;
+        this.settings = config;
+        this.isLoading = false;
+        console.log('Active items fetched successfully:', items);
+      },
+      error: (error) => {
+        console.error('Error fetching active items:', error);
+        this.items = [];
+        this.isLoading = false;
+      }
+    })
   }
 }

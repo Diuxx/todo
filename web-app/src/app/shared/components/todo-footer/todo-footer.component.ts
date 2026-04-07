@@ -94,6 +94,7 @@ export class TodoFooterComponent implements OnDestroy {
             visibility: 'private',
             isArchived: false,
             isFavorite: false,
+            isAffirmation: false,
             tags: [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),

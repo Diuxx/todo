@@ -3,7 +3,22 @@
 }
 @else if (items.length > 0) {
 <div class="dashboard-container">
-  @for (item of items; track item.id; let i = $index) {
+  @if (affirmationItem) {
+    <div class="dashboard-card-large" (click)="displayItemDetails(affirmationItem)">
+      <div class="dashboard-card-large-badge">
+        <i class="bi bi-stars"></i>
+        Affirmation du jour
+      </div>
+      <div class="dashboard-card-large-content">
+        <p>"{{ affirmationItem.content }}"</p>
+      </div>
+      <div class="dashboard-card-large-footer">
+        <span>{{ affirmationItem.title || 'Citation' }}</span>
+        <span>Appuie pour modifier</span>
+      </div>
+    </div>
+  }
+  @for (item of displayedItems; track item.id; let i = $index) {
     <div class="dashboard-card" [ngClass]="['type-' + item.type, selectedItemId === item.id ? 'is-selected' : '']" (click)="displayItemDetails(item)">
       <div class="dashboard-card-title">
         <h2>{{ item.title }}</h2>

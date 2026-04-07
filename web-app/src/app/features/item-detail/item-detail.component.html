@@ -54,6 +54,12 @@
       </div>
     }
     @else {
+      @if (item.type === 'citation') {
+        <label class="affirmation-toggle">
+          <input type="checkbox" formControlName="isAffirmation" />
+          <span>Utiliser cette citation comme affirmation mise en avant</span>
+        </label>
+      }
       <textarea
         #contentTextarea
         class="detail-card-content content editable"

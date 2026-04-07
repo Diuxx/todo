@@ -67,9 +67,10 @@ export class ItemsService {
         const now = new Date().toISOString();
         const payload: AppItem = {
             ...item,
+            isAffirmation: item.type === 'citation' ? !!item.isAffirmation : false,
             updatedAt: now,
         };
-        return from(db.items.put(payload).then(() => payload));
+        return from(this.persistItem(payload));
     }
 
     /**
@@ -79,10 +80,49 @@ export class ItemsService {
         const payload: AppItem = {
             ...item,
             id: generateUUID(),
+            isAffirmation: item.type === 'citation' ? !!item.isAffirmation : false,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
-        return from(db.items.add(payload).then(() => payload));
+        return from(this.persistItem(payload, true));
+    }
+
+    private async persistItem(item: AppItem, isNew: boolean = false): Promise<AppItem> {
+        if (item.type === 'citation' && item.isAffirmation) {
+            await db.transaction('rw', db.items, async () => {
+                const citations = await db.items
+                    .filter(existing => existing.type === 'citation' && existing.id !== item.id && !!existing.isAffirmation)
+                    .toArray();
+
+                if (citations.length) {
+                    await Promise.all(
+                        citations.map(citation =>
+                            db.items.put({
+                                ...citation,
+                                isAffirmation: false,
+                                updatedAt: new Date().toISOString(),
+                            })
+                        )
+                    );
+                }
+
+                if (isNew) {
+                    await db.items.add(item);
+                } else {
+                    await db.items.put(item);
+                }
+            });
+
+            return item;
+        }
+
+        if (isNew) {
+            await db.items.add(item);
+        } else {
+            await db.items.put(item);
+        }
+
+        return item;
     }
 
     /**
