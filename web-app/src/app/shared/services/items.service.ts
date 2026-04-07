@@ -46,77 +46,16 @@ export class ItemsService {
      * @returns An observable that emits the AppItem object if found, or undefined if not found.
      */
     public getItemById(id: string): Observable<AppItem | undefined> {
-            return from(
-                db.items.get(id).then(async (item) => {
-                    if (!item || item.type !== 'todo' || !item.todoContent?.length) {
-                        return item;
-                    }
+        return from(
+            db.items.get(id).then(async (item) => {
+                if (!item || item.type !== 'todo' || !item.todoContent?.length) {
+                    return item;
+                }
 
-                    const [hydratedItem] = await this.hydrateTodoItemsStatus([item]);
-                    return hydratedItem;
-                })
-            );
-    }
-
-    private async hydrateTodoItemsStatus(items: AppItem[]): Promise<AppItem[]> {
-        const todoItems = items.filter(item => item.type === 'todo' && item.todoContent?.length);
-
-        if (!todoItems.length) {
-            return items;
-        }
-
-        const subItemIds = todoItems.flatMap(item => item.todoContent?.map(subItem => subItem.id) ?? []);
-
-        if (!subItemIds.length) {
-            return items;
-        }
-
-        const historyEntries = await db.todoHistory
-            .where('todoItemId')
-            .anyOf(subItemIds)
-            .toArray();
-
-        const historyBySubItem = new Map<string, TodoHistoryEntry[]>();
-
-        for (const entry of historyEntries) {
-            const existing = historyBySubItem.get(entry.todoItemId);
-
-            if (existing) {
-                existing.push(entry);
-            } else {
-                historyBySubItem.set(entry.todoItemId, [entry]);
-            }
-        }
-
-        return items.map(item => {
-            if (item.type !== 'todo' || !item.todoContent?.length) {
-                return item;
-            }
-
-                const hydratedTodoContent = item.todoContent.map(subItem => {
-                const subItemHistory = historyBySubItem.get(subItem.id) ?? [];
-                const recurrenceType = subItem.config?.recurrenceType ?? 'none';
-                const status = this.resolveCurrentTodoStatus(subItemHistory, recurrenceType);
-
-                return {
-                    ...subItem,
-                    isDone: status === 'done',
-                    config: {
-                        recurrenceType,
-                        alertEnabled: subItem.config?.alertEnabled ?? false,
-                        alertAt: subItem.config?.alertAt,
-                        recurrenceRule: subItem.config?.recurrenceRule,
-                        lastCompletedAt: subItem.config?.lastCompletedAt,
-                        nextDueAt: subItem.config?.nextDueAt,
-                    }
-                };
-            });
-
-            return {
-                ...item,
-                todoContent: hydratedTodoContent,
-            };
-        });
+                const [hydratedItem] = await this.hydrateTodoItemsStatus([item]);
+                return hydratedItem;
+            })
+        );
     }
 
     /**
@@ -146,6 +85,105 @@ export class ItemsService {
         return from(db.items.add(payload).then(() => payload));
     }
 
+    /**
+     * Hydrate les items de type todo avec leur statut actuel calculé à partir de l'historique.
+     */
+    private async hydrateTodoItemsStatus(items: AppItem[]): Promise<AppItem[]> {
+        // Filtre uniquement les items de type todo qui ont des sous-tâches,
+        // les autres peuvent être retournés directement sans aller en base.
+        const todoItems = items.filter(item => item.type === 'todo' && item.todoContent?.length);
+
+        if (!todoItems.length) {
+            return items;
+        }
+
+        // Charge en une seule requête l'intégralité de l'historique pour
+        // toutes les sous-tâches impliquées, puis le regroupe par sous-tâche.
+        const historyBySubItem = await this.fetchHistoryGroupedBySubItem(todoItems);
+
+        // Pour chaque item, remplace les sous-tâches par leur version hydratée
+        // (isDone calculé + config sans le champ status persisté).
+        return items.map(item => {
+            if (item.type !== 'todo' || !item.todoContent?.length) {
+                return item;
+            }
+
+            return {
+                ...item,
+                todoContent: item.todoContent.map(subItem =>
+                    this.hydrateSubItem(subItem, historyBySubItem)
+                ),
+            };
+        });
+    }
+
+    /**
+     * Collecte tous les IDs de sous-tâches, charge leur historique en batch
+     * depuis IndexedDB, et retourne une Map subItemId → entrées d'historique.
+     * Un batch unique évite N requêtes séparées (une par sous-tâche).
+     */
+    private async fetchHistoryGroupedBySubItem(
+        todoItems: AppItem[]
+    ): Promise<Map<string, TodoHistoryEntry[]>> {
+        const subItemIds = todoItems.flatMap(
+            item => item.todoContent?.map(subItem => subItem.id) ?? []
+        );
+
+        if (!subItemIds.length) {
+            return new Map();
+        }
+
+        const historyEntries = await db.todoHistory
+            .where('todoItemId')
+            .anyOf(subItemIds)
+            .toArray();
+
+        // Groupe les entrées par sous-tâche pour un accès en O(1) lors du mapping.
+        const historyBySubItem = new Map<string, TodoHistoryEntry[]>();
+
+        for (const entry of historyEntries) {
+            const existing = historyBySubItem.get(entry.todoItemId);
+
+            if (existing) {
+                existing.push(entry);
+            } else {
+                historyBySubItem.set(entry.todoItemId, [entry]);
+            }
+        }
+
+        return historyBySubItem;
+    }
+
+    /**
+     * Hydrate une sous-tâche individuelle :
+     * - calcule isDone à partir de son historique et de sa récurrence
+     * - reconstruit sa config sans le champ status (qui n'est plus persisté)
+     */
+    private hydrateSubItem(
+        subItem: AppItem['todoContent'] extends (infer T)[] | undefined ? NonNullable<T> : never,
+        historyBySubItem: Map<string, TodoHistoryEntry[]>
+    ): typeof subItem {
+        const subItemHistory = historyBySubItem.get(subItem.id) ?? [];
+        const recurrenceType = subItem.config?.recurrenceType ?? 'none';
+        const status = this.resolveCurrentTodoStatus(subItemHistory, recurrenceType);
+
+        return {
+            ...subItem,
+            isDone: status === 'done',
+            config: {
+                recurrenceType,
+                alertEnabled: subItem.config?.alertEnabled ?? false,
+                alertAt: subItem.config?.alertAt,
+                recurrenceRule: subItem.config?.recurrenceRule,
+                lastCompletedAt: subItem.config?.lastCompletedAt,
+                nextDueAt: subItem.config?.nextDueAt,
+            },
+        };
+    }
+
+    /**
+     * Affect le vrai status d'un todo.
+     */
     private resolveCurrentTodoStatus(historyEntries: TodoHistoryEntry[], recurrenceType: RecurrenceType): TodoStatus {
         if (!historyEntries.length) {
             return 'pending';
@@ -186,6 +224,9 @@ export class ItemsService {
         return sortedHistory[0].status;
     }
 
+    /**
+     * 
+     */
     private getPeriodBounds(period: 'daily' | 'weekly' | 'monthly'): { startISO: string; endISO: string } {
         const now = new Date();
 
