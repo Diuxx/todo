@@ -1,0 +1,75 @@
+<section class="recap-page">
+  <header class="recap-header">
+    <h1>Récap hebdomadaire</h1>
+    <p>Vue des tâches réalisées sur les {{ weeklyStats.length }} dernières semaines.</p>
+  </header>
+
+  @if (isLoading) {
+    <div class="recap-loading">Chargement des statistiques...</div>
+  }
+  @else {
+    <div class="recap-cards">
+      <article class="recap-card recap-highlight">
+        <span class="recap-label">Tâches réalisées</span>
+        <strong class="recap-value">{{ summary.totalDone }}</strong>
+        <small>sur les semaines analysées</small>
+      </article>
+
+      <article class="recap-card">
+        <span class="recap-label">Moyenne / semaine</span>
+        <strong class="recap-value">{{ summary.averageDonePerWeek | number:'1.0-1' }}</strong>
+        <small>tâches terminées</small>
+      </article>
+
+      <article class="recap-card">
+        <span class="recap-label">Meilleure semaine</span>
+        <strong class="recap-value">{{ summary.bestWeekDone }}</strong>
+        <small>{{ summary.bestWeekLabel }}</small>
+      </article>
+
+      <article class="recap-card">
+        <span class="recap-label">Semaines actives</span>
+        <strong class="recap-value">{{ summary.activeWeeksCount }}</strong>
+        <small>avec au moins une tâche faite</small>
+      </article>
+    </div>
+
+    <article class="recap-panel">
+      <div class="recap-panel-header">
+        <h2>Progression des semaines passées</h2>
+      </div>
+      <div class="recap-chart-wrapper">
+        <canvas #weeklyHistoryChart></canvas>
+      </div>
+      <div class="recap-week-grid">
+        @for (week of weeklyStats; track week.label) {
+          <div class="recap-week-row">
+            <span class="week-range">{{ week.rangeLabel }}</span>
+            <span class="week-count">{{ week.doneCount }} tâches</span>
+            <span class="week-unique">{{ week.uniqueTodos }} distinctes</span>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="recap-panel">
+      <div class="recap-panel-header">
+        <h2>Top sous-tâches</h2>
+      </div>
+
+      @if (topTodos.length === 0) {
+        <p class="recap-empty">Aucune donnée disponible.</p>
+      }
+      @else {
+        <div class="top-todo-list">
+          @for (todo of topTodos; track todo.todoItemId) {
+            <div class="top-todo-row">
+              <span class="todo-title">{{ todo.title }}</span>
+              <span class="todo-count">{{ todo.count }} fois</span>
+            </div>
+          }
+        </div>
+      }
+    </article>
+  }
+</section>

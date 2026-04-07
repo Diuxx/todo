@@ -17,5 +17,10 @@ export const DASHBOARD_ROUTES: Routes = [
     path: 'settings',
     loadComponent: () => import('../settings/settings.component').then(m => m.SettingsComponent),
     title: 'Settings'
+  },
+  {
+    path: 'recap',
+    loadComponent: () => import('../history-recap/history-recap.component').then(m => m.HistoryRecapComponent),
+    title: 'Récap'
   }
 ];

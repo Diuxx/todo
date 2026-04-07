@@ -1,0 +1,264 @@
+import { CommonModule } from "@angular/common";
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, inject } from "@angular/core";
+import { Chart, ChartConfiguration, registerables } from "chart.js";
+import { combineLatest, Subject, takeUntil } from "rxjs";
+import { AppItem } from "../../shared/models/app-item.model";
+import { TodoHistoryEntry } from "../../shared/models/todo-history.model";
+import { ItemsService } from "../../shared/services/items.service";
+import { TodoHistoryService } from "../../shared/services/todo-history.service";
+
+Chart.register(...registerables);
+
+interface WeeklyStats {
+  label: string;
+  rangeLabel: string;
+  doneCount: number;
+  uniqueTodos: number;
+}
+
+interface RecapSummary {
+  totalDone: number;
+  averageDonePerWeek: number;
+  bestWeekLabel: string;
+  bestWeekDone: number;
+  activeWeeksCount: number;
+}
+
+interface TopTodo {
+  todoItemId: string;
+  title: string;
+  count: number;
+}
+
+@Component({
+  standalone: true,
+  selector: "history-recap",
+  templateUrl: "./history-recap.component.html",
+  styleUrls: ["./history-recap.component.scss"],
+  imports: [CommonModule],
+})
+export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
+  private readonly todoHistoryService = inject(TodoHistoryService);
+  private readonly itemsService = inject(ItemsService);
+  private readonly destroy$ = new Subject<void>();
+
+  private chart?: Chart;
+  private readonly weeksToAnalyze = 8;
+
+  public isLoading: boolean = true;
+  public weeklyStats: WeeklyStats[] = [];
+  public summary: RecapSummary = {
+    totalDone: 0,
+    averageDonePerWeek: 0,
+    bestWeekLabel: "-",
+    bestWeekDone: 0,
+    activeWeeksCount: 0,
+  };
+  public topTodos: TopTodo[] = [];
+
+  @ViewChild("weeklyHistoryChart")
+  private weeklyHistoryChartRef?: ElementRef<HTMLCanvasElement>;
+
+  public ngAfterViewInit(): void {
+    this.loadRecap();
+  }
+
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.destroyChart();
+  }
+
+  private loadRecap(): void {
+    this.isLoading = true;
+
+    combineLatest([
+      this.todoHistoryService.getAll(),
+      this.itemsService.getAllActive("todo"),
+    ])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ([history, todoItems]) => {
+          const doneHistory = history.filter((entry) => entry.status === "done" && !!entry.completedAt);
+          this.weeklyStats = this.buildWeeklyStats(doneHistory);
+          this.summary = this.buildSummary(this.weeklyStats);
+          this.topTodos = this.buildTopTodos(doneHistory, todoItems);
+          this.renderChart(this.weeklyStats);
+          this.isLoading = false;
+        },
+        error: () => {
+          this.weeklyStats = [];
+          this.topTodos = [];
+          this.isLoading = false;
+          this.destroyChart();
+        },
+      });
+  }
+
+  private buildWeeklyStats(doneHistory: TodoHistoryEntry[]): WeeklyStats[] {
+    const currentWeekStart = this.getWeekStart(new Date());
+    const rows: WeeklyStats[] = [];
+
+    for (let offset = this.weeksToAnalyze; offset >= 1; offset--) {
+      const weekStart = new Date(currentWeekStart);
+      weekStart.setDate(weekStart.getDate() - (offset * 7));
+
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+
+      const weekStartISO = weekStart.toISOString();
+      const weekEndISO = weekEnd.toISOString();
+
+      const entries = doneHistory.filter((entry) => {
+        const completedAt = entry.completedAt;
+        return !!completedAt && completedAt >= weekStartISO && completedAt < weekEndISO;
+      });
+
+      rows.push({
+        label: `S-${offset}`,
+        rangeLabel: `${this.formatShortDate(weekStart)} - ${this.formatShortDate(new Date(weekEnd.getTime() - 1))}`,
+        doneCount: entries.length,
+        uniqueTodos: new Set(entries.map((entry) => entry.todoItemId)).size,
+      });
+    }
+
+    return rows;
+  }
+
+  private buildSummary(weeklyStats: WeeklyStats[]): RecapSummary {
+    if (!weeklyStats.length) {
+      return {
+        totalDone: 0,
+        averageDonePerWeek: 0,
+        bestWeekLabel: "-",
+        bestWeekDone: 0,
+        activeWeeksCount: 0,
+      };
+    }
+
+    const totalDone = weeklyStats.reduce((acc, row) => acc + row.doneCount, 0);
+    const activeWeeksCount = weeklyStats.filter((row) => row.doneCount > 0).length;
+    const bestWeek = weeklyStats.reduce((best, current) =>
+      current.doneCount > best.doneCount ? current : best
+    );
+
+    return {
+      totalDone,
+      averageDonePerWeek: totalDone / weeklyStats.length,
+      bestWeekLabel: bestWeek.rangeLabel,
+      bestWeekDone: bestWeek.doneCount,
+      activeWeeksCount,
+    };
+  }
+
+  private buildTopTodos(doneHistory: TodoHistoryEntry[], todoItems: AppItem[]): TopTodo[] {
+    const titleBySubItemId = new Map<string, string>();
+
+    for (const todo of todoItems) {
+      if (todo.type !== "todo" || !todo.todoContent?.length) {
+        continue;
+      }
+
+      for (const subItem of todo.todoContent) {
+        const title = `${subItem.title ?? "Sous-tâche"}`.trim() || "Sous-tâche";
+        titleBySubItemId.set(subItem.id, title);
+      }
+    }
+
+    const countByTodoId = new Map<string, number>();
+
+    for (const entry of doneHistory) {
+      countByTodoId.set(entry.todoItemId, (countByTodoId.get(entry.todoItemId) ?? 0) + 1);
+    }
+
+    return Array.from(countByTodoId.entries())
+      .map(([todoItemId, count]) => ({
+        todoItemId,
+        title: titleBySubItemId.get(todoItemId) ?? "Sous-tâche supprimée",
+        count,
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }
+
+  private renderChart(weeklyStats: WeeklyStats[]): void {
+    const canvas = this.weeklyHistoryChartRef?.nativeElement;
+
+    if (!canvas) {
+      return;
+    }
+
+    this.destroyChart();
+
+    const config: ChartConfiguration<"bar"> = {
+      type: "bar",
+      data: {
+        labels: weeklyStats.map((week) => week.label),
+        datasets: [
+          {
+            label: "Tâches réalisées",
+            data: weeklyStats.map((week) => week.doneCount),
+            borderRadius: 8,
+            maxBarThickness: 32,
+            backgroundColor: "#4f7cff",
+            hoverBackgroundColor: "#3d68e5",
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              afterLabel: (ctx) => {
+                const stat = weeklyStats[ctx.dataIndex];
+                return stat ? `${stat.uniqueTodos} sous-tâches distinctes` : "";
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: "#6b7280" },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              color: "#6b7280",
+            },
+            grid: {
+              color: "rgba(107, 114, 128, 0.16)",
+            },
+          },
+        },
+      },
+    };
+
+    this.chart = new Chart(canvas, config);
+  }
+
+  private destroyChart(): void {
+    this.chart?.destroy();
+    this.chart = undefined;
+  }
+
+  private getWeekStart(date: Date): Date {
+    const start = new Date(date);
+    const day = start.getDay();
+    const daysSinceMonday = day === 0 ? 6 : day - 1;
+    start.setDate(start.getDate() - daysSinceMonday);
+    start.setHours(0, 0, 0, 0);
+    return start;
+  }
+
+  private formatShortDate(date: Date): string {
+    return date.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+    });
+  }
+}

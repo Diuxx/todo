@@ -24,7 +24,7 @@ export class TodoFooterComponent implements OnDestroy {
     public todoProgress: TodoProgress | null = null;
 
     private readonly destroy$ = new Subject<void>();
-    private readonly staticRoutes = new Set(['settings']);
+    private readonly staticRoutes = new Set(['settings', 'recap']);
 
     private progressCanvas?: HTMLCanvasElement;
     private todoProgressCanvas?: HTMLCanvasElement;
@@ -73,7 +73,7 @@ export class TodoFooterComponent implements OnDestroy {
             this.saveActionService.triggerSave();
             return;
         }
-        // todo: display stats recap...
+        this.router.navigate(['/recap']);
     }
 
     public openSelectTypeModal(): void {
