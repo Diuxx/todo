@@ -1,7 +1,6 @@
 import Dexie, { Table } from 'dexie';
 import { environment } from '../env/env';
 import { AppItem } from './shared/models/app-item.model';
-import { TodoConfig } from './shared/models/todo-config.model';
 import { TodoHistoryEntry } from './shared/models/todo-history.model';
 import { CitationMeta } from './shared/models/citation-meta.model';
 import { ImageMeta } from './shared/models/image-meta.model';
@@ -25,9 +24,11 @@ export class AppDb extends Dexie {
 
   constructor(dbName: string, dbVersion: number) {
     super(dbName);
+
+    // Single schema (mock reset workflow): no migration path needed.
     this.version(dbVersion).stores({
       items: 'id, type, createdAt, updatedAt',
-      todoHistory: 'id, todoItemId, status, completedAt',
+      todoHistory: 'id, todoItemId, status, completedAt, createdAt, [todoItemId+completedAt], [todoItemId+createdAt]',
       citationsMeta: 'id, itemId, author',
       imagesMeta: 'id, itemId',
       settings: 'id'
