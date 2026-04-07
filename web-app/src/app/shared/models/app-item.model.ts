@@ -20,5 +20,6 @@ export interface AppItem extends BaseEntity {
 
 export interface TodoInformation extends BaseEntity {
   title?: string;
+  isDone?: boolean;
   config?: TodoConfig; // like a pointer to the actual AppItem config for todos;
 }

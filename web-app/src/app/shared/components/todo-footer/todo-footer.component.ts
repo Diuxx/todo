@@ -258,7 +258,7 @@ export class TodoFooterComponent implements OnDestroy {
 
                 for (const sub of item.todoContent) {
                     const rt = sub.config?.recurrenceType ?? 'none';
-                    const isDone = sub.config?.status === 'done';
+                    const isDone = !!sub.isDone;
 
                     if (rt === 'none' || rt === 'daily') {
                         stats.dayTotal++;

@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild, inject } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { Subject, debounceTime, takeUntil } from "rxjs";
+import { Observable, Subject, debounceTime, takeUntil } from "rxjs";
 import { AppItem } from "../../shared/models/app-item.model";
 import { ItemsService } from "../../shared/services/items.service";
 import { SaveActionService } from "../../shared/services/save-action.service";
@@ -10,6 +10,7 @@ import { createItemForm, getTodoContentFormArray, getTodoSubItemFormGroups, mapI
 import { NgClass, NgStyle } from "@angular/common";
 import { generateUUID } from "../../shared/utils";
 import { ConfirmDialogService } from "../../shared/services/confirm-dialog.service";
+import { TodoHistoryService } from "../../shared/services/todo-history.service";
 
 @Component({
   standalone: true,
@@ -25,6 +26,7 @@ export class ItemDetailComponent implements OnInit {
   private readonly itemsService = inject(ItemsService);
   private readonly saveActionService = inject(SaveActionService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
+  private readonly todoHistoryService = inject(TodoHistoryService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
 
@@ -169,7 +171,7 @@ export class ItemDetailComponent implements OnInit {
     const subItemForm = this.formBuilder.group({
       id: [generateUUID()],
       title: [''],
-      status: ['pending'],
+      isDone: [false],
       recurrenceType: ['none'],
       alertEnabled: [false],
       alertAt: [''],
@@ -284,9 +286,39 @@ export class ItemDetailComponent implements OnInit {
   }
 
   public onTodoStatusChange(subItemForm: FormGroup, isChecked: boolean): void {
-    subItemForm.get('status')?.setValue(isChecked ? 'done' : 'pending');
-    subItemForm.markAsDirty();
-    this.itemForm.markAsDirty();
+    const subItemId = `${subItemForm.get('id')?.value ?? ''}`;
+    const recurrenceType = `${subItemForm.get('recurrenceType')?.value ?? 'none'}`;
+
+    if (!subItemId) {
+      return;
+    }
+
+    subItemForm.get('isDone')?.setValue(isChecked, { emitEvent: false });
+
+    let statusUpdate$: Observable<unknown>;
+
+    if (isChecked) {
+      statusUpdate$ = this.todoHistoryService.markTodoItemAsDone(subItemId);
+    } else if (recurrenceType === 'daily') {
+      statusUpdate$ = this.todoHistoryService.unDoneDaily(subItemId);
+    } else if (recurrenceType === 'weekly') {
+      statusUpdate$ = this.todoHistoryService.unDoneWeekly(subItemId);
+    } else if (recurrenceType === 'monthly') {
+      statusUpdate$ = this.todoHistoryService.unDoneMonthly(subItemId);
+    } else {
+      statusUpdate$ = this.todoHistoryService.unDoneTodoItem(subItemId);
+    }
+
+    statusUpdate$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.emitTodoProgress(),
+        error: () => {
+          subItemForm.get('isDone')?.setValue(!isChecked, { emitEvent: false });
+          this.emitTodoProgress();
+        },
+      });
+
     this.emitTodoProgress();
   }
 
@@ -312,7 +344,7 @@ export class ItemDetailComponent implements OnInit {
 
     const controls = getTodoSubItemFormGroups(this.itemForm);
     const total = controls.length;
-    const done = controls.filter(fg => fg.get('status')?.value === 'done').length;
+    const done = controls.filter(fg => !!fg.get('isDone')?.value).length;
     this.saveActionService.updateTodoProgress({ done, total });
   }
 

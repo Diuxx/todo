@@ -44,7 +44,7 @@ export class DashboardComponent implements OnInit {
    */
   public formatTodoProgress(item: AppItem): string {
     const total = item.todoContent?.length || 0;
-    const done = item.todoContent?.filter(subItem => subItem.config?.status === 'done').length || 0;
+    const done = item.todoContent?.filter(subItem => !!subItem.isDone).length || 0;
     return `${done} / ${total}`;
   }
 

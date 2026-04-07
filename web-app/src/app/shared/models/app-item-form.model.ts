@@ -40,7 +40,6 @@ export function mapItemFormToAppItem(itemForm: FormGroup, sourceItem: AppItem): 
     updatedAt: new Date().toISOString(),
     title: subItem.title,
     config: {
-      status: subItem.status,
       recurrenceType: subItem.recurrenceType,
       alertEnabled: !!subItem.alertEnabled,
       alertAt: subItem.alertEnabled ? subItem.alertAt || undefined : undefined,
@@ -63,7 +62,7 @@ function createTodoSubItemGroup(formBuilder: FormBuilder, subItem: TodoInformati
   return formBuilder.group({
     id: [subItem.id],
     title: [subItem.title ?? ''],
-    status: [subItem.config?.status ?? 'pending'],
+    isDone: [subItem.isDone ?? false],
     recurrenceType: [subItem.config?.recurrenceType ?? 'none'],
     alertEnabled: [subItem.config?.alertEnabled ?? false],
     alertAt: [subItem.config?.alertAt ?? ''],

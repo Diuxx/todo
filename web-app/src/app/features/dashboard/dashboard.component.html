@@ -19,14 +19,14 @@
             @for (subItem of item.todoContent.slice(0, 3); track subItem.id) {
               <div class="dashboard-card-content-todo-item">
                 <span class="dashboard-card-content-todo-item-status">
-                  @if (subItem.config?.status == 'done') {
+                  @if (subItem.isDone) {
                     <i class="bi bi-check2"></i>
                   }
                   @else {
                     <i class="bi bi-square"></i>
                   }
                 </span>
-                <span [class.is-done]="subItem.config?.status == 'done'">{{ subItem.title }}</span>
+                <span [class.is-done]="subItem.isDone">{{ subItem.title }}</span>
                 <span class="dashboard-card-content-todo-item-config">
                   @if (subItem.config?.recurrenceType != 'none') {
                     <i class="bi bi-arrow-repeat"></i>
