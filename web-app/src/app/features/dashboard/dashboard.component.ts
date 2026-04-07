@@ -4,13 +4,14 @@ import { NgClass } from "@angular/common";
 import { AppData } from "../../shared/models/app-data.model";
 import { AppItem } from "../../shared/models/app-item.model";
 import { ItemsService } from "../../shared/services/items.service";
+import { DashboardSkeletonComponent } from "../../shared/components/dashboard-skeleton/dashboard-skeleton.component";
 
 @Component({
   standalone: true,
   selector: 'life-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
-  imports: [NgClass]
+  imports: [NgClass, DashboardSkeletonComponent]
 })
 export class DashboardComponent implements OnInit {
 
@@ -24,6 +25,7 @@ export class DashboardComponent implements OnInit {
 
   public items: AppItem[] = [];
   public selectedItemId: string | null = null;
+  public isLoading: boolean = true;
 
   // -- functions --
   public ngOnInit(): void {
@@ -62,12 +64,20 @@ export class DashboardComponent implements OnInit {
    * @returns void
    */
   private getData(filter: string | null = null): void {
+    this.isLoading = true;
     console.log('Fetching active items with filter:', filter);
     this.itemsService
       .getAllActive(filter)
-      .subscribe(items => {
-        this.items = items;
-        console.log('Active items fetched successfully:', items);
+      .subscribe({
+        next: (items) => {
+          this.items = items;
+          this.isLoading = false;
+          console.log('Active items fetched successfully:', items);
+        },
+        error: () => {
+          this.items = [];
+          this.isLoading = false;
+        },
       });
   }
 }

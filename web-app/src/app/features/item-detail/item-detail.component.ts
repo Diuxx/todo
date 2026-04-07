@@ -11,13 +11,22 @@ import { NgClass, NgStyle } from "@angular/common";
 import { generateUUID } from "../../shared/utils";
 import { ConfirmDialogService } from "../../shared/services/confirm-dialog.service";
 import { TodoHistoryService } from "../../shared/services/todo-history.service";
+import { ItemDetailSkeletonComponent } from "../../shared/components/item-detail-skeleton/item-detail-skeleton.component";
+
+const ITEM_DETAIL_IMPORTS = [
+  ReactiveFormsModule,
+  TodoEditModalComponent,
+  NgClass,
+  NgStyle,
+  ItemDetailSkeletonComponent,
+];
 
 @Component({
   standalone: true,
   selector: 'item-detail',
   templateUrl: './item-detail.component.html',
   styleUrls: ['./item-detail.component.scss'],
-  imports: [ReactiveFormsModule, TodoEditModalComponent, NgClass, NgStyle], 
+  imports: ITEM_DETAIL_IMPORTS,
 })
 export class ItemDetailComponent implements OnInit {
 
@@ -35,11 +44,12 @@ export class ItemDetailComponent implements OnInit {
 
   private pendingTextareaFocus: boolean = false;
   private contentTextareaElement?: HTMLTextAreaElement;
+  private editingSubItemSnapshot: Record<string, unknown> | null = null;
   
   public isTodoEditModalVisible: boolean = false;
   public itemForm: FormGroup = createItemForm(this.formBuilder);
   public editingSubItemForm?: FormGroup;
-  private editingSubItemSnapshot: Record<string, unknown> | null = null;
+  public isLoading: boolean = true;
 
   @ViewChild('titleInput')
   private titleInputRef?: ElementRef<HTMLInputElement>;
@@ -53,7 +63,6 @@ export class ItemDetailComponent implements OnInit {
     }
 
     this.pendingTextareaFocus = false;
-
     requestAnimationFrame(() => {
       const textarea = textareaRef.nativeElement;
       textarea.focus();
@@ -73,15 +82,20 @@ export class ItemDetailComponent implements OnInit {
     }
 
     // get item and create form.
-    this.itemsService
-      .getItemById(id)
-      .subscribe(foundItem => {
-        this.item = foundItem;
-        this.itemForm = createItemForm(this.formBuilder, foundItem);
+    this.itemsService.getItemById(id).subscribe({
+      next: (item) => {
+        this.item = item;
+        this.itemForm = createItemForm(this.formBuilder, item);
         this.setupAutoSaveSubscriptions();
         this.emitTodoProgress();
-        this.pendingTextareaFocus = !!foundItem && !(foundItem.type === 'todo' && foundItem.todoContent?.length);
-      });
+        this.pendingTextareaFocus = !!item && !(item.type === 'todo' && item.todoContent?.length);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.log('Error fetching item with id:', id, err);
+        this.isLoading = false;
+      }
+    });
 
     this.saveActionService.save$
       .pipe(takeUntil(this.destroy$))

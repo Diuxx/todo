@@ -1,78 +1,76 @@
-<div class="detail-container" [ngStyle]="{ height: item?.type != 'todo' ? '100%' : null }">
-  @if (item && itemForm) {
-    <article 
-      [class]="'type-' + item.type + ' detail-card'"
-      [formGroup]="itemForm">
-      <span class="detail-card-title">
-        <input
-          #titleInput
-          type="text"
-          class="editable title-editable"
-          [ngClass]="{ 'to-be-saved': isFormChanged() }"
-          formControlName="title"
-          placeholder="Titre de l'item" />
-        <button
-          type="button"
-          class="icon-action-btn favorite-toggle"
-          [attr.aria-label]="itemForm.get('isFavorite')?.value ? 'Retirer des favoris' : 'Ajouter aux favoris'"
-          (click)="toggleFavorite()">
-          <i class="bi" [ngClass]="itemForm.get('isFavorite')?.value ? 'bi-star-fill' : 'bi-star'"></i>
-        </button>
-        <button
-          type="button"
-          class="icon-action-btn delete-btn"
-          aria-label="Supprimer l'item"
-          (click)="deleteItem()">
-          <i class="bi bi-trash-fill"></i>
-        </button>
-      </span>
-      @if (item.type === 'todo') {
-        <div class="todo-list">
-          @for (subItemForm of todoSubItemsControls; track subItemForm.get('id')?.value; let i = $index) {
-            <div class="todo-row" [formGroup]="subItemForm">
-            <input
-              type="checkbox"
-              class="todo-checkbox"
-              [checked]="!!subItemForm.get('isDone')?.value"
-              (change)="onTodoStatusChange(subItemForm, $any($event.target).checked)" />
-            <span class="todo-subitem-title" [class.is-done]="!!subItemForm.get('isDone')?.value">{{ subItemForm.get('title')?.value }}</span>
-            <div class="todo-actions">
-              <button type="button" class="todo-action-btn" aria-label="Éditer la sous-tâche" (click)="openTodoEditModal(subItemForm)">
-                <i class="bi bi-pencil-fill" style="color: #576072;"></i>
-              </button>
-              <button type="button" class="todo-action-btn" aria-label="Supprimer la sous-tâche" (click)="deleteTodoSubItem(subItemForm)">
-                <i class="bi bi-trash-fill" style="color: #F95E5E;"></i>
-              </button>
-            </div>
-            </div>
-          }
-          <div class="todo-row clickable" (click)="addTodoSubItem()">
-            <i class="bi bi-plus-lg"></i> Ajouter une tâche
-          </div>    
-        </div>
-      }
-      @else {
-        <textarea
-          #contentTextarea
-          class="detail-card-content content editable"
-          formControlName="content"
-          placeholder="Écris ton contenu ici..."></textarea>
-      }
-      <!-- <div class="tags">
-        @for (tag of item.tags; track tag) {
-          <span>{{ tag }}</span>
-        }
-      </div> -->
-    </article>
-  }
-  @else {
-    <p>Item introuvable.</p>
-  }
-</div>
+<app-item-detail-skeleton [todoRows]="4" [style.display]="isLoading ? 'block' : 'none'"></app-item-detail-skeleton>
 
+@if (!isLoading && item && itemForm) {
+<div class="detail-container" [ngStyle]="{ height: item.type != 'todo' ? '100%' : null }">
+  <article 
+    [class]="'type-' + item.type + ' detail-card'"
+    [formGroup]="itemForm">
+    <span class="detail-card-title">
+      <input
+        #titleInput
+        type="text"
+        class="editable title-editable"
+        [ngClass]="{ 'to-be-saved': isFormChanged() }"
+        formControlName="title"
+        placeholder="Titre de l'item" />
+      <button
+        type="button"
+        class="icon-action-btn favorite-toggle"
+        [attr.aria-label]="itemForm.get('isFavorite')?.value ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+        (click)="toggleFavorite()">
+        <i class="bi" [ngClass]="itemForm.get('isFavorite')?.value ? 'bi-star-fill' : 'bi-star'"></i>
+      </button>
+      <button
+        type="button"
+        class="icon-action-btn delete-btn"
+        aria-label="Supprimer l'item"
+        (click)="deleteItem()">
+        <i class="bi bi-trash-fill"></i>
+      </button>
+    </span>
+    @if (item.type === 'todo') {
+      <div class="todo-list">
+        @for (subItemForm of todoSubItemsControls; track subItemForm.get('id')?.value; let i = $index) {
+          <div class="todo-row" [formGroup]="subItemForm">
+          <input
+            type="checkbox"
+            class="todo-checkbox"
+            [checked]="!!subItemForm.get('isDone')?.value"
+            (change)="onTodoStatusChange(subItemForm, $any($event.target).checked)" />
+          <span class="todo-subitem-title" [class.is-done]="!!subItemForm.get('isDone')?.value">{{ subItemForm.get('title')?.value }}</span>
+          <div class="todo-actions">
+            <button type="button" class="todo-action-btn" aria-label="Éditer la sous-tâche" (click)="openTodoEditModal(subItemForm)">
+              <i class="bi bi-pencil-fill" style="color: #576072;"></i>
+            </button>
+            <button type="button" class="todo-action-btn" aria-label="Supprimer la sous-tâche" (click)="deleteTodoSubItem(subItemForm)">
+              <i class="bi bi-trash-fill" style="color: #F95E5E;"></i>
+            </button>
+          </div>
+          </div>
+        }
+        <div class="todo-row clickable" (click)="addTodoSubItem()">
+          <i class="bi bi-plus-lg"></i> Ajouter une tâche
+        </div>    
+      </div>
+    }
+    @else {
+      <textarea
+        #contentTextarea
+        class="detail-card-content content editable"
+        formControlName="content"
+        placeholder="Écris ton contenu ici..."></textarea>
+    }
+    <!-- <div class="tags">
+      @for (tag of item.tags; track tag) {
+        <span>{{ tag }}</span>
+      }
+    </div> -->
+  </article>
+</div>
 <todo-edit-modal
   [visible]="isTodoEditModalVisible"
   [subItemForm]="editingSubItemForm"
   (close)="closeTodoEditModal()"
   (save)="saveTodoModal()">
 </todo-edit-modal>
+}

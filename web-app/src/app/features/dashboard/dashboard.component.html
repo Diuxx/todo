@@ -1,4 +1,7 @@
-@if (items.length > 0) {
+@if (isLoading) {
+<app-dashboard-skeleton [count]="6"></app-dashboard-skeleton>
+}
+@else if (items.length > 0) {
 <div class="dashboard-container">
   @for (item of items; track item.id; let i = $index) {
     <div class="dashboard-card" [ngClass]="['type-' + item.type, selectedItemId === item.id ? 'is-selected' : '']" (click)="displayItemDetails(item)">
@@ -54,5 +57,5 @@
 </div>
 } 
 @else {
-  <p>Loading...</p>
+  <p class="dashboard-empty">Aucun item pour le moment.</p>
 }
