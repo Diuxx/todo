@@ -10,16 +10,12 @@ export interface AppItem extends BaseEntity {
   isArchived: boolean;
   isFavorite: boolean;
   tags: string[];
-
-  // -- Relations hiérarchiques (ex: pour les tâches et sous-tâches)
-  todoContent?: TodoInformation[];
-
-  // Pour les vues masonry / UI
-  coverImageUrl?: string;
+  todoContent?: TodoInformation[]; // only for type 'todo'.
+  coverImageUrl?: string; // todo: feature à venir.
 }
 
 export interface TodoInformation extends BaseEntity {
   title?: string;
   isDone?: boolean;
-  config?: TodoConfig; // like a pointer to the actual AppItem config for todos;
+  config?: TodoConfig;
 }

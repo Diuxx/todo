@@ -33,7 +33,6 @@ export function getTodoSubItemFormGroups(itemForm: FormGroup): FormGroup[] {
 
 export function mapItemFormToAppItem(itemForm: FormGroup, sourceItem: AppItem): AppItem {
   const formValue = itemForm.getRawValue();
-
   const todoContent: TodoInformation[] = (formValue.todoContent ?? []).map((subItem: any) => ({
     id: subItem.id,
     createdAt: sourceItem.todoContent?.find((existing) => existing.id === subItem.id)?.createdAt ?? new Date().toISOString(),

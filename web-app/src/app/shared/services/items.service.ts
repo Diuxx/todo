@@ -93,7 +93,7 @@ export class ItemsService {
                 return item;
             }
 
-            const hydratedTodoContent = item.todoContent.map(subItem => {
+                const hydratedTodoContent = item.todoContent.map(subItem => {
                 const subItemHistory = historyBySubItem.get(subItem.id) ?? [];
                 const recurrenceType = subItem.config?.recurrenceType ?? 'none';
                 const status = this.resolveCurrentTodoStatus(subItemHistory, recurrenceType);

@@ -1,5 +1,5 @@
 export interface ImageMeta {
-  itemId: string; // référence vers AppItem.id
+  itemId: string;
   imageUrl: string;
   thumbnailUrl?: string;
   width?: number;

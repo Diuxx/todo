@@ -3,15 +3,13 @@
   <span left-section>
     @if (!isHomePage()) {
       <span class="nav-button" (click)="goHome()" style="display: flex; align-items: center; gap: 0.1rem;white-space: nowrap;font-size: 0.875rem;">
-        <i class="bi bi-arrow-left-short nav-button"></i>
-        Retour
+        <i class="bi bi-house-fill nav-button"></i>
+        Home
       </span>
     }
   </span>
   <span class="my-title">Bonjour {{ (settings$ | async)?.userName ?? '' }}</span>
-  <span right-section>
-    <!-- <i class="bi bi-gear nav-button"></i> -->
-  </span>
+  <span right-section></span>
 </todo-header>
 
 <router-outlet />

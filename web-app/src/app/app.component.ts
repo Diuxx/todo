@@ -1,10 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { AsyncPipe, Location } from '@angular/common';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { Router, RouterOutlet } from '@angular/router';
 import { TodoHeaderComponent } from './shared/components/todo-header/todo-header.component';
 import { TodoFooterComponent } from './shared/components/todo-footer/todo-footer.component';
-import { NavigationService } from './shared/services/navigation.service';
 import { DatabaseService } from './shared/services/database.service';
 import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 import { SettingsService } from './shared/services/settings.service';
@@ -17,17 +15,18 @@ import { SettingsService } from './shared/services/settings.service';
 })
 export class AppComponent implements OnInit {
 
-  // variables
-  title = 'to-do';
-  public canGoBack: boolean = false;
-
+  // services
   private readonly router: Router = inject(Router);
   private readonly location: Location = inject(Location);
-  private readonly navigationService: NavigationService = inject(NavigationService);
   private readonly databaseService = inject(DatabaseService);
   private readonly settingsService = inject(SettingsService);
 
+  // service observables
   public readonly settings$ = this.settingsService.settings$;
+
+  // variables
+  title = 'to-do';
+  public canGoBack: boolean = false;
 
   async ngOnInit(): Promise<void> {
     console.log('init application.');
@@ -37,14 +36,6 @@ export class AppComponent implements OnInit {
 
     // Load settings into the reactive stream.
     this.settingsService.get().subscribe();
-
-    this.updateCanGoBack();
-
-    this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(() => {
-        this.updateCanGoBack();
-      });
   }
 
   public isHomePage(): boolean {
@@ -53,16 +44,5 @@ export class AppComponent implements OnInit {
 
   public goHome(): void {
     this.router.navigate(['/']);
-  }
-
-  public goBack(): void {
-    if (!this.canGoBack) {
-      return;
-    }
-    this.location.back();
-  }
-
-  private updateCanGoBack(): void {
-    this.canGoBack = this.navigationService.getPreviousUrl() !== null;
   }
 }

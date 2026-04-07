@@ -1,7 +1,6 @@
 import { RecurrenceType, TodoStatus } from "./base-entity.model";
 
 export interface TodoConfig {
-  // itemId: string; // référence vers AppItem.id
   status?: TodoStatus;
   recurrenceType: RecurrenceType;
 

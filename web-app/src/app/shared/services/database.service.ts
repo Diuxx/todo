@@ -21,6 +21,7 @@ export class DatabaseService {
             await this.seedDefaultData();
 
             console.info('Database initialized with default settings and data.');
+            window.location.reload(); // reload to ensure all components get the initial settings loaded properly.
         }
     }
 
