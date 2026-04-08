@@ -8,13 +8,15 @@ import { DashboardSkeletonComponent } from "../../shared/components/dashboard-sk
 import { SettingsService } from "../../shared/services/settings.service";
 import { switchMap } from "rxjs";
 import { AppSettings } from "../../shared/models/app-settings.model";
+import { PasswordPromptModalComponent } from "../../shared/components/password-prompt-modal/password-prompt-modal.component";
+import { ItemLockService } from "../../shared/services/item-lock.service";
 
 @Component({
   standalone: true,
   selector: 'life-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
-  imports: [NgClass, DashboardSkeletonComponent]
+  imports: [NgClass, DashboardSkeletonComponent, PasswordPromptModalComponent]
 })
 export class DashboardComponent implements OnInit {
 
@@ -23,6 +25,7 @@ export class DashboardComponent implements OnInit {
   private readonly settingsService = inject(SettingsService);
   private readonly router: Router = inject(Router);
   private readonly route: ActivatedRoute = inject(ActivatedRoute);
+  private readonly itemLockService = inject(ItemLockService);
 
   public data: AppData | null = null;
   public filter: string | null = null;
@@ -31,6 +34,10 @@ export class DashboardComponent implements OnInit {
   public settings: AppSettings | undefined;
   public selectedItemId: string | null = null;
   public isLoading: boolean = true;
+  public lockedItemPending?: AppItem;
+  public isUnlockModalVisible = false;
+  public isUnlockSubmitting = false;
+  public unlockErrorMessage: string | null = null;
 
   // -- functions --
   public ngOnInit(): void {
@@ -80,8 +87,44 @@ export class DashboardComponent implements OnInit {
    * @param item The item to display details for.
    */
   public displayItemDetails(item: AppItem): void {
+    if (item.isLocked && !this.itemLockService.isUnlocked(item.id)) {
+      this.lockedItemPending = item;
+      this.unlockErrorMessage = null;
+      this.isUnlockModalVisible = true;
+      return;
+    }
+
     this.selectedItemId = item.id;
     setTimeout(() => this.router.navigate([`item/${item.id}`]), 220);
+  }
+
+  public closeUnlockModal(): void {
+    this.isUnlockModalVisible = false;
+    this.isUnlockSubmitting = false;
+    this.unlockErrorMessage = null;
+    this.lockedItemPending = undefined;
+  }
+
+  public async unlockAndOpenItem(password: string): Promise<void> {
+    if (!this.lockedItemPending) {
+      return;
+    }
+
+    this.isUnlockSubmitting = true;
+    this.unlockErrorMessage = null;
+
+    const isValid = await this.itemLockService.verifyPassword(password);
+
+    if (!isValid) {
+      this.isUnlockSubmitting = false;
+      this.unlockErrorMessage = 'Mot de passe incorrect.';
+      return;
+    }
+
+    const item = this.lockedItemPending;
+    this.itemLockService.unlock(item.id);
+    this.closeUnlockModal();
+    this.displayItemDetails(item);
   }
 
   /**

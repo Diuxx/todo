@@ -33,7 +33,7 @@ export class ItemsService {
                 .filter(item => (includeArchived || !item.isArchived) && (!filter || item.type === filter))
                 .toArray()
                 .then(async (items) => {
-                    return this.hydrateTodoItemsStatus(this.sortItems(items));
+                    return this.hydrateTodoItemsStatus(this.sortItems(items.map((item) => this.normalizeItem(item))));
                 })
             );
     }
@@ -50,11 +50,13 @@ export class ItemsService {
     public getItemById(id: string): Observable<AppItem | undefined> {
         return from(
             db.items.get(id).then(async (item) => {
-                if (!item || item.type !== 'todo' || !item.todoContent?.length) {
-                    return item;
+                const normalizedItem = item ? this.normalizeItem(item) : undefined;
+
+                if (!normalizedItem || normalizedItem.type !== 'todo' || !normalizedItem.todoContent?.length) {
+                    return normalizedItem;
                 }
 
-                const [hydratedItem] = await this.hydrateTodoItemsStatus([item]);
+                const [hydratedItem] = await this.hydrateTodoItemsStatus([normalizedItem]);
                 return hydratedItem;
             })
         );
@@ -69,6 +71,7 @@ export class ItemsService {
         const now = new Date().toISOString();
         const payload: AppItem = {
             ...item,
+            isLocked: !!item.isLocked,
             isAffirmation: item.type === 'citation' ? !!item.isAffirmation : false,
             updatedAt: now,
         };
@@ -82,6 +85,7 @@ export class ItemsService {
         const payload: AppItem = {
             ...item,
             id: generateUUID(),
+            isLocked: !!item.isLocked,
             isAffirmation: item.type === 'citation' ? !!item.isAffirmation : false,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -169,6 +173,13 @@ export class ItemsService {
         }
 
         return item;
+    }
+
+    private normalizeItem(item: AppItem): AppItem {
+        return {
+            ...item,
+            isLocked: !!item.isLocked,
+        };
     }
 
     private async syncNotificationsSafely(item?: AppItem, previousItem?: AppItem): Promise<void> {

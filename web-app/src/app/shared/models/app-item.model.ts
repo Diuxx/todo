@@ -9,6 +9,7 @@ export interface AppItem extends BaseEntity {
   visibility: Visibility;
   isArchived: boolean;
   isFavorite: boolean;
+  isLocked: boolean;
   isAffirmation: boolean;
   tags: string[];
   todoContent?: TodoInformation[]; // only for type 'todo'.

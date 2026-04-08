@@ -10,11 +10,26 @@
         Affirmation du jour
       </div>
       <div class="dashboard-card-large-content">
-        <p>"{{ affirmationItem.content }}"</p>
+        @if (affirmationItem.isLocked) {
+          <div class="locked-preview locked-preview-large">
+            <div class="locked-preview-badge">
+              <i class="bi bi-lock-fill"></i>
+              Contenu verrouillé
+            </div>
+            <div class="locked-preview-lines">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        }
+        @else {
+          <p>"{{ affirmationItem.content }}"</p>
+        }
       </div>
       <div class="dashboard-card-large-footer">
         <span>{{ affirmationItem.title || 'Citation' }}</span>
-        <span>Appuie pour modifier</span>
+        <span>{{ affirmationItem.isLocked ? 'Appuie pour déverrouiller' : 'Appuie pour modifier' }}</span>
       </div>
     </div>
   }
@@ -25,6 +40,9 @@
         @if (item.type === 'todo') {
           <span style="font-size: 0.6em;">{{ formatTodoProgress(item) }}</span>
         }
+        @if (item.isLocked) {
+          <i class="bi bi-lock-fill dashboard-lock-icon"></i>
+        }
         @if (item.isFavorite) {
           <i class="bi bi-star-fill"></i>
         } 
@@ -32,7 +50,16 @@
           <i class="bi bi-star"></i>
         }
       </div>
-      @if (item.type == 'todo' && item.todoContent && item.todoContent.length > 0) {
+      @if (item.isLocked) {
+        <div class="dashboard-card-content locked-content">
+          <div class="locked-preview-lines">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      }
+      @else if (item.type == 'todo' && item.todoContent && item.todoContent.length > 0) {
         <div class="dashboard-card-content">
             @for (subItem of item.todoContent.slice(0, 3); track subItem.id) {
               <div class="dashboard-card-content-todo-item">
@@ -74,3 +101,14 @@
 @else {
   <p class="dashboard-empty">Aucun item pour le moment.</p>
 }
+
+<app-password-prompt-modal
+  [visible]="isUnlockModalVisible"
+  title="Déverrouiller l'item"
+  message="Entre le mot de passe pour ouvrir cet item verrouillé."
+  confirmText="Ouvrir"
+  [errorMessage]="unlockErrorMessage"
+  [isSubmitting]="isUnlockSubmitting"
+  (close)="closeUnlockModal()"
+  (submitPassword)="unlockAndOpenItem($event)">
+</app-password-prompt-modal>

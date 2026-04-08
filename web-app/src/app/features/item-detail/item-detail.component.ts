@@ -13,6 +13,8 @@ import { ConfirmDialogService } from "../../shared/services/confirm-dialog.servi
 import { TodoHistoryService } from "../../shared/services/todo-history.service";
 import { ItemDetailSkeletonComponent } from "../../shared/components/item-detail-skeleton/item-detail-skeleton.component";
 import { LocalNotificationService } from "../../shared/services/local-notification.service";
+import { PasswordPromptModalComponent } from "../../shared/components/password-prompt-modal/password-prompt-modal.component";
+import { ItemLockService } from "../../shared/services/item-lock.service";
 
 const ITEM_DETAIL_IMPORTS = [
   ReactiveFormsModule,
@@ -20,6 +22,7 @@ const ITEM_DETAIL_IMPORTS = [
   NgClass,
   NgStyle,
   ItemDetailSkeletonComponent,
+  PasswordPromptModalComponent,
 ];
 
 @Component({
@@ -40,6 +43,7 @@ export class ItemDetailComponent implements OnInit {
   private readonly localNotificationService = inject(LocalNotificationService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly itemLockService = inject(ItemLockService);
 
   private readonly destroy$ = new Subject<void>();
   private savedFeedbackTimeoutId?: ReturnType<typeof setTimeout>;
@@ -52,6 +56,9 @@ export class ItemDetailComponent implements OnInit {
   public itemForm: FormGroup = createItemForm(this.formBuilder);
   public editingSubItemForm?: FormGroup;
   public isLoading: boolean = true;
+  public isUnlockModalVisible = false;
+  public isUnlockSubmitting = false;
+  public unlockErrorMessage: string | null = null;
 
   @ViewChild('titleInput')
   private titleInputRef?: ElementRef<HTMLInputElement>;
@@ -92,6 +99,10 @@ export class ItemDetailComponent implements OnInit {
         this.emitTodoProgress();
         this.pendingTextareaFocus = !!item && !(item.type === 'todo' && item.todoContent?.length);
         this.isLoading = false;
+
+        if (item?.isLocked && !this.itemLockService.isUnlocked(item.id)) {
+          this.isUnlockModalVisible = true;
+        }
       },
       error: (err) => {
         console.log('Error fetching item with id:', id, err);
@@ -352,8 +363,69 @@ export class ItemDetailComponent implements OnInit {
     this.itemForm.markAsDirty();
   }
 
+  public toggleLock(): void {
+    const isLockedControl = this.itemForm.get('isLocked');
+
+    if (!isLockedControl || !this.item) {
+      return;
+    }
+
+    const nextLockedState = !isLockedControl.value;
+    isLockedControl.setValue(nextLockedState);
+    isLockedControl.markAsDirty();
+    this.itemForm.markAsDirty();
+
+    if (nextLockedState) {
+      this.itemLockService.lock(this.item.id);
+    } else {
+      this.itemLockService.unlock(this.item.id);
+    }
+
+    this.saveElement();
+  }
+
+  public closeUnlockModal(): void {
+    this.isUnlockModalVisible = false;
+    this.isUnlockSubmitting = false;
+    this.unlockErrorMessage = null;
+
+    if (this.item?.isLocked && !this.itemLockService.isUnlocked(this.item.id)) {
+      this.router.navigate(['/']);
+    }
+  }
+
+  public async unlockItem(password: string): Promise<void> {
+    if (!this.item) {
+      return;
+    }
+
+    this.isUnlockSubmitting = true;
+    this.unlockErrorMessage = null;
+
+    const isValid = await this.itemLockService.verifyPassword(password);
+
+    if (!isValid) {
+      this.isUnlockSubmitting = false;
+      this.unlockErrorMessage = 'Mot de passe incorrect.';
+      return;
+    }
+
+    this.itemLockService.unlock(this.item.id);
+    this.isUnlockModalVisible = false;
+    this.isUnlockSubmitting = false;
+    this.unlockErrorMessage = null;
+  }
+
   public get todoSubItemsControls(): FormGroup[] {
     return getTodoSubItemFormGroups(this.itemForm);
+  }
+
+  public get shouldShowProtectedContent(): boolean {
+    if (!this.item) {
+      return false;
+    }
+
+    return !this.item.isLocked || this.itemLockService.isUnlocked(this.item.id);
   }
 
   private emitTodoProgress(): void {

@@ -112,6 +112,16 @@
   }
 }
 
+.lock-toggle {
+  border-color: var(--app-color-blue-45);
+  color: var(--app-color-blue);
+
+  &:hover {
+    background-color: var(--app-color-blue-light);
+    border-color: var(--app-color-blue);
+  }
+}
+
 .delete-btn {
   border-color: var(--app-color-red-border-35);
   color: var(--app-color-red-ink);
