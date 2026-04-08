@@ -236,3 +236,35 @@
 .toggle input:checked + .toggle-slider::before {
   transform: translateX(20px);
 }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+
+.stats-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.95rem;
+  border: 1px solid var(--box-border);
+  border-radius: 0.75rem;
+  background: var(--surface-muted);
+}
+
+.stats-label {
+  font-size: 0.82rem;
+  color: var(--app-color-grey);
+}
+
+.stats-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--app-fg-color);
+}
+
+.stats-hint {
+  font-size: 0.78rem;
+  color: var(--app-color-grey);
+}

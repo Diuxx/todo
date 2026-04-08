@@ -117,6 +117,28 @@
       </div>
     </section>
 
+    <section class="settings-section">
+      <h2 class="settings-section-title">
+        <i class="bi bi-database"></i> Données
+      </h2>
+
+      <div class="stats-grid">
+        <div class="stats-card">
+          <span class="stats-label">Taille estimée de la base</span>
+          <strong class="stats-value">
+            {{ databaseSizeKb !== null ? databaseSizeKb + ' Ko' : 'Indisponible' }}
+          </strong>
+          <span class="stats-hint">Estimation du stockage local utilisé sur cet appareil.</span>
+        </div>
+
+        <div class="stats-card">
+          <span class="stats-label">Lignes dans history</span>
+          <strong class="stats-value">{{ historyRowsCount ?? 0 }}</strong>
+          <span class="stats-hint">Nombre d'entrées enregistrées dans l'historique des todos.</span>
+        </div>
+      </div>
+    </section>
+
   </div>
 </div>
 }

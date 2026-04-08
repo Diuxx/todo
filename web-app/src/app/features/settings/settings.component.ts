@@ -4,6 +4,7 @@ import { NgClass } from "@angular/common";
 import { Subject, debounceTime, takeUntil } from "rxjs";
 import { SettingsService } from "../../shared/services/settings.service";
 import { AppSettings } from "../../shared/models/app-settings.model";
+import { db } from "../../db.config";
 
 @Component({
   selector: 'app-settings',
@@ -20,6 +21,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   public settingsForm!: FormGroup;
   public savedFeedback = false;
+  public historyRowsCount: number | null = null;
+  public databaseSizeKb: number | null = null;
 
   public ngOnInit(): void {
     this.settingsService.get().subscribe(settings => {
@@ -29,6 +32,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       this.buildForm(settings);
       this.setupAutoSave();
     });
+
+    this.loadStorageStats();
   }
 
   public ngOnDestroy(): void {
@@ -86,5 +91,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.savedFeedbackTimeoutId = setTimeout(() => {
       this.savedFeedback = false;
     }, 2000);
+  }
+
+  private async loadStorageStats(): Promise<void> {
+    this.historyRowsCount = await db.todoHistory.count();
+
+    if (!('storage' in navigator) || !('estimate' in navigator.storage)) {
+      this.databaseSizeKb = null;
+      return;
+    }
+
+    const estimate = await navigator.storage.estimate();
+    this.databaseSizeKb = estimate.usage ? Math.round(estimate.usage / 1024) : 0;
   }
 }

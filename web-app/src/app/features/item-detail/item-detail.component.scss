@@ -40,7 +40,9 @@
   }
 
   &.type-todo { background-color: var(--todo-color); }
-  &.type-note { background-color: var(--note-color); }
+  &.type-note { 
+    grid-template-rows: auto auto 1fr;
+    background-color: var(--note-color); }
   &.type-citation { 
     grid-template-rows: auto auto 1fr;
     background-color: var(--citation-color); }
