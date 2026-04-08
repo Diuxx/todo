@@ -1,21 +1,23 @@
-<div class="mobile-top"></div>
-<todo-header>
-  <span left-section>
-    @if (!isHomePage()) {
-      <span class="nav-button" (click)="goHome()" style="display: flex; align-items: center; gap: 0.1rem;white-space: nowrap;font-size: 0.875rem;">
-        <i class="bi bi-house-fill nav-button"></i>
-        Home
-      </span>
-    }
-  </span>
-  <span class="my-title">Bonjour {{ (settings$ | async)?.userName ?? '' }}</span>
-  <span right-section></span>
-</todo-header>
+@if (isAppReady) {
+  <div class="mobile-top"></div>
+  <todo-header>
+    <span left-section>
+      @if (!isHomePage()) {
+        <span class="nav-button" (click)="goHome()" style="display: flex; align-items: center; gap: 0.1rem;white-space: nowrap;font-size: 0.875rem;">
+          <i class="bi bi-house-fill nav-button"></i>
+          Home
+        </span>
+      }
+    </span>
+    <span class="my-title">Bonjour {{ (settings$ | async)?.userName ?? '' }}</span>
+    <span right-section></span>
+  </todo-header>
 
-<router-outlet />
+  <router-outlet />
 
-<todo-footer>
+  <todo-footer>
 
-</todo-footer>
+  </todo-footer>
 
-<app-confirm-dialog></app-confirm-dialog>
+  <app-confirm-dialog></app-confirm-dialog>
+}

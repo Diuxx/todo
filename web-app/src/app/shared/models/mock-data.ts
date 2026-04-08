@@ -592,16 +592,19 @@ export const appDataExample: AppData = {
 
   citationsMeta: [
     {
+      id: "citation_meta_1",
       itemId: "item_citation_1",
       author: "Unknown",
       source: "Perso",
     },
     {
+      id: "citation_meta_2",
       itemId: "item_citation_2",
       author: "Proverbe japonais",
       source: "Tradition",
     },
     {
+      id: "citation_meta_3",
       itemId: "item_citation_3",
       author: "Unknown",
       source: "Perso",
@@ -610,6 +613,7 @@ export const appDataExample: AppData = {
 
   imagesMeta: [
     // {
+    //   id: "image_meta_1",
     //   itemId: "item_image_1",
     //   imageUrl: "/images/sunrise.jpg",
     //   thumbnailUrl: "/images/sunrise-thumb.jpg",

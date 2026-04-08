@@ -3,6 +3,9 @@ import { db } from "../../db.config";
 import { generateUUID } from "../utils";
 import { appDataExample } from "../models/mock-data";
 import { PasswordService } from "./password.service";
+import { CitationMeta } from "../models/citation-meta.model";
+import { ImageMeta } from "../models/image-meta.model";
+import { AppSettings } from "../models/app-settings.model";
 
 @Injectable({
     providedIn: 'root'
@@ -19,11 +22,9 @@ export class DatabaseService {
 
         const hasSettings = await db.settings.get(this.SETTINGS_ID);
         if (!hasSettings) {
-            await this.createDefaultSettings();
-            await this.seedDefaultData();
+            await this.initializeDefaultDatabase();
 
             console.info('Database initialized with default settings and data.');
-            window.location.reload(); // reload to ensure all components get the initial settings loaded properly.
             return;
         }
 
@@ -38,8 +39,8 @@ export class DatabaseService {
     /**
      * Seed the database with default data for development or first-time users.
      */
-    private async createDefaultSettings(): Promise<void> {
-        await db.settings.add({
+    private createDefaultSettings(): AppSettings {
+        return {
             id: this.SETTINGS_ID,
             theme: 'system',
             language: 'fr',
@@ -48,18 +49,38 @@ export class DatabaseService {
             passwordHash: this.passwordService.defaultPasswordHash,
             userName: 'Nouvel Utilisateur',
             userId: generateUUID()
-        });
+        };
     }
 
     /**
      * Seed the database with default data for development or first-time users.
      */
     private async seedDefaultData(): Promise<void> {
-        // Add default items, etc. here if needed.
         await db.items.bulkAdd([...appDataExample.items]);
         await db.todoHistory.bulkAdd([...appDataExample.todoHistory]);
-        await db.citationsMeta.bulkAdd([...appDataExample.citationsMeta]);
-        await db.imagesMeta.bulkAdd([...appDataExample.imagesMeta]);
+        await db.citationsMeta.bulkAdd(this.normalizeCitationMetas(appDataExample.citationsMeta));
+        await db.imagesMeta.bulkAdd(this.normalizeImageMetas(appDataExample.imagesMeta));
+    }
+
+    private async initializeDefaultDatabase(): Promise<void> {
+        await db.transaction('rw', [db.settings, db.items, db.todoHistory, db.citationsMeta, db.imagesMeta], async () => {
+            await db.settings.add(this.createDefaultSettings());
+            await this.seedDefaultData();
+        });
+    }
+
+    private normalizeCitationMetas(items: CitationMeta[]): CitationMeta[] {
+        return items.map((item, index) => ({
+            ...item,
+            id: item.id || `citation_meta_${index + 1}`,
+        }));
+    }
+
+    private normalizeImageMetas(items: ImageMeta[]): ImageMeta[] {
+        return items.map((item, index) => ({
+            ...item,
+            id: item.id || `image_meta_${index + 1}`,
+        }));
     }
 
     /**

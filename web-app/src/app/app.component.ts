@@ -29,28 +29,32 @@ export class AppComponent implements OnInit {
   // variables
   title = 'to-do';
   public canGoBack: boolean = false;
+  public isAppReady: boolean = false;
 
   async ngOnInit(): Promise<void> {
     console.log('init application.');
 
-    // init indexedDB and create default settings if not exist.
-    await this.databaseService.init();
-
-    // Load settings into the reactive stream.
-    this.settingsService.get().subscribe();
-
     try {
-      await this.notificationService.init((action) => {
-        const route = action.notification.extra?.route;
+      await this.databaseService.init();
 
-        if (typeof route === 'string' && route.length > 0) {
-          this.router.navigateByUrl(route);
-        }
-      });
+      // Load settings into the reactive stream only after the DB is ready.
+      this.settingsService.get().subscribe();
 
-      await this.notificationService.syncScheduledTodoNotifications();
-    } catch (error) {
-      console.warn('Local notifications are unavailable:', error);
+      try {
+        await this.notificationService.init((action) => {
+          const route = action.notification.extra?.route;
+
+          if (typeof route === 'string' && route.length > 0) {
+            this.router.navigateByUrl(route);
+          }
+        });
+
+        await this.notificationService.syncScheduledTodoNotifications();
+      } catch (error) {
+        console.warn('Local notifications are unavailable:', error);
+      }
+    } finally {
+      this.isAppReady = true;
     }
   }
 

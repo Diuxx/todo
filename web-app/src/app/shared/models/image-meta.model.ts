@@ -1,4 +1,5 @@
 export interface ImageMeta {
+  id: string;
   itemId: string;
   imageUrl: string;
   thumbnailUrl?: string;
