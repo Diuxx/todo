@@ -3,6 +3,7 @@ import { BehaviorSubject, from, Observable } from "rxjs";
 import { tap } from "rxjs/operators";
 import { AppSettings } from "../models/app-settings.model";
 import { db } from "../../db.config";
+import { PasswordService } from "./password.service";
 
 const SETTINGS_ID = 'app-settings';
 
@@ -10,6 +11,7 @@ const SETTINGS_ID = 'app-settings';
 export class SettingsService {
 
   private readonly settingsSubject = new BehaviorSubject<AppSettings | null>(null);
+  private readonly passwordService = new PasswordService();
 
   /**
    * Emits the latest settings whenever they are loaded or updated.
@@ -23,7 +25,7 @@ export class SettingsService {
    */
   public get(): Observable<AppSettings | undefined> {
     return from(
-      db.settings.get(SETTINGS_ID)
+      this.loadSettings()
     ).pipe(
       tap(settings => {
         if (settings) {
@@ -42,6 +44,7 @@ export class SettingsService {
     const payload: AppSettings = {
       ...settings,
       id: SETTINGS_ID,
+      passwordHash: settings.passwordHash || this.passwordService.defaultPasswordHash,
     };
 
     return from(
@@ -49,5 +52,25 @@ export class SettingsService {
     ).pipe(
       tap(saved => this.settingsSubject.next(saved))
     );
+  }
+
+  private async loadSettings(): Promise<AppSettings | undefined> {
+    const settings = await db.settings.get(SETTINGS_ID);
+
+    if (!settings) {
+      return undefined;
+    }
+
+    if (settings.passwordHash) {
+      return settings;
+    }
+
+    const normalized: AppSettings = {
+      ...settings,
+      passwordHash: this.passwordService.defaultPasswordHash,
+    };
+
+    await db.settings.put(normalized);
+    return normalized;
   }
 }

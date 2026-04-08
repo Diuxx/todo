@@ -6,6 +6,7 @@ export interface AppSettings {
   language: "fr" | "en";
   dailyAffirmationEnabled: boolean;
   showArchivedItems: boolean;
+  passwordHash: string;
   userName: string; // displayed in app header.
   userId: string; // to backup/restore data from database.
 }

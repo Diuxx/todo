@@ -1,19 +1,25 @@
 import { Component, OnDestroy, OnInit, inject } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { NgClass } from "@angular/common";
-import { Subject, debounceTime, takeUntil } from "rxjs";
+import { Subject, debounceTime, firstValueFrom, takeUntil } from "rxjs";
 import { SettingsService } from "../../shared/services/settings.service";
 import { AppSettings } from "../../shared/models/app-settings.model";
 import { db } from "../../db.config";
 import { ConfirmDialogService } from "../../shared/services/confirm-dialog.service";
 import { DatabaseService } from "../../shared/services/database.service";
 import { LocalNotificationService } from "../../shared/services/local-notification.service";
+import { PasswordService } from "../../shared/services/password.service";
+import {
+  PasswordModalResetPayload,
+  PasswordModalSubmitPayload,
+  PasswordSettingsModalComponent,
+} from "../../shared/components/password-settings-modal/password-settings-modal.component";
 
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
-  imports: [ReactiveFormsModule, NgClass],
+  imports: [ReactiveFormsModule, NgClass, PasswordSettingsModalComponent],
 })
 export class SettingsComponent implements OnInit, OnDestroy {
 
@@ -22,12 +28,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private readonly confirmDialogService = inject(ConfirmDialogService);
   private readonly databaseService = inject(DatabaseService);
   private readonly localNotificationService = inject(LocalNotificationService);
+  private readonly passwordService = inject(PasswordService);
   private readonly destroy$ = new Subject<void>();
   private savedFeedbackTimeoutId?: ReturnType<typeof setTimeout>;
 
   public settingsForm!: FormGroup;
   public savedFeedback = false;
   public isDeletingData = false;
+  public isPasswordModalVisible = false;
+  public isPasswordSaving = false;
+  public hasCustomPassword = false;
+  public passwordErrorMessage: string | null = null;
   public historyRowsCount: number | null = null;
   public databaseSizeKb: number | null = null;
 
@@ -36,7 +47,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
       if (!settings) {
         return;
       }
+
       this.buildForm(settings);
+      this.updatePasswordState(settings.passwordHash);
       this.setupAutoSave();
     });
 
@@ -59,6 +72,61 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public setLanguage(lang: 'fr' | 'en'): void {
     this.settingsForm.get('language')?.setValue(lang);
     this.settingsForm.markAsDirty();
+  }
+
+  public openPasswordModal(): void {
+    this.passwordErrorMessage = null;
+    this.isPasswordModalVisible = true;
+  }
+
+  public closePasswordModal(): void {
+    this.passwordErrorMessage = null;
+    this.isPasswordModalVisible = false;
+  }
+
+  public async savePassword(payload: PasswordModalSubmitPayload): Promise<void> {
+    const currentPasswordHash = this.settingsForm.get("passwordHash")?.value as string;
+
+    this.passwordErrorMessage = null;
+    this.isPasswordSaving = true;
+
+    try {
+      if (this.hasCustomPassword) {
+        const isCurrentPasswordValid = await this.passwordService.verify(payload.currentPassword, currentPasswordHash);
+
+        if (!isCurrentPasswordValid) {
+          this.passwordErrorMessage = "Le mot de passe actuel est incorrect.";
+          return;
+        }
+      }
+
+      const nextPasswordHash = await this.passwordService.hash(payload.nextPassword);
+      await this.persistPasswordHash(nextPasswordHash);
+    } finally {
+      this.isPasswordSaving = false;
+    }
+  }
+
+  public async resetPasswordToDefault(payload: PasswordModalResetPayload): Promise<void> {
+    const currentPasswordHash = this.settingsForm.get("passwordHash")?.value as string;
+
+    this.passwordErrorMessage = null;
+    this.isPasswordSaving = true;
+
+    try {
+      if (this.hasCustomPassword) {
+        const isCurrentPasswordValid = await this.passwordService.verify(payload.currentPassword, currentPasswordHash);
+
+        if (!isCurrentPasswordValid) {
+          this.passwordErrorMessage = "Le mot de passe actuel est incorrect.";
+          return;
+        }
+      }
+
+      await this.persistPasswordHash(this.passwordService.defaultPasswordHash);
+    } finally {
+      this.isPasswordSaving = false;
+    }
   }
 
   public deleteAppData(): void {
@@ -99,6 +167,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       language: [settings.language],
       dailyAffirmationEnabled: [settings.dailyAffirmationEnabled],
       showArchivedItems: [settings.showArchivedItems],
+      passwordHash: [settings.passwordHash],
       userName: [settings.userName],
       userId: [settings.userId],
     });
@@ -141,5 +210,22 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     const estimate = await navigator.storage.estimate();
     this.databaseSizeKb = estimate.usage ? Math.round(estimate.usage / 1024) : 0;
+  }
+
+  private async persistPasswordHash(passwordHash: string): Promise<void> {
+    this.settingsForm.get("passwordHash")?.setValue(passwordHash);
+    this.settingsForm.markAsDirty();
+
+    const settings: AppSettings = this.settingsForm.getRawValue();
+    await firstValueFrom(this.settingsService.update(settings));
+
+    this.settingsForm.markAsPristine();
+    this.updatePasswordState(passwordHash);
+    this.closePasswordModal();
+    this.triggerSavedFeedback();
+  }
+
+  private updatePasswordState(passwordHash: string): void {
+    this.hasCustomPassword = this.passwordService.isCustomPasswordHash(passwordHash);
   }
 }

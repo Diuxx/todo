@@ -2,12 +2,14 @@ import { Injectable } from "@angular/core";
 import { db } from "../../db.config";
 import { generateUUID } from "../utils";
 import { appDataExample } from "../models/mock-data";
+import { PasswordService } from "./password.service";
 
 @Injectable({
     providedIn: 'root'
 })
 export class DatabaseService {
     private readonly SETTINGS_ID = 'app-settings';
+    private readonly passwordService = new PasswordService();
 
     /**
      * Initialize the database and create default settings if not exist.
@@ -22,6 +24,14 @@ export class DatabaseService {
 
             console.info('Database initialized with default settings and data.');
             window.location.reload(); // reload to ensure all components get the initial settings loaded properly.
+            return;
+        }
+
+        if (!hasSettings.passwordHash) {
+            await db.settings.put({
+                ...hasSettings,
+                passwordHash: this.passwordService.defaultPasswordHash,
+            });
         }
     }
 
@@ -35,6 +45,7 @@ export class DatabaseService {
             language: 'fr',
             dailyAffirmationEnabled: false,
             showArchivedItems: false,
+            passwordHash: this.passwordService.defaultPasswordHash,
             userName: 'Nouvel Utilisateur',
             userId: generateUUID()
         });
