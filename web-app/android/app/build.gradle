@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.diuxx.lifeleveling"
+    namespace "com.diuxx.todo"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.diuxx.lifeleveling"
+        applicationId "com.diuxx.todo"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

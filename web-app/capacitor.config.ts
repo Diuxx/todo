@@ -1,9 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.diuxx.lifeleveling',
-  appName: 'LifeLeveling',
-  webDir: 'dist/life-leveling/browser'
+  appId: 'com.diuxx.todo',
+  appName: 'Todo',
+  webDir: 'dist/todo/browser'
 };
 
 export default config;

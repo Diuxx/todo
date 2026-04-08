@@ -139,7 +139,13 @@
   border-color: var(--app-color-green);
 }
 
-.affirmation-toggle {
+.detail-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.item-toggle {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;

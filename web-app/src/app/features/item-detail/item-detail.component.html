@@ -29,6 +29,12 @@
       </button>
     </span>
     @if (item.type === 'todo') {
+      <div class="detail-toggles">
+        <label class="item-toggle">
+          <input type="checkbox" formControlName="isArchived" />
+          <span>Archiver cet item</span>
+        </label>
+      </div>
       <div class="todo-list">
         @for (subItemForm of todoSubItemsControls; track subItemForm.get('id')?.value; let i = $index) {
           <div class="todo-row" [formGroup]="subItemForm">
@@ -54,12 +60,19 @@
       </div>
     }
     @else {
+      <div class="detail-toggles">
+        <label class="item-toggle">
+          <input type="checkbox" formControlName="isArchived" />
+          <span>Archiver cet item</span>
+        </label>
+        
       @if (item.type === 'citation') {
-        <label class="affirmation-toggle">
+        <label class="item-toggle">
           <input type="checkbox" formControlName="isAffirmation" />
-          <span>Utiliser cette citation comme affirmation mise en avant</span>
+          <span>Utiliser cette citation comme affirmation</span>
         </label>
       }
+      </div>
       <textarea
         #contentTextarea
         class="detail-card-content content editable"

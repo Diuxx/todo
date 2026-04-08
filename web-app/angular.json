@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "life-leveling": {
+    "todo": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/life-leveling",
+            "outputPath": "dist/todo",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -47,8 +47,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1MB",
+                  "maximumError": "2MB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -73,10 +73,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "life-leveling:build:production"
+              "buildTarget": "todo:build:production"
             },
             "development": {
-              "buildTarget": "life-leveling:build:development"
+              "buildTarget": "todo:build:development"
             }
           },
           "defaultConfiguration": "development"

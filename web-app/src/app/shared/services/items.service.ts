@@ -22,22 +22,19 @@ export class ItemsService {
      * Retrieves all items from the database, ordered by creation date in descending order.
      * @returns An observable that emits an array of AppItem objects.
      */
-    public getAllActive(filter: string | null = null): Observable<AppItem[]> {
+    public getAll(filter: string | null = null, includeArchived: boolean = false): Observable<AppItem[]> {
         return from(
             db.items
-                .filter(item => !item.isArchived && (!filter || item.type === filter))
+                .filter(item => (includeArchived || !item.isArchived) && (!filter || item.type === filter))
                 .toArray()
                 .then(async (items) => {
-                    const sortedItems = items.sort((a, b) => {
-                        if (a.isFavorite !== b.isFavorite) {
-                            return Number(b.isFavorite) - Number(a.isFavorite);
-                        }
-                        return b.createdAt.localeCompare(a.createdAt);
-                    });
-
-                    return this.hydrateTodoItemsStatus(sortedItems);
+                    return this.hydrateTodoItemsStatus(this.sortItems(items));
                 })
             );
+    }
+
+    public getAllActive(filter: string | null = null): Observable<AppItem[]> {
+        return this.getAll(filter, false);
     }
 
     /**
@@ -87,6 +84,26 @@ export class ItemsService {
         return from(this.persistItem(payload, true));
     }
 
+    /**
+     * Sorts items by favorite status and creation date.
+     * @param items The array of items to sort.
+     * @returns The sorted array of items.
+     */
+    private sortItems(items: AppItem[]): AppItem[] {
+        return items.sort((a, b) => {
+            if (a.isFavorite !== b.isFavorite) {
+                return Number(b.isFavorite) - Number(a.isFavorite);
+            }
+            return b.createdAt.localeCompare(a.createdAt);
+        });
+    }
+
+    /**
+     * Persists an item in the database, updating existing items or creating new ones.
+     * @param item The item to persist.
+     * @param isNew Whether the item is new and should be added to the database.
+     * @returns The persisted item.
+     */
     private async persistItem(item: AppItem, isNew: boolean = false): Promise<AppItem> {
         if (item.type === 'citation' && item.isAffirmation) {
             await db.transaction('rw', db.items, async () => {

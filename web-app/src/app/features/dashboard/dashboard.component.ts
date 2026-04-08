@@ -6,7 +6,7 @@ import { AppItem } from "../../shared/models/app-item.model";
 import { ItemsService } from "../../shared/services/items.service";
 import { DashboardSkeletonComponent } from "../../shared/components/dashboard-skeleton/dashboard-skeleton.component";
 import { SettingsService } from "../../shared/services/settings.service";
-import { forkJoin } from "rxjs";
+import { switchMap } from "rxjs";
 import { AppSettings } from "../../shared/models/app-settings.model";
 
 @Component({
@@ -90,11 +90,13 @@ export class DashboardComponent implements OnInit {
    */
   private getData(filter: string | null = null): void {
     this.isLoading = true;
-    // console.log('Fetching active items with filter:', filter);
-    forkJoin({
-      items: this.itemsService.getAllActive(filter),
-      config: this.settingsService.get()
-    }).subscribe({
+    this.settingsService.get()
+      .pipe(
+        switchMap((config) => this.itemsService.getAll(filter, !!config?.showArchivedItems).pipe(
+          switchMap((items) => [{ items, config }])
+        ))
+      )
+      .subscribe({
       next: ({ items, config }) => {
         this.items = items;
         this.settings = config;
@@ -106,6 +108,6 @@ export class DashboardComponent implements OnInit {
         this.items = [];
         this.isLoading = false;
       }
-    })
+    });
   }
 }

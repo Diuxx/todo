@@ -1,4 +1,4 @@
-package com.diuxx.lifeleveling;
+package com.diuxx.todo;
 
 import com.getcapacitor.BridgeActivity;
 
