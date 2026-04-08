@@ -137,6 +137,24 @@
           <span class="stats-hint">Nombre d'entrées enregistrées dans l'historique des todos.</span>
         </div>
       </div>
+
+      <div class="danger-zone">
+        <div class="danger-zone-copy">
+          <span class="danger-zone-title">Supprimer les données locales</span>
+          <span class="danger-zone-hint">
+            Efface les todos, notes, citations, historique local et notifications planifiées sur cet appareil.
+          </span>
+        </div>
+
+        <button
+          type="button"
+          class="danger-btn"
+          [disabled]="isDeletingData"
+          (click)="deleteAppData()">
+          <i class="bi bi-trash3"></i>
+          {{ isDeletingData ? 'Suppression...' : 'Supprimer les données' }}
+        </button>
+      </div>
     </section>
 
   </div>

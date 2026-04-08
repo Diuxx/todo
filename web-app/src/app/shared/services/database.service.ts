@@ -50,4 +50,16 @@ export class DatabaseService {
         await db.citationsMeta.bulkAdd([...appDataExample.citationsMeta]);
         await db.imagesMeta.bulkAdd([...appDataExample.imagesMeta]);
     }
+
+    /**
+     * Clears all user content while preserving application settings.
+     */
+    public async clearUserContent(): Promise<void> {
+        await db.transaction('rw', [db.items, db.todoHistory, db.citationsMeta, db.imagesMeta], async () => {
+            await db.items.clear();
+            await db.todoHistory.clear();
+            await db.citationsMeta.clear();
+            await db.imagesMeta.clear();
+        });
+    }
 }

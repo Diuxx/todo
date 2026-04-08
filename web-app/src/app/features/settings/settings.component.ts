@@ -5,6 +5,9 @@ import { Subject, debounceTime, takeUntil } from "rxjs";
 import { SettingsService } from "../../shared/services/settings.service";
 import { AppSettings } from "../../shared/models/app-settings.model";
 import { db } from "../../db.config";
+import { ConfirmDialogService } from "../../shared/services/confirm-dialog.service";
+import { DatabaseService } from "../../shared/services/database.service";
+import { LocalNotificationService } from "../../shared/services/local-notification.service";
 
 @Component({
   selector: 'app-settings',
@@ -16,11 +19,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   private readonly fb = inject(FormBuilder);
   private readonly settingsService = inject(SettingsService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
+  private readonly databaseService = inject(DatabaseService);
+  private readonly localNotificationService = inject(LocalNotificationService);
   private readonly destroy$ = new Subject<void>();
   private savedFeedbackTimeoutId?: ReturnType<typeof setTimeout>;
 
   public settingsForm!: FormGroup;
   public savedFeedback = false;
+  public isDeletingData = false;
   public historyRowsCount: number | null = null;
   public databaseSizeKb: number | null = null;
 
@@ -52,6 +59,37 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public setLanguage(lang: 'fr' | 'en'): void {
     this.settingsForm.get('language')?.setValue(lang);
     this.settingsForm.markAsDirty();
+  }
+
+  public deleteAppData(): void {
+    if (this.isDeletingData) {
+      return;
+    }
+
+    this.confirmDialogService.confirm({
+      title: 'Supprimer les donnees ?',
+      message: 'Cette action va supprimer tous les todos, les notes, les citations, leur historique local et les notifications associees. Cette action est irreversible.',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+      variant: 'danger',
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(async (confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.isDeletingData = true;
+
+        try {
+          await this.localNotificationService.clearAllTodoNotifications();
+          await this.databaseService.clearUserContent();
+          await this.loadStorageStats();
+          this.triggerSavedFeedback();
+        } finally {
+          this.isDeletingData = false;
+        }
+      });
   }
 
   private buildForm(settings: AppSettings): void {

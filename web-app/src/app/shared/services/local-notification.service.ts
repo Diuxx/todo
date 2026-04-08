@@ -320,6 +320,29 @@ export class LocalNotificationService {
   }
 
   /**
+   * Removes all app-managed todo notifications, both pending and already delivered.
+   */
+  async clearAllTodoNotifications(): Promise<void> {
+    const pending = await this.getPending();
+    const pendingNotifications = pending.notifications.filter((notification) => this.isManagedTodoNotification(notification));
+
+    if (pendingNotifications.length) {
+      await LocalNotifications.cancel({
+        notifications: pendingNotifications.map((notification) => ({ id: notification.id })),
+      });
+    }
+
+    const delivered = await LocalNotifications.getDeliveredNotifications();
+    const deliveredNotifications = delivered.notifications.filter(
+      (notification) => notification.extra?.kind === this.todoNotificationKind
+    );
+
+    if (deliveredNotifications.length) {
+      await LocalNotifications.removeDeliveredNotifications({ notifications: deliveredNotifications });
+    }
+  }
+
+  /**
    * Returns the pending notifications.
    */
   async getPending(): Promise<PendingResult> {
