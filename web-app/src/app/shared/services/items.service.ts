@@ -5,9 +5,14 @@ import { db } from "../../db.config";
 import { generateUUID } from "../utils";
 import { RecurrenceType, TodoStatus } from "../models/base-entity.model";
 import { TodoHistoryEntry } from "../models/todo-history.model";
+import { LocalNotificationService } from "./local-notification.service";
 
 @Injectable({ providedIn: 'root' }) // No provider needed.
 export class ItemsService {
+
+    constructor(
+        private readonly localNotificationService: LocalNotificationService,
+    ) {}
 
     /**
      * Deletes an item from the database by its ID.
@@ -15,7 +20,7 @@ export class ItemsService {
      * @returns An observable that completes when the deletion is done.
      */
     public deleteItem(id: string): Observable<void> {
-        return from(db.items.delete(id));
+        return from(this.deleteAndSyncItem(id));
     }
 
     /**
@@ -67,7 +72,7 @@ export class ItemsService {
             isAffirmation: item.type === 'citation' ? !!item.isAffirmation : false,
             updatedAt: now,
         };
-        return from(this.persistItem(payload));
+        return from(this.updateAndSyncItem(payload));
     }
 
     /**
@@ -81,7 +86,31 @@ export class ItemsService {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
-        return from(this.persistItem(payload, true));
+        return from(this.createAndSyncItem(payload));
+    }
+
+    private async deleteAndSyncItem(id: string): Promise<void> {
+        const existingItem = await db.items.get(id);
+
+        await db.items.delete(id);
+        await this.syncNotificationsSafely(undefined, existingItem);
+    }
+
+    private async updateAndSyncItem(item: AppItem): Promise<AppItem> {
+        const previousItem = await db.items.get(item.id);
+        const persistedItem = await this.persistItem(item);
+
+        await this.syncNotificationsSafely(persistedItem, previousItem);
+
+        return persistedItem;
+    }
+
+    private async createAndSyncItem(item: AppItem): Promise<AppItem> {
+        const persistedItem = await this.persistItem(item, true);
+
+        await this.syncNotificationsSafely(persistedItem);
+
+        return persistedItem;
     }
 
     /**
@@ -140,6 +169,19 @@ export class ItemsService {
         }
 
         return item;
+    }
+
+    private async syncNotificationsSafely(item?: AppItem, previousItem?: AppItem): Promise<void> {
+        try {
+            if (item) {
+                await this.localNotificationService.syncTodoNotificationsForItem(item, previousItem);
+                return;
+            }
+
+            await this.localNotificationService.removeTodoNotificationsForItem(previousItem);
+        } catch (error) {
+            console.error('Notification synchronization failed:', error);
+        }
     }
 
     /**

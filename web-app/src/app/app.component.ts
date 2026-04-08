@@ -6,6 +6,7 @@ import { TodoFooterComponent } from './shared/components/todo-footer/todo-footer
 import { DatabaseService } from './shared/services/database.service';
 import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 import { SettingsService } from './shared/services/settings.service';
+import { LocalNotificationService } from './shared/services/local-notification.service';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +21,7 @@ export class AppComponent implements OnInit {
   private readonly location: Location = inject(Location);
   private readonly databaseService = inject(DatabaseService);
   private readonly settingsService = inject(SettingsService);
+  private readonly notificationService = inject(LocalNotificationService);
 
   // service observables
   public readonly settings$ = this.settingsService.settings$;
@@ -36,6 +38,20 @@ export class AppComponent implements OnInit {
 
     // Load settings into the reactive stream.
     this.settingsService.get().subscribe();
+
+    try {
+      await this.notificationService.init((action) => {
+        const route = action.notification.extra?.route;
+
+        if (typeof route === 'string' && route.length > 0) {
+          this.router.navigateByUrl(route);
+        }
+      });
+
+      await this.notificationService.syncScheduledTodoNotifications();
+    } catch (error) {
+      console.warn('Local notifications are unavailable:', error);
+    }
   }
 
   public isHomePage(): boolean {

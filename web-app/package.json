@@ -20,6 +20,7 @@
     "@angular/router": "^20.3.18",
     "@capacitor/android": "^7.4.3",
     "@capacitor/core": "^7.4.3",
+    "@capacitor/local-notifications": "^7.0.6",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.13.1",

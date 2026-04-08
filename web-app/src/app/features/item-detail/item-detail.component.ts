@@ -12,6 +12,7 @@ import { generateUUID } from "../../shared/utils";
 import { ConfirmDialogService } from "../../shared/services/confirm-dialog.service";
 import { TodoHistoryService } from "../../shared/services/todo-history.service";
 import { ItemDetailSkeletonComponent } from "../../shared/components/item-detail-skeleton/item-detail-skeleton.component";
+import { LocalNotificationService } from "../../shared/services/local-notification.service";
 
 const ITEM_DETAIL_IMPORTS = [
   ReactiveFormsModule,
@@ -36,6 +37,7 @@ export class ItemDetailComponent implements OnInit {
   private readonly saveActionService = inject(SaveActionService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
   private readonly todoHistoryService = inject(TodoHistoryService);
+  private readonly localNotificationService = inject(LocalNotificationService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
 
@@ -326,7 +328,10 @@ export class ItemDetailComponent implements OnInit {
     statusUpdate$
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => this.emitTodoProgress(),
+        next: () => {
+          this.emitTodoProgress();
+          this.syncTodoNotifications();
+        },
         error: () => {
           subItemForm.get('isDone')?.setValue(!isChecked, { emitEvent: false });
           this.emitTodoProgress();
@@ -360,6 +365,28 @@ export class ItemDetailComponent implements OnInit {
     const total = controls.length;
     const done = controls.filter(fg => !!fg.get('isDone')?.value).length;
     this.saveActionService.updateTodoProgress({ done, total });
+  }
+
+  private syncTodoNotifications(): void {
+    if (!this.item?.id) {
+      return;
+    }
+
+    this.itemsService.getItemById(this.item.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async (item) => {
+          if (!item) {
+            return;
+          }
+
+          this.item = item;
+          await this.localNotificationService.syncTodoNotificationsForItem(item);
+        },
+        error: (error) => {
+          console.error('Notification synchronization after todo status update failed:', error);
+        },
+      });
   }
 
   private removeTodoSubItem(subItemForm: FormGroup): void {
