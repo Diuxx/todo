@@ -59,6 +59,7 @@ export class ItemDetailComponent implements OnInit {
   public isUnlockModalVisible = false;
   public isUnlockSubmitting = false;
   public unlockErrorMessage: string | null = null;
+  public hasCurrentAccess = false;
 
   @ViewChild('titleInput')
   private titleInputRef?: ElementRef<HTMLInputElement>;
@@ -98,9 +99,10 @@ export class ItemDetailComponent implements OnInit {
         this.setupAutoSaveSubscriptions();
         this.emitTodoProgress();
         this.pendingTextareaFocus = !!item && !(item.type === 'todo' && item.todoContent?.length);
+        this.hasCurrentAccess = !!item && (!item.isLocked || this.itemLockService.isUnlocked(item.id));
         this.isLoading = false;
 
-        if (item?.isLocked && !this.itemLockService.isUnlocked(item.id)) {
+        if (item?.isLocked && !this.hasCurrentAccess) {
           this.isUnlockModalVisible = true;
         }
       },
@@ -377,8 +379,10 @@ export class ItemDetailComponent implements OnInit {
 
     if (nextLockedState) {
       this.itemLockService.lock(this.item.id);
+      this.hasCurrentAccess = true;
     } else {
       this.itemLockService.unlock(this.item.id);
+      this.hasCurrentAccess = true;
     }
 
     this.saveElement();
@@ -389,7 +393,7 @@ export class ItemDetailComponent implements OnInit {
     this.isUnlockSubmitting = false;
     this.unlockErrorMessage = null;
 
-    if (this.item?.isLocked && !this.itemLockService.isUnlocked(this.item.id)) {
+    if (this.item?.isLocked && !this.hasCurrentAccess) {
       this.router.navigate(['/']);
     }
   }
@@ -411,6 +415,7 @@ export class ItemDetailComponent implements OnInit {
     }
 
     this.itemLockService.unlock(this.item.id);
+    this.hasCurrentAccess = true;
     this.isUnlockModalVisible = false;
     this.isUnlockSubmitting = false;
     this.unlockErrorMessage = null;
@@ -425,7 +430,7 @@ export class ItemDetailComponent implements OnInit {
       return false;
     }
 
-    return !this.item.isLocked || this.itemLockService.isUnlocked(this.item.id);
+    return !this.item.isLocked || this.hasCurrentAccess;
   }
 
   private emitTodoProgress(): void {
