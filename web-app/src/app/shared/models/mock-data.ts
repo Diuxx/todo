@@ -43,6 +43,39 @@ const threeDaysAgoDoneAt = new Date(now);
 threeDaysAgoDoneAt.setDate(threeDaysAgoDoneAt.getDate() - 3);
 threeDaysAgoDoneAt.setHours(7, 12, 0, 0);
 
+function atDaysAgo(daysAgo: number, hour: number, minute: number): Date {
+  const date = new Date(now);
+  date.setDate(date.getDate() - daysAgo);
+  date.setHours(hour, minute, 0, 0);
+  return date;
+}
+
+function atWeeksAgo(weeksAgo: number, daysAfterMonday: number, hour: number, minute: number): Date {
+  const date = new Date(weekStart);
+  date.setDate(date.getDate() - (weeksAgo * 7) + daysAfterMonday);
+  date.setHours(hour, minute, 0, 0);
+  return date;
+}
+
+function atMonthsAgo(monthsAgo: number, dayOfMonth: number, hour: number, minute: number): Date {
+  const date = new Date(monthStart);
+  date.setMonth(date.getMonth() - monthsAgo);
+  date.setDate(dayOfMonth);
+  date.setHours(hour, minute, 0, 0);
+  return date;
+}
+
+function createHistoryEntry(id: string, todoItemId: string, completedAt: Date) {
+  return {
+    id,
+    todoItemId,
+    status: "done" as const,
+    completedAt: completedAt.toISOString(),
+    createdAt: completedAt.toISOString(),
+    updatedAt: completedAt.toISOString(),
+  };
+}
+
 export const appDataExample: AppData = {
   id: "example_data_1",
   items: [
@@ -438,215 +471,112 @@ export const appDataExample: AppData = {
   ],
 
   todoHistory: [
-    {
-      id: "history_1",
-      todoItemId: "item_todo_1_sub_1",
-      status: "done",
-      completedAt: todayDoneAt.toISOString(),
-      createdAt: todayDoneAt.toISOString(),
-      updatedAt: todayDoneAt.toISOString(),
-    },
-    {
-      id: "history_2",
-      todoItemId: "item_todo_1_sub_1",
-      status: "done",
-      completedAt: yesterdayDoneAt.toISOString(),
-      createdAt: yesterdayDoneAt.toISOString(),
-      updatedAt: yesterdayDoneAt.toISOString(),
-    },
-    {
-      id: "history_3",
-      todoItemId: "item_todo_1_sub_2",
-      status: "done",
-      completedAt: thisWeekDoneAt.toISOString(),
-      createdAt: thisWeekDoneAt.toISOString(),
-      updatedAt: thisWeekDoneAt.toISOString(),
-    },
-    {
-      id: "history_4",
-      todoItemId: "item_todo_1_sub_2",
-      status: "done",
-      completedAt: lastWeekDoneAt.toISOString(),
-      createdAt: lastWeekDoneAt.toISOString(),
-      updatedAt: lastWeekDoneAt.toISOString(),
-    },
-    {
-      id: "history_5",
-      todoItemId: "item_todo_1_sub_3",
-      status: "done",
-      completedAt: thisMonthDoneAt.toISOString(),
-      createdAt: thisMonthDoneAt.toISOString(),
-      updatedAt: thisMonthDoneAt.toISOString(),
-    },
-    {
-      id: "history_6",
-      todoItemId: "item_todo_1_sub_3",
-      status: "done",
-      completedAt: lastMonthDoneAt.toISOString(),
-      createdAt: lastMonthDoneAt.toISOString(),
-      updatedAt: lastMonthDoneAt.toISOString(),
-    },
-    // Morning routine — sub_1 (Réveil sans snooze) : streak 4 jours
-    {
-      id: "history_7",
-      todoItemId: "item_todo_2_sub_1",
-      status: "done",
-      completedAt: todayDoneAt.toISOString(),
-      createdAt: todayDoneAt.toISOString(),
-      updatedAt: todayDoneAt.toISOString(),
-    },
-    {
-      id: "history_8",
-      todoItemId: "item_todo_2_sub_1",
-      status: "done",
-      completedAt: yesterdayDoneAt.toISOString(),
-      createdAt: yesterdayDoneAt.toISOString(),
-      updatedAt: yesterdayDoneAt.toISOString(),
-    },
-    {
-      id: "history_9",
-      todoItemId: "item_todo_2_sub_1",
-      status: "done",
-      completedAt: twoDaysAgoDoneAt.toISOString(),
-      createdAt: twoDaysAgoDoneAt.toISOString(),
-      updatedAt: twoDaysAgoDoneAt.toISOString(),
-    },
-    {
-      id: "history_10",
-      todoItemId: "item_todo_2_sub_1",
-      status: "done",
-      completedAt: threeDaysAgoDoneAt.toISOString(),
-      createdAt: threeDaysAgoDoneAt.toISOString(),
-      updatedAt: threeDaysAgoDoneAt.toISOString(),
-    },
-    // Morning routine — sub_2 (Méditation) : streak 3 jours
-    {
-      id: "history_11",
-      todoItemId: "item_todo_2_sub_2",
-      status: "done",
-      completedAt: todayDoneAt.toISOString(),
-      createdAt: todayDoneAt.toISOString(),
-      updatedAt: todayDoneAt.toISOString(),
-    },
-    {
-      id: "history_12",
-      todoItemId: "item_todo_2_sub_2",
-      status: "done",
-      completedAt: yesterdayDoneAt.toISOString(),
-      createdAt: yesterdayDoneAt.toISOString(),
-      updatedAt: yesterdayDoneAt.toISOString(),
-    },
-    {
-      id: "history_13",
-      todoItemId: "item_todo_2_sub_2",
-      status: "done",
-      completedAt: twoDaysAgoDoneAt.toISOString(),
-      createdAt: twoDaysAgoDoneAt.toISOString(),
-      updatedAt: twoDaysAgoDoneAt.toISOString(),
-    },
-    // Morning routine — sub_3 (Petit-déjeuner) : streak 2 jours
-    {
-      id: "history_14",
-      todoItemId: "item_todo_2_sub_3",
-      status: "done",
-      completedAt: todayDoneAt.toISOString(),
-      createdAt: todayDoneAt.toISOString(),
-      updatedAt: todayDoneAt.toISOString(),
-    },
-    {
-      id: "history_15",
-      todoItemId: "item_todo_2_sub_3",
-      status: "done",
-      completedAt: yesterdayDoneAt.toISOString(),
-      createdAt: yesterdayDoneAt.toISOString(),
-      updatedAt: yesterdayDoneAt.toISOString(),
-    },
-    // Morning routine — sub_4 (Journaling) : aujourd'hui seulement
-    {
-      id: "history_16",
-      todoItemId: "item_todo_2_sub_4",
-      status: "done",
-      completedAt: todayDoneAt.toISOString(),
-      createdAt: todayDoneAt.toISOString(),
-      updatedAt: todayDoneAt.toISOString(),
-    },
-    // Tâches du jour — sub_1 (Emails) : 2 jours
-    {
-      id: "history_17",
-      todoItemId: "item_todo_3_sub_1",
-      status: "done",
-      completedAt: todayDoneAt.toISOString(),
-      createdAt: todayDoneAt.toISOString(),
-      updatedAt: todayDoneAt.toISOString(),
-    },
-    {
-      id: "history_18",
-      todoItemId: "item_todo_3_sub_1",
-      status: "done",
-      completedAt: yesterdayDoneAt.toISOString(),
-      createdAt: yesterdayDoneAt.toISOString(),
-      updatedAt: yesterdayDoneAt.toISOString(),
-    },
-    // Sport — sub_1 (Stretching) : 2 jours
-    {
-      id: "history_19",
-      todoItemId: "item_todo_4_sub_1",
-      status: "done",
-      completedAt: todayDoneAt.toISOString(),
-      createdAt: todayDoneAt.toISOString(),
-      updatedAt: todayDoneAt.toISOString(),
-    },
-    {
-      id: "history_20",
-      todoItemId: "item_todo_4_sub_1",
-      status: "done",
-      completedAt: yesterdayDoneAt.toISOString(),
-      createdAt: yesterdayDoneAt.toISOString(),
-      updatedAt: yesterdayDoneAt.toISOString(),
-    },
-    // Sport — sub_2 (Cardio) : cette semaine + semaine dernière
-    {
-      id: "history_21",
-      todoItemId: "item_todo_4_sub_2",
-      status: "done",
-      completedAt: thisWeekDoneAt.toISOString(),
-      createdAt: thisWeekDoneAt.toISOString(),
-      updatedAt: thisWeekDoneAt.toISOString(),
-    },
-    {
-      id: "history_22",
-      todoItemId: "item_todo_4_sub_2",
-      status: "done",
-      completedAt: lastWeekDoneAt.toISOString(),
-      createdAt: lastWeekDoneAt.toISOString(),
-      updatedAt: lastWeekDoneAt.toISOString(),
-    },
-    // Revue hebdo — sub_1 (Bilan) : cette semaine + semaine dernière
-    {
-      id: "history_23",
-      todoItemId: "item_todo_5_sub_1",
-      status: "done",
-      completedAt: thisWeekDoneAt.toISOString(),
-      createdAt: thisWeekDoneAt.toISOString(),
-      updatedAt: thisWeekDoneAt.toISOString(),
-    },
-    {
-      id: "history_24",
-      todoItemId: "item_todo_5_sub_1",
-      status: "done",
-      completedAt: lastWeekDoneAt.toISOString(),
-      createdAt: lastWeekDoneAt.toISOString(),
-      updatedAt: lastWeekDoneAt.toISOString(),
-    },
-    // Revue hebdo — sub_3 (Nettoyer notes) : cette semaine
-    {
-      id: "history_25",
-      todoItemId: "item_todo_5_sub_3",
-      status: "done",
-      completedAt: thisWeekDoneAt.toISOString(),
-      createdAt: thisWeekDoneAt.toISOString(),
-      updatedAt: thisWeekDoneAt.toISOString(),
-    },
+    ...[
+      todayDoneAt,
+      yesterdayDoneAt,
+      atDaysAgo(2, 8, 12),
+      atDaysAgo(4, 8, 4),
+      atDaysAgo(6, 8, 21),
+      atDaysAgo(8, 7, 58),
+      atDaysAgo(10, 8, 16),
+      atDaysAgo(13, 8, 9),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 1}`, "item_todo_1_sub_1", completedAt)),
+
+    ...[
+      atWeeksAgo(0, 2, 10, 15),
+      atWeeksAgo(1, 3, 10, 8),
+      atWeeksAgo(2, 2, 10, 20),
+      atWeeksAgo(4, 1, 9, 55),
+      atWeeksAgo(6, 2, 10, 5),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 9}`, "item_todo_1_sub_2", completedAt)),
+
+    ...[
+      atMonthsAgo(0, 4, 7, 50),
+      atMonthsAgo(1, 28, 7, 42),
+      atMonthsAgo(2, 30, 7, 47),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 14}`, "item_todo_1_sub_3", completedAt)),
+
+    ...[
+      atDaysAgo(0, 6, 28),
+      atDaysAgo(1, 6, 31),
+      atDaysAgo(2, 6, 34),
+      atDaysAgo(3, 6, 29),
+      atDaysAgo(4, 6, 33),
+      atDaysAgo(6, 6, 27),
+      atDaysAgo(8, 6, 30),
+      atDaysAgo(10, 6, 35),
+      atDaysAgo(12, 6, 26),
+      atDaysAgo(14, 6, 32),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 17}`, "item_todo_2_sub_1", completedAt)),
+
+    ...[
+      atDaysAgo(0, 6, 41),
+      atDaysAgo(1, 6, 40),
+      atDaysAgo(2, 6, 44),
+      atDaysAgo(4, 6, 39),
+      atDaysAgo(5, 6, 46),
+      atDaysAgo(7, 6, 42),
+      atDaysAgo(9, 6, 38),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 27}`, "item_todo_2_sub_2", completedAt)),
+
+    ...[
+      atDaysAgo(0, 7, 12),
+      atDaysAgo(1, 7, 18),
+      atDaysAgo(3, 7, 5),
+      atDaysAgo(4, 7, 9),
+      atDaysAgo(6, 7, 16),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 34}`, "item_todo_2_sub_3", completedAt)),
+
+    ...[
+      atDaysAgo(0, 7, 25),
+      atDaysAgo(2, 7, 21),
+      atDaysAgo(5, 7, 29),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 39}`, "item_todo_2_sub_4", completedAt)),
+
+    ...[
+      atDaysAgo(0, 9, 18),
+      atDaysAgo(1, 9, 24),
+      atDaysAgo(3, 9, 11),
+      atDaysAgo(6, 9, 8),
+      atDaysAgo(8, 9, 20),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 42}`, "item_todo_3_sub_1", completedAt)),
+
+    ...[
+      atWeeksAgo(1, 5, 19, 2),
+      atWeeksAgo(3, 5, 19, 8),
+      atWeeksAgo(5, 5, 18, 55),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 47}`, "item_todo_3_sub_4", completedAt)),
+
+    ...[
+      atDaysAgo(0, 7, 3),
+      atDaysAgo(1, 7, 7),
+      atDaysAgo(2, 7, 0),
+      atDaysAgo(3, 7, 4),
+      atDaysAgo(5, 6, 58),
+      atDaysAgo(6, 7, 9),
+      atDaysAgo(8, 7, 2),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 50}`, "item_todo_4_sub_1", completedAt)),
+
+    ...[
+      atWeeksAgo(0, 2, 18, 20),
+      atWeeksAgo(1, 2, 18, 5),
+      atWeeksAgo(2, 3, 18, 12),
+      atWeeksAgo(4, 1, 18, 0),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 57}`, "item_todo_4_sub_2", completedAt)),
+
+    ...[
+      atWeeksAgo(0, 4, 18, 0),
+      atWeeksAgo(1, 4, 18, 7),
+      atWeeksAgo(2, 4, 17, 52),
+      atWeeksAgo(3, 4, 18, 9),
+      atWeeksAgo(5, 4, 17, 58),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 61}`, "item_todo_5_sub_1", completedAt)),
+
+    ...[
+      atWeeksAgo(0, 4, 18, 32),
+      atWeeksAgo(2, 4, 18, 25),
+      atWeeksAgo(4, 4, 18, 29),
+    ].map((completedAt, index) => createHistoryEntry(`history_${index + 66}`, "item_todo_5_sub_3", completedAt)),
   ],
 
   citationsMeta: [

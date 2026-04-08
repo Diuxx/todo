@@ -43,6 +43,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   private chart?: Chart;
+  private weeklyHistoryChartCanvas?: HTMLCanvasElement;
   private readonly weeksToAnalyze = 8;
 
   public isLoading: boolean = true;
@@ -57,7 +58,21 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
   public topTodos: TopTodo[] = [];
 
   @ViewChild("weeklyHistoryChart")
-  private weeklyHistoryChartRef?: ElementRef<HTMLCanvasElement>;
+  private set weeklyHistoryChartRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
+    const canvas = ref?.nativeElement;
+
+    if (!canvas) {
+      this.weeklyHistoryChartCanvas = undefined;
+      this.destroyChart();
+      return;
+    }
+
+    this.weeklyHistoryChartCanvas = canvas;
+
+    if (this.weeklyStats.length) {
+      this.renderChart(this.weeklyStats);
+    }
+  }
 
   public ngAfterViewInit(): void {
     this.loadRecap();
@@ -182,9 +197,8 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
   }
 
   private renderChart(weeklyStats: WeeklyStats[]): void {
-    const canvas = this.weeklyHistoryChartRef?.nativeElement;
+    const canvas = this.weeklyHistoryChartCanvas;
 
-    console.log("Rendering chart with stats:", weeklyStats);
     if (!canvas) {
       return;
     }
