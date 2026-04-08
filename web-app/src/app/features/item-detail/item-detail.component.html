@@ -7,6 +7,29 @@
         [class]="'type-' + item.type + ' detail-card'"
         [formGroup]="itemForm">
         <span class="detail-card-title">
+          <div class="detail-card-actions">
+            <button
+              type="button"
+              class="icon-action-btn lock-toggle"
+              [attr.aria-label]="itemForm.get('isLocked')?.value ? 'Déverrouiller l\'item' : 'Verrouiller l\'item'"
+              (click)="toggleLock()">
+              <i class="bi" [ngClass]="itemForm.get('isLocked')?.value ? 'bi-lock-fill' : 'bi-unlock-fill'"></i>
+            </button>
+            <button
+              type="button"
+              class="icon-action-btn favorite-toggle"
+              [attr.aria-label]="itemForm.get('isFavorite')?.value ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+              (click)="toggleFavorite()">
+              <i class="bi" [ngClass]="itemForm.get('isFavorite')?.value ? 'bi-star-fill' : 'bi-star'"></i>
+            </button>
+            <button
+              type="button"
+              class="icon-action-btn delete-btn"
+              aria-label="Supprimer l'item"
+              (click)="deleteItem()">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          </div>
           <input
             #titleInput
             type="text"
@@ -14,27 +37,6 @@
             [ngClass]="{ 'to-be-saved': isFormChanged() }"
             formControlName="title"
             placeholder="Titre de l'item" />
-          <button
-            type="button"
-            class="icon-action-btn lock-toggle"
-            [attr.aria-label]="itemForm.get('isLocked')?.value ? 'Déverrouiller l\'item' : 'Verrouiller l\'item'"
-            (click)="toggleLock()">
-            <i class="bi" [ngClass]="itemForm.get('isLocked')?.value ? 'bi-lock-fill' : 'bi-unlock-fill'"></i>
-          </button>
-          <button
-            type="button"
-            class="icon-action-btn favorite-toggle"
-            [attr.aria-label]="itemForm.get('isFavorite')?.value ? 'Retirer des favoris' : 'Ajouter aux favoris'"
-            (click)="toggleFavorite()">
-            <i class="bi" [ngClass]="itemForm.get('isFavorite')?.value ? 'bi-star-fill' : 'bi-star'"></i>
-          </button>
-          <button
-            type="button"
-            class="icon-action-btn delete-btn"
-            aria-label="Supprimer l'item"
-            (click)="deleteItem()">
-            <i class="bi bi-trash-fill"></i>
-          </button>
         </span>
         @if (item.type === 'todo') {
           <div class="detail-toggles">
