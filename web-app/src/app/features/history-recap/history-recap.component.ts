@@ -184,6 +184,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
   private renderChart(weeklyStats: WeeklyStats[]): void {
     const canvas = this.weeklyHistoryChartRef?.nativeElement;
 
+    console.log("Rendering chart with stats:", weeklyStats);
     if (!canvas) {
       return;
     }
