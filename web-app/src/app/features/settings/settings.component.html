@@ -152,11 +152,11 @@
 
       <div class="stats-grid">
         <div class="stats-card">
-          <span class="stats-label">Taille estimée de la base</span>
+          <span class="stats-label">Taille estimée des données</span>
           <strong class="stats-value">
             {{ databaseSizeKb !== null ? databaseSizeKb + ' Ko' : 'Indisponible' }}
           </strong>
-          <span class="stats-hint">Estimation du stockage local utilisé sur cet appareil.</span>
+          <span class="stats-hint">Taille du JSON exportable de l'application (todos, historique, métadonnées, options).</span>
           <button
             type="button"
             class="data-export-btn"

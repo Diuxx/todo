@@ -171,22 +171,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.isExportingData = true;
 
     try {
-      const [items, todoHistory, citationsMeta, imagesMeta, settingsList] = await Promise.all([
-        db.items.toArray(),
-        db.todoHistory.toArray(),
-        db.citationsMeta.toArray(),
-        db.imagesMeta.toArray(),
-        db.settings.toArray(),
-      ]);
-
-      const payload: AppData = {
-        id: 'app-data',
-        items,
-        todoHistory,
-        citationsMeta,
-        imagesMeta,
-        settings: settingsList[0],
-      };
+      const payload = await this.getCurrentAppData();
 
       const json = JSON.stringify(payload, null, 2);
       const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
@@ -351,13 +336,29 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private async loadStorageStats(): Promise<void> {
     this.historyRowsCount = await db.todoHistory.count();
 
-    if (!('storage' in navigator) || !('estimate' in navigator.storage)) {
-      this.databaseSizeKb = null;
-      return;
-    }
+    const payload = await this.getCurrentAppData();
+    const serialized = JSON.stringify(payload);
+    const byteSize = new Blob([serialized]).size;
+    this.databaseSizeKb = Math.round(byteSize / 1024);
+  }
 
-    const estimate = await navigator.storage.estimate();
-    this.databaseSizeKb = estimate.usage ? Math.round(estimate.usage / 1024) : 0;
+  private async getCurrentAppData(): Promise<AppData> {
+    const [items, todoHistory, citationsMeta, imagesMeta, settingsList] = await Promise.all([
+      db.items.toArray(),
+      db.todoHistory.toArray(),
+      db.citationsMeta.toArray(),
+      db.imagesMeta.toArray(),
+      db.settings.toArray(),
+    ]);
+
+    return {
+      id: 'app-data',
+      items,
+      todoHistory,
+      citationsMeta,
+      imagesMeta,
+      settings: settingsList[0],
+    };
   }
 
   private async persistPasswordHash(passwordHash: string): Promise<void> {
