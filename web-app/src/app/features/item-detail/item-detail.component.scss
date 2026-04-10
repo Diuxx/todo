@@ -39,19 +39,34 @@
     align-items: stretch;
   }
 
+  .detail-card-title-container {
+    display: grid;
+    align-items: center;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
   &.type-todo { background-color: var(--todo-color); }
   &.type-note { 
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto 1fr;
     background-color: var(--note-color); }
   &.type-citation { 
-    grid-template-rows: auto auto 1fr;
-    background-color: var(--citation-color); }
+    grid-template-rows: auto 1fr;
+    background-color: var(--citation-color); 
+    .detail-card-title-container {
+      grid-template-columns: 1fr auto;
+    }
+  }
   &.type-image { background-color: var(--image-color); }
 }
 
 .detail-card-actions {
-  display: flex;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  justify-content: center;
+  align-items: center;
+  // display: flex;
+  // justify-content: flex-end;
   gap: 0.6rem;
   flex-wrap: wrap;
 }

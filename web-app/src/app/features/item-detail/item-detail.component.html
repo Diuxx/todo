@@ -8,6 +8,13 @@
         [formGroup]="itemForm">
         <span class="detail-card-title">
           <div class="detail-card-actions">
+            <div class="detail-toggles" style="align-self: flex-start;">
+              <label class="item-toggle">
+                <input type="checkbox" formControlName="isArchived" />
+                <span>Archiver cet item</span>
+              </label>
+            </div>
+
             <button
               type="button"
               class="icon-action-btn lock-toggle"
@@ -30,26 +37,38 @@
               <i class="bi bi-trash-fill"></i>
             </button>
           </div>
-          <input
-            #titleInput
-            type="text"
-            class="editable title-editable"
-            [ngClass]="{ 'to-be-saved': isFormChanged() }"
-            formControlName="title"
-            placeholder="Titre de l'item" />
+          <div class="detail-card-title-container">
+            <input
+              #titleInput
+              type="text"
+              class="editable title-editable"
+              [ngClass]="{ 'to-be-saved': isFormChanged() }"
+              formControlName="title"
+              placeholder="Titre de l'item" />
+            @if (item.type === 'citation') {
+              <div class="detail-toggles">            
+                <label class="item-toggle">
+                  <input type="checkbox" formControlName="isAffirmation" />
+                  <span>
+                    <i class="bi bi-megaphone-fill"></i>
+                    Affirmation
+                  </span>
+                </label>
+              </div>
+            }
+          </div>
         </span>
         @if (item.type === 'todo') {
-          <div class="detail-toggles">
-            <label class="item-toggle">
-              <input type="checkbox" formControlName="isArchived" />
-              <span>Archiver cet item</span>
-            </label>
-          </div>
           <div class="todo-list">
             @for (subItemForm of todoSubItemsControls; track subItemForm.get('id')?.value; let i = $index) {
               <div class="todo-row" [formGroup]="subItemForm">
 
                 <div class="todo-subitem-check">
+                  <input
+                    type="checkbox"
+                    class="todo-checkbox"
+                    [checked]="!!subItemForm.get('isDone')?.value"
+                    (change)="onTodoStatusChange(subItemForm, $any($event.target).checked)" />
                   <span class="todo-subitem-icons">
                     @if (!!subItemForm.get('alertEnabled')?.value) {
                       <i class="bi bi-bell todo-status-icon" aria-label="Alerte activée" title="Alerte activée"></i>
@@ -58,11 +77,6 @@
                       <i class="bi bi-arrow-repeat todo-status-icon" aria-label="Tâche récurrente" title="Tâche récurrente"></i>
                     }
                   </span>
-                  <input
-                    type="checkbox"
-                    class="todo-checkbox"
-                    [checked]="!!subItemForm.get('isDone')?.value"
-                    (change)="onTodoStatusChange(subItemForm, $any($event.target).checked)" />
                 </div>
                 <span class="todo-subitem-title" [class.is-done]="!!subItemForm.get('isDone')?.value">{{ subItemForm.get('title')?.value }}</span>
                 <div class="todo-actions">
@@ -81,19 +95,6 @@
           </div>
         }
         @else {
-          <div class="detail-toggles">
-            <label class="item-toggle">
-              <input type="checkbox" formControlName="isArchived" />
-              <span>Archiver cet item</span>
-            </label>
-            
-          @if (item.type === 'citation') {
-            <label class="item-toggle">
-              <input type="checkbox" formControlName="isAffirmation" />
-              <span>Utiliser cette citation comme affirmation</span>
-            </label>
-          }
-          </div>
           <textarea
             #contentTextarea
             class="detail-card-content content editable"

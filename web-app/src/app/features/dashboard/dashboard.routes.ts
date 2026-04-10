@@ -6,21 +6,21 @@ export const DASHBOARD_ROUTES: Routes = [
   { 
     path: '',
     component: DashboardComponent,
-    title: 'Dashboard'
+    title: 'Todo - Board'
   },
   {
     path: 'item/:id',
     component: ItemDetailComponent,
-    title: 'Item details'
+    title: 'Todo - Item details'
   },
   {
     path: 'settings',
     loadComponent: () => import('../settings/settings.component').then(m => m.SettingsComponent),
-    title: 'Settings'
+    title: 'Todo - Settings'
   },
   {
     path: 'recap',
     loadComponent: () => import('../history-recap/history-recap.component').then(m => m.HistoryRecapComponent),
-    title: 'Récap'
+    title: 'Todo - Récap'
   }
 ];
