@@ -625,6 +625,7 @@ export const appDataExample: AppData = {
 
   settings: {
     id: "main",
+    version: 1,
     theme: "system",
     language: "fr",
     dailyAffirmationEnabled: true,
@@ -632,5 +633,10 @@ export const appDataExample: AppData = {
     passwordHash: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
     userName: "Nico test",
     userId: "user_123",
+    backupState: {
+      lastBackupAt: undefined,
+      status: 'idle',
+      lastError: undefined,
+    }
   },
 };

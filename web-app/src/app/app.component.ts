@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { AsyncPipe, Location } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
 import { TodoHeaderComponent } from './shared/components/todo-header/todo-header.component';
 import { TodoFooterComponent } from './shared/components/todo-footer/todo-footer.component';
@@ -18,7 +18,6 @@ export class AppComponent implements OnInit {
 
   // services
   private readonly router: Router = inject(Router);
-  private readonly location: Location = inject(Location);
   private readonly databaseService = inject(DatabaseService);
   private readonly settingsService = inject(SettingsService);
   private readonly notificationService = inject(LocalNotificationService);
@@ -36,14 +35,11 @@ export class AppComponent implements OnInit {
 
     try {
       await this.databaseService.init();
-
-      // Load settings into the reactive stream only after the DB is ready.
-      this.settingsService.get().subscribe();
+      this.settingsService.get().subscribe(); // Load settings into the reactive stream only after the DB is ready.
 
       try {
         await this.notificationService.init((action) => {
           const route = action.notification.extra?.route;
-
           if (typeof route === 'string' && route.length > 0) {
             this.router.navigateByUrl(route);
           }

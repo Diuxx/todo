@@ -5,6 +5,7 @@ import { Subject, debounceTime, firstValueFrom, takeUntil } from "rxjs";
 import { SettingsService } from "../../shared/services/settings.service";
 import { AppSettings } from "../../shared/models/app-settings.model";
 import { db } from "../../db.config";
+import { AppData } from "../../shared/models/app-data.model";
 import { ConfirmDialogService } from "../../shared/services/confirm-dialog.service";
 import { DatabaseService } from "../../shared/services/database.service";
 import { LocalNotificationService } from "../../shared/services/local-notification.service";
@@ -41,6 +42,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public passwordErrorMessage: string | null = null;
   public historyRowsCount: number | null = null;
   public databaseSizeKb: number | null = null;
+  public isExportingData = false;
+  public isImportingData = false;
 
   public ngOnInit(): void {
     this.settingsService.get().subscribe(settings => {
@@ -158,6 +161,151 @@ export class SettingsComponent implements OnInit, OnDestroy {
           this.isDeletingData = false;
         }
       });
+  }
+
+  public async downloadAppData(): Promise<void> {
+    if (this.isExportingData) {
+      return;
+    }
+
+    this.isExportingData = true;
+
+    try {
+      const [items, todoHistory, citationsMeta, imagesMeta, settingsList] = await Promise.all([
+        db.items.toArray(),
+        db.todoHistory.toArray(),
+        db.citationsMeta.toArray(),
+        db.imagesMeta.toArray(),
+        db.settings.toArray(),
+      ]);
+
+      const payload: AppData = {
+        id: 'app-data',
+        items,
+        todoHistory,
+        citationsMeta,
+        imagesMeta,
+        settings: settingsList[0],
+      };
+
+      const json = JSON.stringify(payload, null, 2);
+      const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+      const downloadUrl = URL.createObjectURL(blob);
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const link = document.createElement('a');
+
+      link.href = downloadUrl;
+      link.download = `todo-backup-${timestamp}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+    } finally {
+      this.isExportingData = false;
+    }
+  }
+
+  public openImportPicker(fileInput: HTMLInputElement): void {
+    if (this.isImportingData) {
+      return;
+    }
+
+    fileInput.click();
+  }
+
+  public async importAppData(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file || this.isImportingData) {
+      return;
+    }
+
+    const confirmed = await firstValueFrom(this.confirmDialogService.confirm({
+      title: 'Importer et ecraser les donnees ?',
+      message: 'Cette action remplacera toutes les donnees locales actuelles (todos, historique, metadonnees et options) par le contenu du fichier JSON selectionne.',
+      confirmText: 'Importer',
+      cancelText: 'Annuler',
+      variant: 'danger',
+    }));
+
+    if (!confirmed) {
+      input.value = '';
+      return;
+    }
+
+    this.isImportingData = true;
+
+    try {
+      const content = await file.text();
+      const parsed = JSON.parse(content) as AppData;
+
+      if (!this.isValidAppData(parsed)) {
+        throw new Error('Le fichier JSON ne correspond pas au format attendu.');
+      }
+
+      await this.localNotificationService.clearAllTodoNotifications();
+
+      await db.transaction('rw', [db.items, db.todoHistory, db.citationsMeta, db.imagesMeta, db.settings], async () => {
+        await db.items.clear();
+        await db.todoHistory.clear();
+        await db.citationsMeta.clear();
+        await db.imagesMeta.clear();
+        await db.settings.clear();
+
+        if (parsed.items.length) {
+          await db.items.bulkAdd(parsed.items);
+        }
+
+        if (parsed.todoHistory.length) {
+          await db.todoHistory.bulkAdd(parsed.todoHistory);
+        }
+
+        if (parsed.citationsMeta.length) {
+          await db.citationsMeta.bulkAdd(parsed.citationsMeta);
+        }
+
+        if (parsed.imagesMeta.length) {
+          await db.imagesMeta.bulkAdd(parsed.imagesMeta);
+        }
+
+        await db.settings.add(parsed.settings);
+      });
+
+      this.settingsForm.patchValue({
+        id: parsed.settings.id,
+        theme: parsed.settings.theme,
+        language: parsed.settings.language,
+        dailyAffirmationEnabled: parsed.settings.dailyAffirmationEnabled,
+        showArchivedItems: parsed.settings.showArchivedItems,
+        passwordHash: parsed.settings.passwordHash,
+        userName: parsed.settings.userName,
+        userId: parsed.settings.userId,
+      }, { emitEvent: false });
+
+      this.settingsForm.markAsPristine();
+      this.updatePasswordState(parsed.settings.passwordHash);
+      await this.loadStorageStats();
+      await this.localNotificationService.syncScheduledTodoNotifications();
+      this.triggerSavedFeedback();
+    } catch (error) {
+      console.error('[Settings] Import failed:', error);
+      alert("Impossible d'importer ce fichier JSON.");
+    } finally {
+      input.value = '';
+      this.isImportingData = false;
+    }
+  }
+
+  private isValidAppData(payload: AppData): payload is AppData {
+    return !!payload
+      && Array.isArray(payload.items)
+      && Array.isArray(payload.todoHistory)
+      && Array.isArray(payload.citationsMeta)
+      && Array.isArray(payload.imagesMeta)
+      && !!payload.settings
+      && typeof payload.settings === 'object'
+      && typeof payload.settings.id === 'string';
   }
 
   private buildForm(settings: AppSettings): void {

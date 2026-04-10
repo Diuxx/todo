@@ -52,7 +52,6 @@ export class LocalNotificationService {
    */
   async scheduleDaily(notification: DailyTaskNotification): Promise<void> {
     await this.ensurePermission();
-
     await LocalNotifications.schedule({
       notifications: [
         {
@@ -176,36 +175,6 @@ export class LocalNotificationService {
   }
 
   /**
-   * Schedules a notification directly from a todo item based on its recurrence.
-   */
-  async scheduleFromTodo(
-    todo: TodoInformation,
-    options: {
-      route?: string;
-      body?: string;
-      fallbackTitle?: string;
-      taskId?: number;
-    } = {}
-  ): Promise<void> {
-    const notification = this.createNotificationFromTodo(todo, options);
-
-    if (!notification) {
-      throw new Error('The todo item does not contain a valid alert time');
-    }
-
-    switch (todo.config?.recurrenceType) {
-      case 'weekly':
-        await this.scheduleWeekly(notification);
-        return;
-      case 'monthly':
-        await this.scheduleMonthly(notification);
-        return;
-      default:
-        await this.scheduleDaily(notification);
-    }
-  }
-
-  /**
    * Verifies and recreates the expected todo notifications when the app starts.
    */
   async syncScheduledTodoNotifications(): Promise<void> {
@@ -281,45 +250,6 @@ export class LocalNotificationService {
   }
 
   /**
-   * Reschedules a daily notification by cancelling the previous one first.
-   */
-  async rescheduleDaily(notification: DailyTaskNotification): Promise<void> {
-    await this.cancel(notification.taskId);
-    await this.scheduleDaily(notification);
-  }
-
-  /**
-   * Reschedules a weekly notification by cancelling the previous one first.
-   */
-  async rescheduleWeekly(notification: DailyTaskNotification): Promise<void> {
-    await this.cancel(notification.taskId);
-    await this.scheduleWeekly(notification);
-  }
-
-  /**
-   * Reschedules a monthly notification by cancelling the previous one first.
-   */
-  async rescheduleMonthly(notification: DailyTaskNotification): Promise<void> {
-    await this.cancel(notification.taskId);
-    await this.scheduleMonthly(notification);
-  }
-
-  /**
-   * Cancels all scheduled notifications.
-   */
-  async cancelAll(): Promise<void> {
-    const pending = await this.getPending();
-
-    if (!pending.notifications.length) {
-      return;
-    }
-
-    await LocalNotifications.cancel({
-      notifications: pending.notifications.map((n) => ({ id: n.id })),
-    });
-  }
-
-  /**
    * Removes all app-managed todo notifications, both pending and already delivered.
    */
   async clearAllTodoNotifications(): Promise<void> {
@@ -347,14 +277,6 @@ export class LocalNotificationService {
    */
   async getPending(): Promise<PendingResult> {
     return await LocalNotifications.getPending();
-  }
-
-  /**
-   * Checks whether a notification already exists for a task id.
-   */
-  async exists(taskId: number): Promise<boolean> {
-    const pending = await this.getPending();
-    return pending.notifications.some((notification) => notification.id === taskId);
   }
 
   /**
@@ -428,6 +350,9 @@ export class LocalNotificationService {
     return notifications.flat();
   }
 
+  /**
+   * Builds notification payloads for a todo item based on its content and configuration.
+   */
   private async buildNotificationsForItem(item: AppItem): Promise<DailyTaskNotification[]> {
     if (item.type !== 'todo' || item.isArchived || !item.todoContent?.length) {
       return [];
@@ -466,20 +391,16 @@ export class LocalNotificationService {
     return notifications.filter((notification): notification is DailyTaskNotification => notification !== null);
   }
 
+  /**
+   * Determines whether a notification should be scheduled for a todo item based on its configuration and status.
+   */
   private shouldScheduleTodo(todo: TodoInformation): boolean {
-    if (todo.isDone) {
-      return false;
-    }
-
-    if (!todo.config?.alertEnabled || !todo.config.alertAt) {
-      return false;
-    }
-
-    return todo.config.recurrenceType === 'daily'
-      || todo.config.recurrenceType === 'weekly'
-      || todo.config.recurrenceType === 'monthly';
+    return todo.isDone || !todo.config?.alertEnabled || !todo.config.alertAt;
   }
 
+  /**
+   * Collects the notification ids related to a todo item, which are derived from the todo content ids.
+   */
   private collectNotificationIds(item?: AppItem): number[] {
     if (item?.type !== 'todo' || !item.todoContent?.length) {
       return [];
@@ -488,6 +409,9 @@ export class LocalNotificationService {
     return item.todoContent.map((todo) => this.toNotificationId(todo.id));
   }
 
+  /**
+   * Schedules a notification based on its pattern (daily, weekly or monthly).
+   */
   private async scheduleByPattern(notification: DailyTaskNotification): Promise<void> {
     if (notification.weekday) {
       await this.scheduleWeekly(notification);

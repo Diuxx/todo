@@ -5,7 +5,8 @@ import { appDataExample } from "../models/mock-data";
 import { PasswordService } from "./password.service";
 import { CitationMeta } from "../models/citation-meta.model";
 import { ImageMeta } from "../models/image-meta.model";
-import { AppSettings } from "../models/app-settings.model";
+import { AppSettings, BackupState } from "../models/app-settings.model";
+import { environment } from "../../../env/env";
 
 @Injectable({
     providedIn: 'root'
@@ -40,6 +41,12 @@ export class DatabaseService {
      * Seed the database with default data for development or first-time users.
      */
     private createDefaultSettings(): AppSettings {
+        const backupState: BackupState = {
+            lastBackupAt: undefined,
+            status: 'idle',
+            lastError: undefined,
+        }
+
         return {
             id: this.SETTINGS_ID,
             theme: 'system',
@@ -48,7 +55,9 @@ export class DatabaseService {
             showArchivedItems: false,
             passwordHash: this.passwordService.defaultPasswordHash,
             userName: 'Nouvel Utilisateur',
-            userId: generateUUID()
+            userId: generateUUID(),
+            backupState: backupState,
+            version: environment.dbVersion,
         };
     }
 

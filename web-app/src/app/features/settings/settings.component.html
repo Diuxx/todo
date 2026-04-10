@@ -157,6 +157,30 @@
             {{ databaseSizeKb !== null ? databaseSizeKb + ' Ko' : 'Indisponible' }}
           </strong>
           <span class="stats-hint">Estimation du stockage local utilisé sur cet appareil.</span>
+          <button
+            type="button"
+            class="data-export-btn"
+            [disabled]="isExportingData"
+            (click)="downloadAppData()">
+            <i class="bi bi-download"></i>
+            {{ isExportingData ? 'Preparation...' : 'Telecharger les donnees (JSON)' }}
+          </button>
+
+          <button
+            type="button"
+            class="data-import-btn"
+            [disabled]="isImportingData"
+            (click)="openImportPicker(importJsonInput)">
+            <i class="bi bi-upload"></i>
+            {{ isImportingData ? 'Import en cours...' : 'Importer et ecraser (JSON)' }}
+          </button>
+
+          <input
+            #importJsonInput
+            type="file"
+            class="visually-hidden-file-input"
+            accept="application/json,.json"
+            (change)="importAppData($event)" />
         </div>
 
         <div class="stats-card">
