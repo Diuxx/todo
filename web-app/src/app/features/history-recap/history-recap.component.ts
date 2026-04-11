@@ -12,8 +12,18 @@ Chart.register(...registerables);
 interface WeeklyStats {
   label: string;
   rangeLabel: string;
+  startISO: string;
+  endISO: string;
   doneCount: number;
   uniqueTodos: number;
+  dayStats: WeekDayStats[];
+  topTodos: TopTodo[];
+}
+
+interface WeekDayStats {
+  label: string;
+  shortLabel: string;
+  doneCount: number;
 }
 
 interface RecapSummary {
@@ -56,6 +66,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     activeWeeksCount: 0,
   };
   public topTodos: TopTodo[] = [];
+  public selectedWeek: WeeklyStats | null = null;
 
   @ViewChild("weeklyHistoryChart")
   private set weeklyHistoryChartRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
@@ -95,22 +106,54 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
       .subscribe({
         next: ([history, todoItems]) => {
           const doneHistory = history.filter((entry) => entry.status === "done" && !!entry.completedAt);
-          this.weeklyStats = this.buildWeeklyStats(doneHistory);
+          const titleBySubItemId = this.buildTitleBySubItemId(todoItems);
+          this.weeklyStats = this.buildWeeklyStats(doneHistory, titleBySubItemId);
           this.summary = this.buildSummary(this.weeklyStats);
-          this.topTodos = this.buildTopTodos(doneHistory, todoItems);
+          this.topTodos = this.buildTopTodos(doneHistory, titleBySubItemId);
+          this.selectedWeek = this.resolveSelectedWeek(this.selectedWeek?.label, this.weeklyStats);
           this.renderChart(this.weeklyStats);
           this.isLoading = false;
         },
         error: () => {
           this.weeklyStats = [];
           this.topTodos = [];
+          this.selectedWeek = null;
           this.isLoading = false;
           this.destroyChart();
         },
       });
   }
 
-  private buildWeeklyStats(doneHistory: TodoHistoryEntry[]): WeeklyStats[] {
+  public selectWeek(week: WeeklyStats): void {
+    this.selectedWeek = week;
+  }
+
+  public selectWeekByLabel(label: string): void {
+    if (!label) {
+      this.selectedWeek = null;
+      return;
+    }
+
+    this.selectedWeek = this.weeklyStats.find((week) => week.label === label) ?? null;
+  }
+
+  public getSelectedWeekMaxDone(): number {
+    if (!this.selectedWeek?.dayStats.length) {
+      return 1;
+    }
+
+    return Math.max(...this.selectedWeek.dayStats.map((day) => day.doneCount), 1);
+  }
+
+  public getSelectedWeekTopTodoMaxCount(): number {
+    if (!this.selectedWeek?.topTodos.length) {
+      return 1;
+    }
+
+    return Math.max(...this.selectedWeek.topTodos.map((todo) => todo.count), 1);
+  }
+
+  private buildWeeklyStats(doneHistory: TodoHistoryEntry[], titleBySubItemId: Map<string, string>): WeeklyStats[] {
     const currentWeekStart = this.getWeekStart(new Date());
     const rows: WeeklyStats[] = [];
 
@@ -129,15 +172,21 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
         return !!completedAt && completedAt >= weekStartISO && completedAt < weekEndISO;
       });
 
+      const dayStats = this.buildDayStats(entries, weekStart);
+
       rows.push({
         label: `S-${offset}`,
         rangeLabel: `${this.formatShortDate(weekStart)} - ${this.formatShortDate(new Date(weekEnd.getTime() - 1))}`,
+        startISO: weekStartISO,
+        endISO: weekEndISO,
         doneCount: entries.length,
         uniqueTodos: new Set(entries.map((entry) => entry.todoItemId)).size,
+        dayStats,
+        topTodos: this.buildTopTodos(entries, titleBySubItemId),
       });
     }
 
-    return rows;
+    return rows.filter((row) => row.doneCount > 0);
   }
 
   private buildSummary(weeklyStats: WeeklyStats[]): RecapSummary {
@@ -166,20 +215,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     };
   }
 
-  private buildTopTodos(doneHistory: TodoHistoryEntry[], todoItems: AppItem[]): TopTodo[] {
-    const titleBySubItemId = new Map<string, string>();
-
-    for (const todo of todoItems) {
-      if (todo.type !== "todo" || !todo.todoContent?.length) {
-        continue;
-      }
-
-      for (const subItem of todo.todoContent) {
-        const title = `${subItem.title ?? "Sous-tâche"}`.trim() || "Sous-tâche";
-        titleBySubItemId.set(subItem.id, title);
-      }
-    }
-
+  private buildTopTodos(doneHistory: TodoHistoryEntry[], titleBySubItemId: Map<string, string>): TopTodo[] {
     const countByTodoId = new Map<string, number>();
 
     for (const entry of doneHistory) {
@@ -194,6 +230,56 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
+  }
+
+  private buildTitleBySubItemId(todoItems: AppItem[]): Map<string, string> {
+    const titleBySubItemId = new Map<string, string>();
+
+    for (const todo of todoItems) {
+      if (todo.type !== "todo" || !todo.todoContent?.length) {
+        continue;
+      }
+
+      for (const subItem of todo.todoContent) {
+        const title = `${subItem.title ?? "Sous-tâche"}`.trim() || "Sous-tâche";
+        titleBySubItemId.set(subItem.id, title);
+      }
+    }
+
+    return titleBySubItemId;
+  }
+
+  private buildDayStats(entries: TodoHistoryEntry[], weekStart: Date): WeekDayStats[] {
+    const labels = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+
+    return labels.map((label, index) => {
+      const dayStart = new Date(weekStart);
+      dayStart.setDate(weekStart.getDate() + index);
+
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
+      const dayStartISO = dayStart.toISOString();
+      const dayEndISO = dayEnd.toISOString();
+      const doneCount = entries.filter((entry) => {
+        const completedAt = entry.completedAt;
+        return !!completedAt && completedAt >= dayStartISO && completedAt < dayEndISO;
+      }).length;
+
+      return {
+        label,
+        shortLabel: this.formatShortDate(dayStart),
+        doneCount,
+      };
+    });
+  }
+
+  private resolveSelectedWeek(selectedLabel: string | undefined, weeklyStats: WeeklyStats[]): WeeklyStats | null {
+    if (!weeklyStats.length || !selectedLabel) {
+      return null;
+    }
+
+    return weeklyStats.find((week) => week.label === selectedLabel) ?? null;
   }
 
   private renderChart(weeklyStats: WeeklyStats[]): void {

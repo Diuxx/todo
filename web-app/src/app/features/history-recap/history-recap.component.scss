@@ -86,34 +86,127 @@
   height: 100% !important;
 }
 
-.recap-week-grid {
-  margin-top: 0.75rem;
+.recap-period-picker {
+  margin-top: 0.9rem;
   display: grid;
-  gap: 0.45rem;
+  gap: 0.35rem;
 }
 
-.recap-week-row {
-  display: grid;
-  grid-template-columns: 1.2fr auto auto;
-  gap: 0.5rem;
-  align-items: center;
-  padding: 0.5rem 0.6rem;
-  border-radius: 0.55rem;
-  background: var(--todo-item-color);
-  border: 1px solid var(--todo-item-border-color);
-  font-size: 0.85rem;
-}
-
-.week-range {
+.recap-period-label {
+  font-size: 0.8rem;
   color: var(--text-secondary-color);
 }
 
-.week-count {
+.recap-period-select {
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid var(--input-border-color);
+  border-radius: 0.65rem;
+  background: var(--app-bg-color);
+  color: var(--app-fg-color);
+  padding: 0.7rem 0.8rem;
+  font-size: 0.92rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--input-focus-border-color);
+  }
+}
+
+.selected-week-layout {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+  gap: 0.9rem;
+}
+
+.selected-week-summary,
+.selected-week-days {
+  border: 1px solid var(--todo-item-border-color);
+  background: var(--todo-item-color);
+  border-radius: 0.75rem;
+  padding: 0.85rem;
+}
+
+.selected-week-summary {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.selected-week-stat {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.selected-week-label {
+  font-size: 0.78rem;
+  color: var(--text-secondary-color);
+}
+
+.selected-week-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.selected-week-days-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+
+  h3 {
+    margin: 0;
+    font-size: 0.98rem;
+  }
+
+  span {
+    font-size: 0.8rem;
+    color: var(--text-secondary-color);
+  }
+}
+
+.selected-week-day-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.selected-week-day-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 28px;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.selected-week-day-meta {
+  display: grid;
+}
+
+.day-name {
+  font-size: 0.82rem;
   font-weight: 600;
 }
 
-.week-unique {
+.day-date,
+.day-count {
+  font-size: 0.76rem;
   color: var(--text-secondary-color);
+}
+
+.selected-week-day-bar-track,
+.top-todo-bar-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(107, 114, 128, 0.14);
+  overflow: hidden;
+}
+
+.selected-week-day-bar-fill,
+.top-todo-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #4f7cff;
 }
 
 .top-todo-list {
@@ -130,6 +223,13 @@
   border-radius: 0.55rem;
   background: var(--todo-item-color);
   border: 1px solid var(--todo-item-border-color);
+}
+
+.top-todo-main {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 0.4rem;
 }
 
 .todo-title {
@@ -163,13 +263,16 @@
     height: 200px;
   }
 
-  .recap-week-row {
+  .selected-week-layout {
     grid-template-columns: 1fr;
-    gap: 0.2rem;
   }
 
   .top-todo-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .selected-week-day-row {
+    grid-template-columns: 56px minmax(0, 1fr) 24px;
   }
 }
