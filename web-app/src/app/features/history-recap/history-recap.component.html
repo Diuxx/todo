@@ -1,7 +1,7 @@
 <section class="recap-page">
   <header class="recap-header">
-    <h1>Récap hebdomadaire</h1>
-    <p>Vue des tâches réalisées sur les {{ weeklyStats.length }} périodes actives.</p>
+    <h1>Récap mensuel</h1>
+    <p>Progression par semaine du mois sélectionné.</p>
   </header>
 
   @if (isLoading) {
@@ -36,8 +36,24 @@
 
     <article class="recap-panel">
       <div class="recap-panel-header">
-        <h2>Progression des semaines passées</h2>
+        <h2>Progression hebdomadaire du mois</h2>
       </div>
+
+      @if (availableMonths.length > 0) {
+        <div class="recap-month-picker">
+          <label class="recap-period-label" for="recap-month-select">Mois</label>
+          <select
+            id="recap-month-select"
+            class="recap-period-select"
+            [value]="selectedMonthKey"
+            (change)="selectMonth($any($event.target).value)">
+            @for (month of availableMonths; track month.key) {
+              <option [value]="month.key">{{ month.label }}</option>
+            }
+          </select>
+        </div>
+      }
+
       <div class="recap-chart-wrapper">
         <canvas #weeklyHistoryChart></canvas>
       </div>

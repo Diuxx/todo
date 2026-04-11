@@ -26,6 +26,13 @@ interface WeekDayStats {
   doneCount: number;
 }
 
+interface MonthOption {
+  key: string;
+  label: string;
+  startISO: string;
+  endISO: string;
+}
+
 interface RecapSummary {
   totalDone: number;
   averageDonePerWeek: number;
@@ -54,10 +61,14 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
 
   private chart?: Chart;
   private weeklyHistoryChartCanvas?: HTMLCanvasElement;
-  private readonly weeksToAnalyze = 8;
+  private allDoneHistory: TodoHistoryEntry[] = [];
+  private titleBySubItemId: Map<string, string> = new Map();
 
   public isLoading: boolean = true;
+  public availableMonths: MonthOption[] = [];
+  public selectedMonthKey: string = "";
   public weeklyStats: WeeklyStats[] = [];
+  public chartWeeklyStats: WeeklyStats[] = [];
   public summary: RecapSummary = {
     totalDone: 0,
     averageDonePerWeek: 0,
@@ -80,8 +91,8 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
 
     this.weeklyHistoryChartCanvas = canvas;
 
-    if (this.weeklyStats.length) {
-      this.renderChart(this.weeklyStats);
+    if (this.chartWeeklyStats.length) {
+      this.renderChart(this.chartWeeklyStats);
     }
   }
 
@@ -105,17 +116,19 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ([history, todoItems]) => {
-          const doneHistory = history.filter((entry) => entry.status === "done" && !!entry.completedAt);
-          const titleBySubItemId = this.buildTitleBySubItemId(todoItems);
-          this.weeklyStats = this.buildWeeklyStats(doneHistory, titleBySubItemId);
-          this.summary = this.buildSummary(this.weeklyStats);
-          this.topTodos = this.buildTopTodos(doneHistory, titleBySubItemId);
-          this.selectedWeek = this.resolveSelectedWeek(this.selectedWeek?.label, this.weeklyStats);
-          this.renderChart(this.weeklyStats);
+          this.allDoneHistory = history.filter((entry) => entry.status === "done" && !!entry.completedAt);
+          this.titleBySubItemId = this.buildTitleBySubItemId(todoItems);
+
+          this.availableMonths = this.buildAvailableMonths(this.allDoneHistory);
+          this.selectedMonthKey = this.resolveSelectedMonthKey(this.selectedMonthKey, this.availableMonths);
+          this.refreshMonthView();
           this.isLoading = false;
         },
         error: () => {
+          this.availableMonths = [];
+          this.selectedMonthKey = "";
           this.weeklyStats = [];
+          this.chartWeeklyStats = [];
           this.topTodos = [];
           this.selectedWeek = null;
           this.isLoading = false;
@@ -126,6 +139,12 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
 
   public selectWeek(week: WeeklyStats): void {
     this.selectedWeek = week;
+  }
+
+  public selectMonth(monthKey: string): void {
+    this.selectedMonthKey = monthKey;
+    this.selectedWeek = null;
+    this.refreshMonthView();
   }
 
   public selectWeekByLabel(label: string): void {
@@ -153,16 +172,56 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     return Math.max(...this.selectedWeek.topTodos.map((todo) => todo.count), 1);
   }
 
-  private buildWeeklyStats(doneHistory: TodoHistoryEntry[], titleBySubItemId: Map<string, string>): WeeklyStats[] {
-    const currentWeekStart = this.getWeekStart(new Date());
+  private refreshMonthView(): void {
+    const month = this.availableMonths.find((option) => option.key === this.selectedMonthKey);
+
+    if (!month) {
+      this.weeklyStats = [];
+      this.chartWeeklyStats = [];
+      this.summary = this.buildSummary([]);
+      this.topTodos = [];
+      this.selectedWeek = null;
+      this.renderChart([]);
+      return;
+    }
+
+    this.chartWeeklyStats = this.buildWeeklyStatsForMonth(this.allDoneHistory, this.titleBySubItemId, month);
+    this.weeklyStats = this.chartWeeklyStats.filter((row) => row.doneCount > 0);
+    this.summary = this.buildSummary(this.chartWeeklyStats);
+
+    const monthEntries = this.allDoneHistory.filter((entry) => {
+      const completedAt = entry.completedAt;
+      return !!completedAt && completedAt >= month.startISO && completedAt < month.endISO;
+    });
+    this.topTodos = this.buildTopTodos(monthEntries, this.titleBySubItemId);
+
+    this.selectedWeek = this.resolveSelectedWeek(this.selectedWeek?.label, this.weeklyStats);
+    this.renderChart(this.chartWeeklyStats);
+  }
+
+  private buildWeeklyStatsForMonth(
+    doneHistory: TodoHistoryEntry[],
+    titleBySubItemId: Map<string, string>,
+    month: MonthOption
+  ): WeeklyStats[] {
+    const monthStart = new Date(month.startISO);
+    const monthEnd = new Date(month.endISO);
     const rows: WeeklyStats[] = [];
 
-    for (let offset = this.weeksToAnalyze; offset >= 1; offset--) {
-      const weekStart = new Date(currentWeekStart);
-      weekStart.setDate(weekStart.getDate() - (offset * 7));
+    let cursor = new Date(monthStart);
+    let weekIndex = 1;
 
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 7);
+    while (cursor < monthEnd) {
+      const weekStart = new Date(cursor);
+      const weekEnd = new Date(this.getWeekStart(new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000)));
+
+      if (weekEnd <= weekStart) {
+        weekEnd.setDate(weekStart.getDate() + 7);
+      }
+
+      if (weekEnd > monthEnd) {
+        weekEnd.setTime(monthEnd.getTime());
+      }
 
       const weekStartISO = weekStart.toISOString();
       const weekEndISO = weekEnd.toISOString();
@@ -175,7 +234,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
       const dayStats = this.buildDayStats(entries, weekStart);
 
       rows.push({
-        label: `S-${offset}`,
+        label: `S${weekIndex}`,
         rangeLabel: `${this.formatShortDate(weekStart)} - ${this.formatShortDate(new Date(weekEnd.getTime() - 1))}`,
         startISO: weekStartISO,
         endISO: weekEndISO,
@@ -184,9 +243,12 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
         dayStats,
         topTodos: this.buildTopTodos(entries, titleBySubItemId),
       });
+
+      cursor = new Date(weekEnd);
+      weekIndex++;
     }
 
-    return rows.filter((row) => row.doneCount > 0);
+    return rows;
   }
 
   private buildSummary(weeklyStats: WeeklyStats[]): RecapSummary {
@@ -282,6 +344,50 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     return weeklyStats.find((week) => week.label === selectedLabel) ?? null;
   }
 
+  private buildAvailableMonths(doneHistory: TodoHistoryEntry[]): MonthOption[] {
+    const keys = new Set<string>([this.toMonthKey(new Date())]);
+
+    for (const entry of doneHistory) {
+      if (!entry.completedAt) {
+        continue;
+      }
+
+      keys.add(this.toMonthKey(new Date(entry.completedAt)));
+    }
+
+    return [...keys]
+      .sort((a, b) => b.localeCompare(a))
+      .map((key) => {
+        const [year, month] = key.split("-").map(Number);
+        const start = new Date(year, month - 1, 1);
+        const end = new Date(year, month, 1);
+
+        return {
+          key,
+          label: start.toLocaleDateString("fr-FR", {
+            month: "long",
+            year: "numeric",
+          }),
+          startISO: start.toISOString(),
+          endISO: end.toISOString(),
+        };
+      });
+  }
+
+  private resolveSelectedMonthKey(current: string, options: MonthOption[]): string {
+    const currentMonthKey = this.toMonthKey(new Date());
+
+    if (current && options.some((option) => option.key === current)) {
+      return current;
+    }
+
+    if (options.some((option) => option.key === currentMonthKey)) {
+      return currentMonthKey;
+    }
+
+    return options[0]?.key ?? "";
+  }
+
   private renderChart(weeklyStats: WeeklyStats[]): void {
     const canvas = this.weeklyHistoryChartCanvas;
 
@@ -291,18 +397,24 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
 
     this.destroyChart();
 
-    const config: ChartConfiguration<"bar"> = {
-      type: "bar",
+    const config: ChartConfiguration<"line"> = {
+      type: "line",
       data: {
         labels: weeklyStats.map((week) => week.label),
         datasets: [
           {
             label: "Tâches réalisées",
             data: weeklyStats.map((week) => week.doneCount),
-            borderRadius: 8,
-            maxBarThickness: 32,
-            backgroundColor: "#4f7cff",
-            hoverBackgroundColor: "#3d68e5",
+            borderColor: "#dc2626",
+            backgroundColor: "rgba(220, 38, 38, 0.18)",
+            borderWidth: 2,
+            borderDash: [6, 6],
+            pointRadius: 4,
+            pointHoverRadius: 5,
+            pointBackgroundColor: "#dc2626",
+            pointBorderColor: "#dc2626",
+            fill: false,
+            tension: 0.3,
           },
         ],
       },
@@ -361,5 +473,11 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
       day: "2-digit",
       month: "2-digit",
     });
+  }
+
+  private toMonthKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    return `${year}-${month}`;
   }
 }
