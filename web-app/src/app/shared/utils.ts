@@ -11,6 +11,10 @@ export function startOfToday(offsetMs: number = 1): Date {
   return d;
 }
 
+/**
+ * Generates a UUID (Universally Unique Identifier) using the uuid library.
+ * @returns A string representing a UUID.
+ */
 export function generateUUID(): string {
   return uuidv4();
 }

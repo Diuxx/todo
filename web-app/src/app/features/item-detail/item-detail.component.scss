@@ -207,18 +207,24 @@
 
 .todo-row {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto;
   gap: 1rem;
   align-items: center;
   border: 1px solid var(--todo-item-border-color);
   padding: 10px;
   border-radius: 12px;
   background-color: var(--todo-item-color);
+  &.todo-add {
+    grid-template-columns: auto 1fr;
+  }
 
   .todo-subitem-check {
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    cursor: pointer;
+    flex: 1;
+    min-width: 0;
   }
 
   .todo-subitem-icons {

@@ -12,12 +12,7 @@
     <span class="my-title">Bonjour {{ (settings$ | async)?.userName ?? '' }}</span>
     <span right-section></span>
   </todo-header>
-
   <router-outlet />
-
-  <todo-footer>
-
-  </todo-footer>
-
+  <todo-footer></todo-footer>
   <app-confirm-dialog></app-confirm-dialog>
 }

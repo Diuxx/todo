@@ -1,7 +1,7 @@
 
-.form-check-input:checked[type=checkbox] {
-  // --bs-form-check-bg-image: none;
-}
+/**
+ * Custom styles for the application, including overrides for form controls and layout adjustments.
+ */
 .form-check-input:checked {
     background-color: var(--app-color-grey);
     border-color: var(--app-color-grey);

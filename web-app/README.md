@@ -30,5 +30,12 @@ npx cap add android   # une seule fois
 npx cap sync android
 npx cap open android
 
+
+***
+BUG - réinstallation du projet
+npm install
+npx cap update android
+npx cap sync android
+
 ***
 _This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
