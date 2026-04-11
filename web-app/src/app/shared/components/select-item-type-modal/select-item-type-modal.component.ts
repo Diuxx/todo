@@ -11,10 +11,10 @@ import { CommonModule } from '@angular/common';
 export class SelectItemTypeModalComponent {
 
   @Input() visible: boolean = false;
-  @Output() selectType = new EventEmitter<'todo' | 'note'>();
+  @Output() selectType = new EventEmitter<'todo' | 'note' | 'citation'>();
   @Output() close = new EventEmitter<void>();
 
-  public selectItemType(type: 'todo' | 'note'): void {
+  public selectItemType(type: 'todo' | 'note' | 'citation'): void {
     this.selectType.emit(type);
   }
 

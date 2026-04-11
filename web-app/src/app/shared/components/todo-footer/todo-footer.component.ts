@@ -84,7 +84,7 @@ export class TodoFooterComponent implements OnDestroy {
         this.isSelectTypeModalVisible = false;
     }
 
-    public onSelectItemType(type: 'todo' | 'note'): void {
+    public onSelectItemType(type: 'todo' | 'note' | 'citation'): void {
         const newItem: AppItem = {
             id: '',
             type: type,
