@@ -7,6 +7,7 @@ import { DatabaseService } from './shared/services/database.service';
 import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 import { SettingsService } from './shared/services/settings.service';
 import { LocalNotificationService } from './shared/services/local-notification.service';
+import { environment } from '../env/env';
 
 @Component({
   selector: 'app-root',
@@ -27,6 +28,7 @@ export class AppComponent implements OnInit {
 
   // variables
   title = 'to-do';
+  public readonly appVersion = environment.appVersion;
   public canGoBack: boolean = false;
   public isAppReady: boolean = false;
 

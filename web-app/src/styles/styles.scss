@@ -22,6 +22,7 @@ body {
     "footer";
 
   grid-template-rows: auto 1fr auto;
+  overflow: hidden;
 }
 h1 {
   font-size: 1.5rem;

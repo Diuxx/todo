@@ -10,7 +10,7 @@
       }
     </span>
     <span class="my-title">Bonjour {{ (settings$ | async)?.userName ?? '' }}</span>
-    <span right-section></span>
+    <span right-section class="app-version">v{{ appVersion }}</span>
   </todo-header>
   <router-outlet />
   <todo-footer></todo-footer>

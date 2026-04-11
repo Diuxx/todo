@@ -9,8 +9,7 @@
   position: fixed;
   inset: 0;
   pointer-events: auto;
-  background: radial-gradient(circle at 50% -20%, var(--app-color-white-30), var(--app-color-black-45));
-  backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -19,14 +18,12 @@
 
 .todo-modal {
   width: min(520px, 100%);
-  background: linear-gradient(180deg, var(--app-color-yellow-top-light), var(--todo-color));
+  background: var(--app-bg-color);
   border: 1px solid var(--box-border);
-  border-radius: 16px;
-  box-shadow: 0 16px 36px var(--app-color-black-22);
-  padding: 1.1rem;
+  border-radius: 12px;
+  padding: 1.25rem;
   display: grid;
-  gap: 0.9rem;
-  animation: modal-enter 180ms ease-out;
+  gap: 0.85rem;
 }
 
 .modal-header {
@@ -40,42 +37,41 @@
   margin: 0;
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.45rem;
   color: var(--app-fg-color);
   font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .modal-subtitle {
   margin: 0;
-  color: var(--app-color-grey);
-  font-size: 0.82rem;
+  color: var(--app-fg-color);
+  opacity: 0.8;
+  font-size: 0.88rem;
   line-height: 1.4;
 }
 
 .modal-close-btn {
   width: 34px;
   height: 34px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: var(--app-color-white-72);
-  color: var(--app-color-grey);
+  border-radius: 8px;
+  border: 1px solid var(--input-border-color);
+  background: transparent;
+  color: var(--app-fg-color);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 
   &:hover {
-    color: var(--app-fg-color);
-    background-color: var(--app-color-white);
-    border-color: var(--box-border);
-    transform: translateY(-1px);
+    border-color: var(--input-focus-border-color);
+    background-color: var(--surface-muted);
   }
 
   &:focus-visible {
     outline: none;
-    border-color: var(--app-color-blue);
-    box-shadow: 0 0 0 3px var(--app-color-blue-focus-22);
+    border-color: var(--input-focus-border-color);
   }
 }
 
@@ -89,16 +85,15 @@
 .alert-time-input {
   width: 100%;
   border: 1px solid var(--input-border-color);
-  border-radius: 10px;
-  background: var(--app-color-white-90);
+  border-radius: 8px;
+  background: var(--app-color-white);
   color: inherit;
   padding: 0.55rem 0.7rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.15s ease;
 
   &:focus {
     outline: none;
     border-color: var(--input-focus-border-color);
-    box-shadow: 0 0 0 3px var(--app-color-blue-focus-15);
   }
 }
 
@@ -123,32 +118,29 @@
 .recurrence-btn,
 .alert-toggle-btn,
 .modal-btn {
-  border: 1px solid var(--app-border-soft);
-  border-radius: 10px;
-  background: var(--app-color-white-80);
+  border: 1px solid var(--input-border-color);
+  border-radius: 8px;
+  background: transparent;
   color: var(--app-fg-color);
   padding: 0.45rem 0.75rem;
   cursor: pointer;
-  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 
   &:hover {
-    border-color: var(--app-color-blue-45);
-    background: var(--app-color-white);
-    transform: translateY(-1px);
+    border-color: var(--input-focus-border-color);
+    background: var(--surface-muted);
   }
 
   &:focus-visible {
     outline: none;
-    border-color: var(--app-color-blue);
-    box-shadow: 0 0 0 3px var(--app-color-blue-focus-18);
+    border-color: var(--input-focus-border-color);
   }
 }
 
 .recurrence-btn.is-active,
 .alert-toggle-btn.is-active {
-  border-color: var(--app-color-blue);
-  color: var(--app-color-blue);
-  background-color: var(--app-color-blue-light);
+  border-color: var(--input-focus-border-color);
+  background-color: var(--surface-muted);
 }
 
 .alert-toggle-btn {
@@ -162,30 +154,31 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;
-  padding-top: 0.2rem;
+  padding-top: 0.35rem;
 }
 
 .modal-btn-primary {
-  border-color: var(--app-color-green);
-  background-color: var(--app-color-green-light);
-  color: var(--app-color-green-ink);
-  font-weight: 600;
+  border-color: var(--input-focus-border-color);
+  background-color: var(--surface-muted);
+  color: var(--app-fg-color);
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
 }
 
 .modal-btn-alert {
-  border-color: var(--app-color-red-border-45);
-  background-color: var(--app-color-red-light);
-  color: var(--app-color-red-ink-dark);
+  border-color: var(--input-border-color);
+  background-color: transparent;
+  color: var(--app-fg-color);
 }
 
 @media (max-width: 560px) {
   .todo-modal {
     width: 100%;
     padding: 1rem;
-    border-radius: 14px;
+    border-radius: 12px;
   }
 
   .alert-section {
@@ -198,16 +191,5 @@
 
   .modal-btn {
     flex: 1;
-  }
-}
-
-@keyframes modal-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }
