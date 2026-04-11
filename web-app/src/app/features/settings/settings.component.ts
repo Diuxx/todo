@@ -1,6 +1,9 @@
 import { Component, OnDestroy, OnInit, inject } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { NgClass } from "@angular/common";
+import { Capacitor } from "@capacitor/core";
+import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 import { Subject, debounceTime, firstValueFrom, takeUntil } from "rxjs";
 import { SettingsService } from "../../shared/services/settings.service";
 import { AppSettings } from "../../shared/models/app-settings.model";
@@ -172,19 +175,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     try {
       const payload = await this.getCurrentAppData();
-
       const json = JSON.stringify(payload, null, 2);
-      const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-      const downloadUrl = URL.createObjectURL(blob);
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const link = document.createElement('a');
+      const fileName = `todo-backup-${timestamp}.json`;
 
-      link.href = downloadUrl;
-      link.download = `todo-backup-${timestamp}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(downloadUrl);
+      if (Capacitor.isNativePlatform()) {
+        await this.downloadAppDataOnDevice(fileName, json);
+      } else {
+        this.downloadAppDataInBrowser(fileName, json);
+      }
     } finally {
       this.isExportingData = false;
     }
@@ -359,6 +358,46 @@ export class SettingsComponent implements OnInit, OnDestroy {
       imagesMeta,
       settings: settingsList[0],
     };
+  }
+
+  private downloadAppDataInBrowser(fileName: string, json: string): void {
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = downloadUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(downloadUrl);
+  }
+
+  private async downloadAppDataOnDevice(fileName: string, json: string): Promise<void> {
+    const permissions = await Filesystem.checkPermissions();
+
+    if (permissions.publicStorage !== 'granted') {
+      const requested = await Filesystem.requestPermissions();
+
+      if (requested.publicStorage !== 'granted') {
+        throw new Error('Storage permission denied');
+      }
+    }
+
+    const result = await Filesystem.writeFile({
+      path: fileName,
+      data: json,
+      directory: Directory.Documents,
+      encoding: Encoding.UTF8,
+      recursive: true,
+    });
+
+    await Share.share({
+      title: 'Sauvegarde JSON',
+      text: `Fichier exporte: ${fileName}`,
+      url: result.uri,
+      dialogTitle: 'Enregistrer ou partager la sauvegarde',
+    });
   }
 
   private async persistPasswordHash(passwordHash: string): Promise<void> {
