@@ -31,6 +31,41 @@
         }
       </div>
 
+      <div class="objective-section">
+        <label class="modal-label" for="todo-objective-input">
+          Objectif
+          @if (subItemForm.get('recurrenceType')?.value === 'weekly') {
+            pour le mois
+          }
+          @else if (subItemForm.get('recurrenceType')?.value === 'monthly') {
+            pour l'année
+          }
+          @else {
+            pour la semaine
+          }
+          <span class="new-badge">(new)</span>
+        </label>
+        <input
+          id="todo-objective-input"
+          type="number"
+          min="1"
+          class="objective-input"
+          placeholder="Ex: 3"
+          disabled />
+        <small class="objective-hint">
+          Occurrences à atteindre
+          @if (subItemForm.get('recurrenceType')?.value === 'weekly') {
+            sur le mois.
+          }
+          @else if (subItemForm.get('recurrenceType')?.value === 'monthly') {
+            sur l'année.
+          }
+          @else {
+            sur la semaine.
+          }
+        </small>
+      </div>
+
       <div class="alert-section">
         <button
           type="button"

@@ -81,6 +81,10 @@
   color: var(--app-fg-color);
 }
 
+.new-badge {
+  color: var(--app-color-green);
+}
+
 .modal-textarea,
 .alert-time-input {
   width: 100%;
@@ -95,6 +99,26 @@
     outline: none;
     border-color: var(--input-focus-border-color);
   }
+}
+
+.objective-section {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.objective-input {
+  width: 100%;
+  border: 1px solid var(--input-border-color);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--text-secondary-color);
+  padding: 0.55rem 0.7rem;
+  cursor: not-allowed;
+}
+
+.objective-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary-color);
 }
 
 .modal-textarea {
