@@ -1,8 +1,38 @@
 apply plugin: 'com.android.application'
 
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def keystoreProperties = new Properties()
+def hasKeystoreFile = keystorePropertiesFile.exists()
+
+if (hasKeystoreFile) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+def signingStoreFile = (project.findProperty('signingStoreFile') ?: (hasKeystoreFile ? keystoreProperties['storeFile'] : null))
+def signingStorePassword = (project.findProperty('signingStorePassword') ?: (hasKeystoreFile ? keystoreProperties['storePassword'] : null))
+def signingKeyAlias = (project.findProperty('signingKeyAlias') ?: (hasKeystoreFile ? keystoreProperties['keyAlias'] : null))
+def signingKeyPassword = (project.findProperty('signingKeyPassword') ?: (hasKeystoreFile ? keystoreProperties['keyPassword'] : null))
+
+def hasSigningConfig = signingStoreFile && signingStorePassword && signingKeyAlias && signingKeyPassword
+def requireSigning = project.hasProperty('requireSigning') && project.property('requireSigning') == 'true'
+
+if (requireSigning && !hasSigningConfig) {
+    throw new GradleException('Missing signing config. Provide android/keystore.properties or -PsigningStoreFile/-PsigningStorePassword/-PsigningKeyAlias/-PsigningKeyPassword.')
+}
+
 android {
     namespace "com.diuxx.todo"
     compileSdk rootProject.ext.compileSdkVersion
+    signingConfigs {
+        if (hasSigningConfig) {
+            release {
+                storeFile file(signingStoreFile)
+                storePassword signingStorePassword
+                keyAlias signingKeyAlias
+                keyPassword signingKeyPassword
+            }
+        }
+    }
     defaultConfig {
         applicationId "com.diuxx.todo"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -18,6 +48,9 @@ android {
     }
     buildTypes {
         release {
+            if (hasSigningConfig) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

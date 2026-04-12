@@ -6,6 +6,10 @@
     "start": "ng serve",
     "build": "ng build",
     "build:sync": "npm run build && npx cap sync",
+    "android:assemble:release": "node scripts/android-assemble-release.js",
+    "android:assemble:release:signed": "node scripts/android-assemble-release.js --signed",
+    "apk:release": "npm run build:sync && npm run android:assemble:release",
+    "apk:release:signed": "npm run build:sync && npm run android:assemble:release:signed",
     "version:set": "node scripts/set-version.js",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

@@ -13,7 +13,7 @@ Application Todo/Notes/Citations développée avec Angular + Capacitor, avec sto
 
 ## Versions du projet
 
-- App version: `1.0.1`
+- App version: `1.0.2`
 - Angular core: `^20.3.18`
 - Angular CLI: `^20.3.22`
 - TypeScript: `~5.9.3`
@@ -76,6 +76,10 @@ npm run test
 - `npm run watch`: build en watch mode dev
 - `npm run test`: tests unitaires (Karma)
 - `npm run build:sync`: build web puis sync Capacitor
+- `npm run android:assemble:release`: lance Gradle `assembleRelease`
+- `npm run apk:release`: commande unique pour generer l'APK release
+- `npm run android:assemble:release:signed`: assemble release signe (si signature configuree)
+- `npm run apk:release:signed`: build+sync+APK release signe
 - `npm run version:set -- <version> [androidVersionCode]`: met a jour la version partout
 
 Exemples:
@@ -115,6 +119,70 @@ Flow court équivalent:
 npm run build:sync
 npx cap open android
 ```
+
+## Generer un APK release (une seule commande)
+
+```bash
+npm run apk:release
+```
+
+Cette commande enchaine:
+
+1. build web Angular
+2. sync Capacitor vers Android
+3. `assembleRelease` via Gradle
+
+Sortie APK (par defaut):
+
+- `android/app/build/outputs/apk/release/app-release-unsigned.apk`
+
+Note:
+
+- Avec la configuration actuelle, l'APK release genere est non signe (`unsigned`).
+- Pour publier sur Play Store ou distribuer en production, il faut ajouter une `signingConfig` release dans `android/app/build.gradle` (keystore, alias, mots de passe).
+- Le script `npm run apk:release` force un JDK compatible (17/21), prioritairement celui d'Android Studio (`jbr`).
+
+## Generer un APK release signe
+
+1. Generer un keystore (une seule fois), exemple:
+
+```bash
+keytool -genkeypair -v -keystore android/my-release-key.jks -alias todo_release -keyalg RSA -keysize 2048 -validity 10000
+```
+
+2. Creer `android/keystore.properties` a partir de `android/keystore.properties.example`.
+
+3. Lancer la commande:
+
+```bash
+npm run apk:release:signed
+```
+
+Option sans modifier `android/keystore.properties` (credentials en parametres):
+
+```bash
+npm run apk:release:signed -- --store-file ../my-release-key.keystore --key-alias todo_release --store-password "STORE_PASSWORD" --key-password "KEY_PASSWORD"
+```
+
+Option via variables d'environnement:
+
+```bash
+# PowerShell
+$env:ANDROID_SIGNING_STORE_FILE="../my-release-key.keystore"
+$env:ANDROID_SIGNING_KEY_ALIAS="todo_release"
+$env:ANDROID_SIGNING_STORE_PASSWORD="STORE_PASSWORD"
+$env:ANDROID_SIGNING_KEY_PASSWORD="KEY_PASSWORD"
+npm run apk:release:signed
+```
+
+Sortie attendue (APK signe):
+
+- `android/app/build/outputs/apk/release/app-release.apk`
+
+Attention securite:
+
+- Evite de mettre les mots de passe en clair dans l'historique shell.
+- Prefere `android/keystore.properties` local (non committe) ou les variables d'environnement temporaires.
 
 ## Réinstallation / resynchronisation Android
 
@@ -170,6 +238,7 @@ npx cap sync android
 - Problème dépendances: supprimer `node_modules` + `package-lock.json`, puis `npm install`
 - Problème Android sync: `npx cap update android` puis `npx cap sync android`
 - Problème build Angular: vérifier version Node.js (20.x recommandé)
+- Erreur Gradle `Unsupported class file major version 70`: vous utilisez Java 26. Relancer avec `npm run apk:release` (script avec JDK 17/21) ou configurer `JAVA17_HOME` / `JAVA21_HOME`.
 
 ## Structure de dossier (repères)
 
