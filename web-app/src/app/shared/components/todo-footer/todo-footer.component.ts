@@ -1,6 +1,6 @@
 import { NgClass } from "@angular/common";
 import { Component, ElementRef, Input, OnDestroy, ViewChild } from "@angular/core";
-import { NavigationEnd, Router, RouterLink } from "@angular/router";
+import { NavigationEnd, Router } from "@angular/router";
 import { Chart, ChartConfiguration, registerables } from "chart.js";
 import { Subject, filter, takeUntil } from "rxjs";
 import { SaveActionService, TodoProgress } from "../../services/save-action.service";
@@ -14,7 +14,7 @@ Chart.register(...registerables);
     selector: 'todo-footer',
     templateUrl: './todo-footer.component.html',
     styleUrls: ['./todo-footer.component.scss'],
-    imports: [RouterLink, NgClass, SelectItemTypeModalComponent]
+    imports: [NgClass, SelectItemTypeModalComponent]
 })
 export class TodoFooterComponent implements OnDestroy {
 
@@ -82,6 +82,10 @@ export class TodoFooterComponent implements OnDestroy {
 
     public closeSelectTypeModal(): void {
         this.isSelectTypeModalVisible = false;
+    }
+
+    public goToSettings(): void {
+        this.router.navigate(['/settings']);
     }
 
     public onSelectItemType(type: 'todo' | 'note' | 'citation'): void {

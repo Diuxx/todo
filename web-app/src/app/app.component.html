@@ -1,16 +1,36 @@
 @if (isAppReady) {
   <div class="mobile-top"></div>
   <todo-header>
-    <span left-section>
-      @if (!isHomePage()) {
-        <span class="nav-button" (click)="goHome()" style="display: flex; align-items: center; gap: 0.1rem;white-space: nowrap;font-size: 0.875rem;">
-          <i class="bi bi-house-fill nav-button"></i>
+    <div left-section class="header-meta">
+      <span
+        class="header-home-link"
+        [class.is-hidden]="isHomePage()"
+        (click)="!isHomePage() && goHome()"
+        role="button"
+        [attr.tabindex]="isHomePage() ? -1 : 0"
+        [attr.aria-hidden]="isHomePage()"
+        (keydown.enter)="!isHomePage() && goHome()"
+        (keydown.space)="!isHomePage() && goHome()">
+          <i class="bi bi-arrow-left"></i>
           Home
-        </span>
-      }
-    </span>
-    <span class="my-title">Bonjour {{ (settings$ | async)?.userName ?? '' }}</span>
-    <span right-section class="app-version">v{{ appVersion }}</span>
+      </span>
+      <span class="app-version">v{{ appVersion }}</span>
+      <!-- <span class="app-version">Bonjour {{ (settings$ | async)?.userName ?? '' }}</span> -->
+    </div>
+    @if (isHomePage()) {
+      <nav class="item-type-filters" aria-label="Filtrer les types de todo">
+        @for (option of itemTypeFilters; track option.value) {
+          <a
+            [routerLink]="['/']"
+            [queryParams]="getItemTypeFilterQueryParams(option.value)"
+            class="item-type-filter"
+            [class.is-active]="isItemTypeFilterActive(option.value)">
+            {{ option.label }}
+          </a>
+        }
+      </nav>
+    }
+    <span right-section></span>
   </todo-header>
   <router-outlet />
   <todo-footer></todo-footer>

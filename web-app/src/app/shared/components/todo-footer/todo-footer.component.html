@@ -1,17 +1,22 @@
 @if (visible) {
     <footer>
-        <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
+        <!-- <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
             <a [routerLink]="['/']" [queryParams]="{ filter: 'note' }" class="footer-menu-item">
                 <img width="32px" src="/svgs/note.svg" alt="Note" class="footer-logo">
                 <span>Notes</span>
             </a>
-        </div>
+        </div> -->
         <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
-            <a [routerLink]="['/']" [queryParams]="{ filter: 'todo' }" class="footer-menu-item">
-                <img width="32px" src="/svgs/todo-2.svg" alt="Todo" class="footer-logo">
-                <span>Todo</span>
-            </a>
+            <button
+                type="button"
+                class="footer-menu-item"
+                (click)="openSelectTypeModal()"
+                aria-label="Créer un nouvel item">
+                <img width="32px" src="/svgs/new-2.svg" alt="Créer" class="footer-logo">
+                <span>New</span>
+            </button>
         </div>
+
         <div class="footer-board" [ngClass]="{ 'save-icon-showed': showSaveIcon && !todoProgress }" (click)="onBoardClick()">
             @if (todoProgress) {
                 <canvas #todoProgressChart class="board-chart" width="90" height="90" aria-label="Progression todo"></canvas>
@@ -25,17 +30,11 @@
             <button
                 type="button"
                 class="footer-menu-item"
-                (click)="openSelectTypeModal()"
-                aria-label="Créer un nouvel item">
-                <img width="32px" src="/svgs/new-2.svg" alt="Créer" class="footer-logo">
-                <span>New</span>
-            </button>
-        </div>
-        <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
-            <a [routerLink]="['/settings']" class="footer-menu-item">
+                (click)="goToSettings()"
+                aria-label="Ouvrir les paramètres">
                 <img width="32px" src="/svgs/cog-1.svg" alt="parametre" class="footer-logo">
                 <span>Paramètres</span>
-            </a>
+            </button>
         </div>
     </footer>
 
