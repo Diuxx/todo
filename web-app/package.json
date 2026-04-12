@@ -1,11 +1,12 @@
 {
   "name": "todo",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "build:sync": "npm run build && npx cap sync",
+    "version:set": "node scripts/set-version.js",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
