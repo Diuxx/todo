@@ -118,6 +118,11 @@ export class ItemDetailComponent implements OnInit {
   }
 
   public ngOnDestroy(): void {
+    if (this.item?.isLocked) {
+      this.itemLockService.lock(this.item.id);
+      this.hasCurrentAccess = false;
+    }
+
     this.destroy$.next();
     this.destroy$.complete();
 

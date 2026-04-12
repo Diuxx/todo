@@ -29,6 +29,7 @@ export class DashboardComponent implements OnInit {
 
   public data: AppData | null = null;
   public filter: string | null = null;
+  public searchQuery: string | null = null;
 
   public items: AppItem[] = [];
   public settings: AppSettings | undefined;
@@ -44,9 +45,10 @@ export class DashboardComponent implements OnInit {
     console.log('DashboardComponent initialized');
     this.route.queryParamMap.subscribe(params => {
       this.filter = params.get('filter') || null;
+      this.searchQuery = params.get('q') || null;
       console.log('filter:', this.filter);
 
-      this.getData(this.filter);
+      this.getData(this.searchQuery ? null : this.filter);
     });
   }
 
@@ -63,7 +65,7 @@ export class DashboardComponent implements OnInit {
   }
 
   public get affirmationItem(): AppItem | undefined {
-    if (this.filter) {
+    if (this.filter || this.searchQuery) {
       return undefined;
     }
 
@@ -74,12 +76,19 @@ export class DashboardComponent implements OnInit {
 
   public get displayedItems(): AppItem[] {
     const affirmation = this.affirmationItem;
+    const baseItems = affirmation
+      ? this.items.filter(item => item.id !== affirmation.id)
+      : this.items;
 
-    if (!affirmation) {
-      return this.items;
+    if (!this.searchQuery) {
+      return baseItems;
     }
 
-    return this.items.filter(item => item.id !== affirmation.id);
+    const needle = this.searchQuery.toLowerCase();
+    return baseItems.filter(item =>
+      item.title?.toLowerCase().includes(needle) ||
+      item.content?.toLowerCase().includes(needle)
+    );
   }
 
   /**

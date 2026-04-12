@@ -76,3 +76,41 @@
     font-weight: 600;
   }
 }
+
+.header-search-input {
+  width: 100%;
+  max-width: 280px;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--box-border);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  background: var(--app-bg-color);
+  color: var(--app-fg-color);
+  outline: none;
+  transition: border-color 120ms ease;
+
+  &:focus {
+    border-color: var(--app-fg-color);
+  }
+}
+
+.search-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid var(--box-border);
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  color: var(--text-secondary-color);
+  font-size: 0.85rem;
+  transition: all 120ms ease;
+
+  &.is-active {
+    color: var(--app-fg-color);
+    border-color: var(--app-fg-color);
+    background-color: var(--app-color-white-75);
+  }
+}

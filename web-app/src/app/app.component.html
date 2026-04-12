@@ -18,19 +18,42 @@
       <!-- <span class="app-version">Bonjour {{ (settings$ | async)?.userName ?? '' }}</span> -->
     </div>
     @if (isHomePage()) {
-      <nav class="item-type-filters" aria-label="Filtrer les types de todo">
-        @for (option of itemTypeFilters; track option.value) {
-          <a
-            [routerLink]="['/']"
-            [queryParams]="getItemTypeFilterQueryParams(option.value)"
-            class="item-type-filter"
-            [class.is-active]="isItemTypeFilterActive(option.value)">
-            {{ option.label }}
-          </a>
-        }
-      </nav>
+      @if (isSearchOpen) {
+        <input
+          class="header-search-input"
+          type="search"
+          placeholder="Rechercher…"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange($event)"
+          autofocus
+          aria-label="Recherche"
+        />
+      } @else {
+        <nav class="item-type-filters" aria-label="Filtrer les types de todo">
+          @for (option of itemTypeFilters; track option.value) {
+            <a
+              [routerLink]="['/']"
+              [queryParams]="getItemTypeFilterQueryParams(option.value)"
+              class="item-type-filter"
+              [class.is-active]="isItemTypeFilterActive(option.value)">
+              {{ option.label }}
+            </a>
+          }
+        </nav>
+      }
     }
-    <span right-section></span>
+    <span right-section>
+      @if (isHomePage()) {
+        <button
+          type="button"
+          class="search-toggle-btn"
+          [class.is-active]="isSearchOpen"
+          (click)="toggleSearch()"
+          [attr.aria-label]="isSearchOpen ? 'Fermer la recherche' : 'Ouvrir la recherche'">
+          <i class="bi bi-search"></i>
+        </button>
+      }
+    </span>
   </todo-header>
   <router-outlet />
   <todo-footer></todo-footer>
