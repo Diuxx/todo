@@ -20,9 +20,7 @@
             "outputPath": "dist/todo",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -38,9 +36,7 @@
               "src/styles/styles.scss",
               "src/styles/customization.scss"
             ],
-            "scripts": [
-              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
-            ]
+            "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"]
           },
           "configurations": {
             "production": {
@@ -87,10 +83,7 @@
         "test": {
           "builder": "@angular/build:karma",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -99,10 +92,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles/styles.scss",
-              "src/styles/customization.scss"
-            ],
+            "styles": ["src/styles/styles.scss", "src/styles/customization.scss"],
             "scripts": []
           }
         }

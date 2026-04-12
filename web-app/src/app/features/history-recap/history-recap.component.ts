@@ -1,11 +1,11 @@
-import { CommonModule } from "@angular/common";
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, inject } from "@angular/core";
-import { Chart, ChartConfiguration, registerables } from "chart.js";
-import { combineLatest, Subject, takeUntil } from "rxjs";
-import { AppItem } from "../../shared/models/app-item.model";
-import { TodoHistoryEntry } from "../../shared/models/todo-history.model";
-import { ItemsService } from "../../shared/services/items.service";
-import { TodoHistoryService } from "../../shared/services/todo-history.service";
+import { CommonModule } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, inject } from '@angular/core';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
+import { combineLatest, Subject, takeUntil } from 'rxjs';
+import { AppItem } from '../../shared/models/app-item.model';
+import { TodoHistoryEntry } from '../../shared/models/todo-history.model';
+import { ItemsService } from '../../shared/services/items.service';
+import { TodoHistoryService } from '../../shared/services/todo-history.service';
 
 Chart.register(...registerables);
 
@@ -49,9 +49,9 @@ interface TopTodo {
 
 @Component({
   standalone: true,
-  selector: "history-recap",
-  templateUrl: "./history-recap.component.html",
-  styleUrls: ["./history-recap.component.scss"],
+  selector: 'history-recap',
+  templateUrl: './history-recap.component.html',
+  styleUrls: ['./history-recap.component.scss'],
   imports: [CommonModule],
 })
 export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
@@ -66,20 +66,20 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
 
   public isLoading: boolean = true;
   public availableMonths: MonthOption[] = [];
-  public selectedMonthKey: string = "";
+  public selectedMonthKey: string = '';
   public weeklyStats: WeeklyStats[] = [];
   public chartWeeklyStats: WeeklyStats[] = [];
   public summary: RecapSummary = {
     totalDone: 0,
     averageDonePerWeek: 0,
-    bestWeekLabel: "-",
+    bestWeekLabel: '-',
     bestWeekDone: 0,
     activeWeeksCount: 0,
   };
   public topTodos: TopTodo[] = [];
   public selectedWeek: WeeklyStats | null = null;
 
-  @ViewChild("weeklyHistoryChart")
+  @ViewChild('weeklyHistoryChart')
   private set weeklyHistoryChartRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
     const canvas = ref?.nativeElement;
 
@@ -109,24 +109,26 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
   private loadRecap(): void {
     this.isLoading = true;
 
-    combineLatest([
-      this.todoHistoryService.getAll(),
-      this.itemsService.getAllActive("todo"),
-    ])
+    combineLatest([this.todoHistoryService.getAll(), this.itemsService.getAllActive('todo')])
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ([history, todoItems]) => {
-          this.allDoneHistory = history.filter((entry) => entry.status === "done" && !!entry.completedAt);
+          this.allDoneHistory = history.filter(
+            (entry) => entry.status === 'done' && !!entry.completedAt
+          );
           this.titleBySubItemId = this.buildTitleBySubItemId(todoItems);
 
           this.availableMonths = this.buildAvailableMonths(this.allDoneHistory);
-          this.selectedMonthKey = this.resolveSelectedMonthKey(this.selectedMonthKey, this.availableMonths);
+          this.selectedMonthKey = this.resolveSelectedMonthKey(
+            this.selectedMonthKey,
+            this.availableMonths
+          );
           this.refreshMonthView();
           this.isLoading = false;
         },
         error: () => {
           this.availableMonths = [];
-          this.selectedMonthKey = "";
+          this.selectedMonthKey = '';
           this.weeklyStats = [];
           this.chartWeeklyStats = [];
           this.topTodos = [];
@@ -185,7 +187,11 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    this.chartWeeklyStats = this.buildWeeklyStatsForMonth(this.allDoneHistory, this.titleBySubItemId, month);
+    this.chartWeeklyStats = this.buildWeeklyStatsForMonth(
+      this.allDoneHistory,
+      this.titleBySubItemId,
+      month
+    );
     this.weeklyStats = this.chartWeeklyStats.filter((row) => row.doneCount > 0);
     this.summary = this.buildSummary(this.chartWeeklyStats);
 
@@ -213,7 +219,9 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
 
     while (cursor < monthEnd) {
       const weekStart = new Date(cursor);
-      const weekEnd = new Date(this.getWeekStart(new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000)));
+      const weekEnd = new Date(
+        this.getWeekStart(new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000))
+      );
 
       if (weekEnd <= weekStart) {
         weekEnd.setDate(weekStart.getDate() + 7);
@@ -256,7 +264,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
       return {
         totalDone: 0,
         averageDonePerWeek: 0,
-        bestWeekLabel: "-",
+        bestWeekLabel: '-',
         bestWeekDone: 0,
         activeWeeksCount: 0,
       };
@@ -277,7 +285,10 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     };
   }
 
-  private buildTopTodos(doneHistory: TodoHistoryEntry[], titleBySubItemId: Map<string, string>): TopTodo[] {
+  private buildTopTodos(
+    doneHistory: TodoHistoryEntry[],
+    titleBySubItemId: Map<string, string>
+  ): TopTodo[] {
     const countByTodoId = new Map<string, number>();
 
     for (const entry of doneHistory) {
@@ -287,7 +298,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     return Array.from(countByTodoId.entries())
       .map(([todoItemId, count]) => ({
         todoItemId,
-        title: titleBySubItemId.get(todoItemId) ?? "Sous-tâche supprimée",
+        title: titleBySubItemId.get(todoItemId) ?? 'Sous-tâche supprimée',
         count,
       }))
       .sort((a, b) => b.count - a.count)
@@ -298,12 +309,12 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     const titleBySubItemId = new Map<string, string>();
 
     for (const todo of todoItems) {
-      if (todo.type !== "todo" || !todo.todoContent?.length) {
+      if (todo.type !== 'todo' || !todo.todoContent?.length) {
         continue;
       }
 
       for (const subItem of todo.todoContent) {
-        const title = `${subItem.title ?? "Sous-tâche"}`.trim() || "Sous-tâche";
+        const title = `${subItem.title ?? 'Sous-tâche'}`.trim() || 'Sous-tâche';
         titleBySubItemId.set(subItem.id, title);
       }
     }
@@ -312,7 +323,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
   }
 
   private buildDayStats(entries: TodoHistoryEntry[], weekStart: Date): WeekDayStats[] {
-    const labels = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+    const labels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
     return labels.map((label, index) => {
       const dayStart = new Date(weekStart);
@@ -336,7 +347,10 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  private resolveSelectedWeek(selectedLabel: string | undefined, weeklyStats: WeeklyStats[]): WeeklyStats | null {
+  private resolveSelectedWeek(
+    selectedLabel: string | undefined,
+    weeklyStats: WeeklyStats[]
+  ): WeeklyStats | null {
     if (!weeklyStats.length || !selectedLabel) {
       return null;
     }
@@ -358,15 +372,15 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     return [...keys]
       .sort((a, b) => b.localeCompare(a))
       .map((key) => {
-        const [year, month] = key.split("-").map(Number);
+        const [year, month] = key.split('-').map(Number);
         const start = new Date(year, month - 1, 1);
         const end = new Date(year, month, 1);
 
         return {
           key,
-          label: start.toLocaleDateString("fr-FR", {
-            month: "long",
-            year: "numeric",
+          label: start.toLocaleDateString('fr-FR', {
+            month: 'long',
+            year: 'numeric',
           }),
           startISO: start.toISOString(),
           endISO: end.toISOString(),
@@ -385,7 +399,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
       return currentMonthKey;
     }
 
-    return options[0]?.key ?? "";
+    return options[0]?.key ?? '';
   }
 
   private renderChart(weeklyStats: WeeklyStats[]): void {
@@ -397,22 +411,22 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
 
     this.destroyChart();
 
-    const config: ChartConfiguration<"line"> = {
-      type: "line",
+    const config: ChartConfiguration<'line'> = {
+      type: 'line',
       data: {
         labels: weeklyStats.map((week) => week.label),
         datasets: [
           {
-            label: "Tâches réalisées",
+            label: 'Tâches réalisées',
             data: weeklyStats.map((week) => week.doneCount),
-            borderColor: "#dc2626",
-            backgroundColor: "rgba(220, 38, 38, 0.18)",
+            borderColor: '#dc2626',
+            backgroundColor: 'rgba(220, 38, 38, 0.18)',
             borderWidth: 2,
             borderDash: [6, 6],
             pointRadius: 4,
             pointHoverRadius: 5,
-            pointBackgroundColor: "#dc2626",
-            pointBorderColor: "#dc2626",
+            pointBackgroundColor: '#dc2626',
+            pointBorderColor: '#dc2626',
             fill: false,
             tension: 0.3,
           },
@@ -427,7 +441,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
             callbacks: {
               afterLabel: (ctx) => {
                 const stat = weeklyStats[ctx.dataIndex];
-                return stat ? `${stat.uniqueTodos} sous-tâches distinctes` : "";
+                return stat ? `${stat.uniqueTodos} sous-tâches distinctes` : '';
               },
             },
           },
@@ -435,16 +449,16 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: "#6b7280" },
+            ticks: { color: '#6b7280' },
           },
           y: {
             beginAtZero: true,
             ticks: {
               precision: 0,
-              color: "#6b7280",
+              color: '#6b7280',
             },
             grid: {
-              color: "rgba(107, 114, 128, 0.16)",
+              color: 'rgba(107, 114, 128, 0.16)',
             },
           },
         },
@@ -469,15 +483,15 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
   }
 
   private formatShortDate(date: Date): string {
-    return date.toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
     });
   }
 
   private toMonthKey(date: Date): string {
     const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
     return `${year}-${month}`;
   }
 }

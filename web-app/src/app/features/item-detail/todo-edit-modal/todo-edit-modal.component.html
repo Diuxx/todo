@@ -10,13 +10,16 @@
           <i class="bi bi-x-lg"></i>
         </button>
       </div>
-      <p class="modal-subtitle">Mets à jour le texte, la récurrence et les alertes de cette sous-tâche.</p>
+      <p class="modal-subtitle">
+        Mets à jour le texte, la récurrence et les alertes de cette sous-tâche.
+      </p>
 
       <label class="modal-label">Texte</label>
       <textarea
         class="modal-textarea"
         formControlName="title"
-        placeholder="Texte de la sous-tâche"></textarea>
+        placeholder="Texte de la sous-tâche"
+      ></textarea>
 
       <label class="modal-label">Récurrence</label>
       <div class="recurrence-actions">
@@ -25,7 +28,8 @@
             type="button"
             class="recurrence-btn"
             [ngClass]="{ 'is-active': subItemForm.get('recurrenceType')?.value === option }"
-            (click)="selectRecurrence(option)">
+            (click)="selectRecurrence(option)"
+          >
             {{ option }}
           </button>
         }
@@ -36,11 +40,9 @@
           Objectif
           @if (subItemForm.get('recurrenceType')?.value === 'weekly') {
             pour le mois
-          }
-          @else if (subItemForm.get('recurrenceType')?.value === 'monthly') {
+          } @else if (subItemForm.get('recurrenceType')?.value === 'monthly') {
             pour l'année
-          }
-          @else {
+          } @else {
             pour la semaine
           }
           <span class="new-badge">(new)</span>
@@ -51,16 +53,15 @@
           min="1"
           class="objective-input"
           placeholder="Ex: 3"
-          disabled />
+          disabled
+        />
         <small class="objective-hint">
           Occurrences à atteindre
           @if (subItemForm.get('recurrenceType')?.value === 'weekly') {
             sur le mois.
-          }
-          @else if (subItemForm.get('recurrenceType')?.value === 'monthly') {
+          } @else if (subItemForm.get('recurrenceType')?.value === 'monthly') {
             sur l'année.
-          }
-          @else {
+          } @else {
             sur la semaine.
           }
         </small>
@@ -71,23 +72,26 @@
           type="button"
           class="alert-toggle-btn"
           [ngClass]="{ 'is-active': subItemForm.get('alertEnabled')?.value }"
-          (click)="toggleAlert()">
-          <i class="bi" [ngClass]="subItemForm.get('alertEnabled')?.value ? 'bi-bell-fill' : 'bi-bell'"></i>
+          (click)="toggleAlert()"
+        >
+          <i
+            class="bi"
+            [ngClass]="subItemForm.get('alertEnabled')?.value ? 'bi-bell-fill' : 'bi-bell'"
+          ></i>
           Alertes
         </button>
         @if (subItemForm.get('alertEnabled')?.value) {
           <div class="alert-time-wrap">
             <label class="modal-label">Heure</label>
-            <input
-              type="time"
-              class="alert-time-input"
-              formControlName="alertAt" />
+            <input type="time" class="alert-time-input" formControlName="alertAt" />
           </div>
         }
       </div>
 
       <div class="modal-actions">
-        <button type="button" class="modal-btn modal-btn-alert" (click)="closeModal()">Annuler</button>
+        <button type="button" class="modal-btn modal-btn-alert" (click)="closeModal()">
+          Annuler
+        </button>
         <button type="button" class="modal-btn modal-btn-primary" (click)="saveModal()">
           <i class="bi bi-check2"></i>
           Valider

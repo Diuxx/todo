@@ -1,25 +1,24 @@
-import { Component, inject, OnInit } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
-import { NgClass } from "@angular/common";
-import { AppData } from "../../shared/models/app-data.model";
-import { AppItem } from "../../shared/models/app-item.model";
-import { ItemsService } from "../../shared/services/items.service";
-import { DashboardSkeletonComponent } from "../../shared/components/dashboard-skeleton/dashboard-skeleton.component";
-import { SettingsService } from "../../shared/services/settings.service";
-import { switchMap } from "rxjs";
-import { AppSettings } from "../../shared/models/app-settings.model";
-import { PasswordPromptModalComponent } from "../../shared/components/password-prompt-modal/password-prompt-modal.component";
-import { ItemLockService } from "../../shared/services/item-lock.service";
+import { Component, inject, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { NgClass } from '@angular/common';
+import { AppData } from '../../shared/models/app-data.model';
+import { AppItem } from '../../shared/models/app-item.model';
+import { ItemsService } from '../../shared/services/items.service';
+import { DashboardSkeletonComponent } from '../../shared/components/dashboard-skeleton/dashboard-skeleton.component';
+import { SettingsService } from '../../shared/services/settings.service';
+import { switchMap } from 'rxjs';
+import { AppSettings } from '../../shared/models/app-settings.model';
+import { PasswordPromptModalComponent } from '../../shared/components/password-prompt-modal/password-prompt-modal.component';
+import { ItemLockService } from '../../shared/services/item-lock.service';
 
 @Component({
   standalone: true,
   selector: 'life-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
-  imports: [NgClass, DashboardSkeletonComponent, PasswordPromptModalComponent]
+  imports: [NgClass, DashboardSkeletonComponent, PasswordPromptModalComponent],
 })
 export class DashboardComponent implements OnInit {
-
   // -- variables --
   private readonly itemsService = inject(ItemsService);
   private readonly settingsService = inject(SettingsService);
@@ -43,7 +42,7 @@ export class DashboardComponent implements OnInit {
   // -- functions --
   public ngOnInit(): void {
     console.log('DashboardComponent initialized');
-    this.route.queryParamMap.subscribe(params => {
+    this.route.queryParamMap.subscribe((params) => {
       this.filter = params.get('filter') || null;
       this.searchQuery = params.get('q') || null;
       console.log('filter:', this.filter);
@@ -60,7 +59,7 @@ export class DashboardComponent implements OnInit {
    */
   public formatTodoProgress(item: AppItem): string {
     const total = item.todoContent?.length || 0;
-    const done = item.todoContent?.filter(subItem => !!subItem.isDone).length || 0;
+    const done = item.todoContent?.filter((subItem) => !!subItem.isDone).length || 0;
     return `${done} / ${total}`;
   }
 
@@ -70,14 +69,14 @@ export class DashboardComponent implements OnInit {
     }
 
     return this.settings?.dailyAffirmationEnabled
-      ? this.items.find(item => item.type === 'citation' && !!item.isAffirmation)
+      ? this.items.find((item) => item.type === 'citation' && !!item.isAffirmation)
       : undefined;
   }
 
   public get displayedItems(): AppItem[] {
     const affirmation = this.affirmationItem;
     const baseItems = affirmation
-      ? this.items.filter(item => item.id !== affirmation.id)
+      ? this.items.filter((item) => item.id !== affirmation.id)
       : this.items;
 
     if (!this.searchQuery) {
@@ -85,9 +84,9 @@ export class DashboardComponent implements OnInit {
     }
 
     const needle = this.searchQuery.toLowerCase();
-    return baseItems.filter(item =>
-      item.title?.toLowerCase().includes(needle) ||
-      item.content?.toLowerCase().includes(needle)
+    return baseItems.filter(
+      (item) =>
+        item.title?.toLowerCase().includes(needle) || item.content?.toLowerCase().includes(needle)
     );
   }
 
@@ -142,25 +141,27 @@ export class DashboardComponent implements OnInit {
    */
   private getData(filter: string | null = null): void {
     this.isLoading = true;
-    this.settingsService.get()
+    this.settingsService
+      .get()
       .pipe(
-        switchMap((config) => this.itemsService.getAll(filter, !!config?.showArchivedItems).pipe(
-          switchMap((items) => [{ items, config }])
-        ))
+        switchMap((config) =>
+          this.itemsService
+            .getAll(filter, !!config?.showArchivedItems)
+            .pipe(switchMap((items) => [{ items, config }]))
+        )
       )
       .subscribe({
-      next: ({ items, config }) => {
-        this.items = items;
-        this.settings = config;
-        this.isLoading = false;
-        console.log('Active items fetched successfully:', items);
-      },
-      error: (error) => {
-        console.error('Error fetching active items:', error);
-        this.items = [];
-        this.isLoading = false;
-      }
-    });
+        next: ({ items, config }) => {
+          this.items = items;
+          this.settings = config;
+          this.isLoading = false;
+          console.log('Active items fetched successfully:', items);
+        },
+        error: (error) => {
+          console.error('Error fetching active items:', error);
+          this.items = [];
+          this.isLoading = false;
+        },
+      });
   }
-
 }

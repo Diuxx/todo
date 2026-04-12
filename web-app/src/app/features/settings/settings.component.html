@@ -1,44 +1,44 @@
 @if (settingsForm) {
-<div class="settings-container" [formGroup]="settingsForm">
-
-  <div class="settings-card">
-    <div class="settings-card-header">
-      <h1 class="settings-card-title">Options</h1>
-      <span class="save-badge" [ngClass]="{ visible: savedFeedback }">
-        <i class="bi bi-check2"></i> Enregistré
-      </span>
-    </div>
-
-    <!-- Profil -->
-    <section class="settings-section">
-      <h2 class="settings-section-title">
-        <i class="bi bi-person-fill"></i> Profil
-      </h2>
-
-      <div class="form-field">
-        <label class="form-label" for="userName">Nom d'utilisateur</label>
-        <input
-          id="userName"
-          type="text"
-          class="form-input"
-          formControlName="userName"
-          placeholder="Votre nom" [max]="20"/>
+  <div class="settings-container" [formGroup]="settingsForm">
+    <div class="settings-card">
+      <div class="settings-card-header">
+        <h1 class="settings-card-title">Options</h1>
+        <span class="save-badge" [ngClass]="{ visible: savedFeedback }">
+          <i class="bi bi-check2"></i> Enregistré
+        </span>
       </div>
 
-      <div class="form-field">
-        <label class="form-label" for="userId">ID utilisateur</label>
-        <input
-          id="userId"
-          type="text"
-          class="form-input readonly"
-          formControlName="userId"
-          readonly />
-        <span class="form-hint">Utilisé pour la sauvegarde et restauration des données.</span>
-      </div>
-    </section>
+      <!-- Profil -->
+      <section class="settings-section">
+        <h2 class="settings-section-title"><i class="bi bi-person-fill"></i> Profil</h2>
 
-    <!-- Apparence -->
-    <!--
+        <div class="form-field">
+          <label class="form-label" for="userName">Nom d'utilisateur</label>
+          <input
+            id="userName"
+            type="text"
+            class="form-input"
+            formControlName="userName"
+            placeholder="Votre nom"
+            [max]="20"
+          />
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="userId">ID utilisateur</label>
+          <input
+            id="userId"
+            type="text"
+            class="form-input readonly"
+            formControlName="userId"
+            readonly
+          />
+          <span class="form-hint">Utilisé pour la sauvegarde et restauration des données.</span>
+        </div>
+      </section>
+
+      <!-- Apparence -->
+      <!--
     <section class="settings-section">
       <h2 class="settings-section-title">
         <i class="bi bi-palette-fill"></i> Apparence
@@ -88,138 +88,141 @@
     </section>
     -->
 
-    <!-- Préférences -->
-    <section class="settings-section">
-      <h2 class="settings-section-title">
-        <i class="bi bi-sliders"></i> Préférences
-      </h2>
+      <!-- Préférences -->
+      <section class="settings-section">
+        <h2 class="settings-section-title"><i class="bi bi-sliders"></i> Préférences</h2>
 
-      <div class="toggle-field">
-        <div class="toggle-field-info">
-          <span class="toggle-label">Affirmation du jour</span>
-          <span class="toggle-hint">Affiche une affirmation positive au démarrage.</span>
+        <div class="toggle-field">
+          <div class="toggle-field-info">
+            <span class="toggle-label">Affirmation du jour</span>
+            <span class="toggle-hint">Affiche une affirmation positive au démarrage.</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" formControlName="dailyAffirmationEnabled" />
+            <span class="toggle-slider"></span>
+          </label>
         </div>
-        <label class="toggle">
-          <input type="checkbox" formControlName="dailyAffirmationEnabled" />
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
 
-      <div class="toggle-field">
-        <div class="toggle-field-info">
-          <span class="toggle-label">Éléments archivés</span>
-          <span class="toggle-hint">Affiche les éléments archivés dans le tableau de bord.</span>
+        <div class="toggle-field">
+          <div class="toggle-field-info">
+            <span class="toggle-label">Éléments archivés</span>
+            <span class="toggle-hint">Affiche les éléments archivés dans le tableau de bord.</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" formControlName="showArchivedItems" />
+            <span class="toggle-slider"></span>
+          </label>
         </div>
-        <label class="toggle">
-          <input type="checkbox" formControlName="showArchivedItems" />
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-    </section>
+      </section>
 
-    <section class="settings-section">
-      <h2 class="settings-section-title">
-        <i class="bi bi-shield-lock"></i> Sécurité
-      </h2>
+      <section class="settings-section">
+        <h2 class="settings-section-title"><i class="bi bi-shield-lock"></i> Sécurité</h2>
 
-      <div class="security-card">
-        <div class="security-copy">
-          <span class="security-title">Mot de passe local</span>
+        <div class="security-card">
+          <div class="security-copy">
+            <span class="security-title">Mot de passe local</span>
 
-          @if (hasCustomPassword) {
-            <span class="security-hint">
-              Un mot de passe personnel est défini. Il sera demandé avant toute modification.
+            @if (hasCustomPassword) {
+              <span class="security-hint">
+                Un mot de passe personnel est défini. Il sera demandé avant toute modification.
+              </span>
+            } @else {
+              <span class="security-hint">
+                Aucun mot de passe personnel n'est défini. Le mot de passe actuel est test.
+              </span>
+            }
+          </div>
+
+          <button type="button" class="security-btn" (click)="openPasswordModal()">
+            <i class="bi bi-key"></i>
+            {{ hasCustomPassword ? 'Modifier le mot de passe' : 'Définir un mot de passe' }}
+          </button>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h2 class="settings-section-title"><i class="bi bi-database"></i> Données</h2>
+
+        <div class="stats-grid">
+          <div class="stats-card">
+            <span class="stats-label">Taille estimée des données</span>
+            <strong class="stats-value">
+              {{ databaseSizeKb !== null ? databaseSizeKb + ' Ko' : 'Indisponible' }}
+            </strong>
+            <span class="stats-hint"
+              >Taille du JSON exportable de l'application (todos, historique, métadonnées,
+              options).</span
+            >
+            <button
+              type="button"
+              class="data-export-btn"
+              [disabled]="isExportingData"
+              (click)="downloadAppData()"
+            >
+              <i class="bi bi-download"></i>
+              {{ isExportingData ? 'Preparation...' : 'Telecharger les donnees (JSON)' }}
+            </button>
+
+            <button
+              type="button"
+              class="data-import-btn"
+              [disabled]="isImportingData"
+              (click)="openImportPicker(importJsonInput)"
+            >
+              <i class="bi bi-upload"></i>
+              {{ isImportingData ? 'Import en cours...' : 'Importer et ecraser (JSON)' }}
+            </button>
+
+            <input
+              #importJsonInput
+              type="file"
+              class="visually-hidden-file-input"
+              accept="application/json,.json"
+              (change)="importAppData($event)"
+            />
+          </div>
+
+          <div class="stats-card">
+            <span class="stats-label">Lignes dans history</span>
+            <strong class="stats-value">{{ historyRowsCount ?? 0 }}</strong>
+            <span class="stats-hint"
+              >Nombre d'entrées enregistrées dans l'historique des todos.</span
+            >
+          </div>
+        </div>
+
+        <div class="danger-zone">
+          <div class="danger-zone-copy">
+            <span class="danger-zone-title">Supprimer les données locales</span>
+            <span class="danger-zone-hint">
+              Efface les todos, notes, citations, historique local et notifications planifiées sur
+              cet appareil.
             </span>
-          }
-          @else {
-            <span class="security-hint">
-              Aucun mot de passe personnel n'est défini. Le mot de passe actuel est test.
-            </span>
-          }
-        </div>
+          </div>
 
-        <button type="button" class="security-btn" (click)="openPasswordModal()">
-          <i class="bi bi-key"></i>
-          {{ hasCustomPassword ? 'Modifier le mot de passe' : 'Définir un mot de passe' }}
-        </button>
-      </div>
-    </section>
-
-    <section class="settings-section">
-      <h2 class="settings-section-title">
-        <i class="bi bi-database"></i> Données
-      </h2>
-
-      <div class="stats-grid">
-        <div class="stats-card">
-          <span class="stats-label">Taille estimée des données</span>
-          <strong class="stats-value">
-            {{ databaseSizeKb !== null ? databaseSizeKb + ' Ko' : 'Indisponible' }}
-          </strong>
-          <span class="stats-hint">Taille du JSON exportable de l'application (todos, historique, métadonnées, options).</span>
           <button
             type="button"
-            class="data-export-btn"
-            [disabled]="isExportingData"
-            (click)="downloadAppData()">
-            <i class="bi bi-download"></i>
-            {{ isExportingData ? 'Preparation...' : 'Telecharger les donnees (JSON)' }}
+            class="danger-btn"
+            [disabled]="isDeletingData"
+            (click)="deleteAppData()"
+          >
+            <i class="bi bi-trash3"></i>
+            {{ isDeletingData ? 'Suppression...' : 'Supprimer les données' }}
           </button>
-
-          <button
-            type="button"
-            class="data-import-btn"
-            [disabled]="isImportingData"
-            (click)="openImportPicker(importJsonInput)">
-            <i class="bi bi-upload"></i>
-            {{ isImportingData ? 'Import en cours...' : 'Importer et ecraser (JSON)' }}
-          </button>
-
-          <input
-            #importJsonInput
-            type="file"
-            class="visually-hidden-file-input"
-            accept="application/json,.json"
-            (change)="importAppData($event)" />
         </div>
-
-        <div class="stats-card">
-          <span class="stats-label">Lignes dans history</span>
-          <strong class="stats-value">{{ historyRowsCount ?? 0 }}</strong>
-          <span class="stats-hint">Nombre d'entrées enregistrées dans l'historique des todos.</span>
-        </div>
-      </div>
-
-      <div class="danger-zone">
-        <div class="danger-zone-copy">
-          <span class="danger-zone-title">Supprimer les données locales</span>
-          <span class="danger-zone-hint">
-            Efface les todos, notes, citations, historique local et notifications planifiées sur cet appareil.
-          </span>
-        </div>
-
-        <button
-          type="button"
-          class="danger-btn"
-          [disabled]="isDeletingData"
-          (click)="deleteAppData()">
-          <i class="bi bi-trash3"></i>
-          {{ isDeletingData ? 'Suppression...' : 'Supprimer les données' }}
-        </button>
-      </div>
-    </section>
-
+      </section>
+    </div>
   </div>
-</div>
 
-<app-password-settings-modal
-  [visible]="isPasswordModalVisible"
-  [hasCustomPassword]="hasCustomPassword"
-  [requiresCurrentPassword]="hasCustomPassword"
-  [isSaving]="isPasswordSaving"
-  [errorMessage]="passwordErrorMessage"
-  (close)="closePasswordModal()"
-  (submitPassword)="savePassword($event)"
-  (resetPassword)="resetPasswordToDefault($event)">
-</app-password-settings-modal>
+  <app-password-settings-modal
+    [visible]="isPasswordModalVisible"
+    [hasCustomPassword]="hasCustomPassword"
+    [requiresCurrentPassword]="hasCustomPassword"
+    [isSaving]="isPasswordSaving"
+    [errorMessage]="passwordErrorMessage"
+    (close)="closePasswordModal()"
+    (submitPassword)="savePassword($event)"
+    (resetPassword)="resetPasswordToDefault($event)"
+  >
+  </app-password-settings-modal>
 }

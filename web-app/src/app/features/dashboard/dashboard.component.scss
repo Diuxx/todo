@@ -1,11 +1,11 @@
-
-
 :host {
   grid-area: main;
   margin-top: 110px;
   margin-bottom: 60px;
   padding: 1rem;
-  padding-bottom: calc(60px + 1rem); /* To prevent content from being hidden behind the fixed footer */
+  padding-bottom: calc(
+    60px + 1rem
+  ); /* To prevent content from being hidden behind the fixed footer */
   overflow-y: scroll;
   .dashboard-container {
     display: grid;
@@ -63,8 +63,12 @@
     padding: 0.75rem;
     background-color: var(--app-bg-color);
     box-shadow: var(--shadow);
-    transition: transform 220ms ease, box-shadow 220ms ease;
-    &:hover { cursor: pointer; }
+    transition:
+      transform 220ms ease,
+      box-shadow 220ms ease;
+    &:hover {
+      cursor: pointer;
+    }
     &.is-selected {
       transform: scale(1.46);
       z-index: 2;
@@ -84,10 +88,18 @@
         white-space: nowrap;
       }
     }
-    &.type-todo { background-color: var(--todo-color); }
-    &.type-note { background-color: var(--note-color); }
-    &.type-citation { background-color: var(--citation-color); }
-    &.type-image { background-color: var(--image-color); }
+    &.type-todo {
+      background-color: var(--todo-color);
+    }
+    &.type-note {
+      background-color: var(--note-color);
+    }
+    &.type-citation {
+      background-color: var(--citation-color);
+    }
+    &.type-image {
+      background-color: var(--image-color);
+    }
 
     .dashboard-card-content {
       font-size: 0.875rem;
@@ -142,7 +154,6 @@
       font-size: 0.75rem;
       border: 1px solid var(--tag-border-color);
     }
-
   }
 
   .locked-content {

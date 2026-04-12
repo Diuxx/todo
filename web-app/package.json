@@ -11,6 +11,8 @@
     "apk:release": "npm run build:sync && npm run android:assemble:release",
     "apk:release:signed": "npm run build:sync && npm run android:assemble:release:signed",
     "version:set": "node scripts/set-version.js",
+    "format": "prettier --write \"src/**/*.{ts,html,scss}\" \"scripts/**/*.js\" \"*.{md,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,html,scss}\" \"scripts/**/*.js\" \"*.{md,json}\"",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -52,6 +54,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "prettier": "^3.8.2",
     "typescript": "~5.9.3"
   }
 }

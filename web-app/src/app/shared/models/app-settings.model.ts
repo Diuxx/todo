@@ -1,9 +1,9 @@
-import { ItemColor } from "./base-entity.model";
+import { ItemColor } from './base-entity.model';
 
 export interface AppSettings {
   id: string;
-  theme: "light" | "dark" | "system";
-  language: "fr" | "en";
+  theme: 'light' | 'dark' | 'system';
+  language: 'fr' | 'en';
   dailyAffirmationEnabled: boolean;
   showArchivedItems: boolean;
   passwordHash: string;
@@ -14,7 +14,7 @@ export interface AppSettings {
 }
 
 export interface BackupState {
-    lastBackupAt?: string;
-    status: 'idle' | 'saving' | 'success' | 'error';
-    lastError?: string;
+  lastBackupAt?: string;
+  status: 'idle' | 'saving' | 'success' | 'error';
+  lastError?: string;
 }

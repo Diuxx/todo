@@ -1,8 +1,8 @@
-import { Injectable } from "@angular/core";
-import { BehaviorSubject, Observable, Subject } from "rxjs";
-import { take } from "rxjs/operators";
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { take } from 'rxjs/operators';
 
-export type ConfirmDialogVariant = "danger" | "neutral";
+export type ConfirmDialogVariant = 'danger' | 'neutral';
 
 export interface ConfirmDialogOptions {
   title: string;
@@ -20,9 +20,8 @@ export interface ConfirmDialogState {
   variant: ConfirmDialogVariant;
 }
 
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class ConfirmDialogService {
-
   private readonly dialogStateSubject = new BehaviorSubject<ConfirmDialogState | null>(null);
   private pendingResponse?: Subject<boolean>;
 
@@ -41,9 +40,9 @@ export class ConfirmDialogService {
     this.dialogStateSubject.next({
       title: options.title,
       message: options.message,
-      confirmText: options.confirmText ?? "Confirmer",
-      cancelText: options.cancelText ?? "Annuler",
-      variant: options.variant ?? "neutral",
+      confirmText: options.confirmText ?? 'Confirmer',
+      cancelText: options.cancelText ?? 'Annuler',
+      variant: options.variant ?? 'neutral',
     });
 
     return this.pendingResponse.asObservable().pipe(take(1));

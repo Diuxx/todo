@@ -1,6 +1,14 @@
-import { CommonModule } from "@angular/common";
-import { Component, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
-import { FormsModule } from "@angular/forms";
+import { CommonModule } from '@angular/common';
+import {
+  Component,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 export interface PasswordModalSubmitPayload {
   currentPassword: string;
@@ -13,9 +21,9 @@ export interface PasswordModalResetPayload {
 
 @Component({
   standalone: true,
-  selector: "app-password-settings-modal",
-  templateUrl: "./password-settings-modal.component.html",
-  styleUrls: ["./password-settings-modal.component.scss"],
+  selector: 'app-password-settings-modal',
+  templateUrl: './password-settings-modal.component.html',
+  styleUrls: ['./password-settings-modal.component.scss'],
   imports: [CommonModule, FormsModule],
 })
 export class PasswordSettingsModalComponent implements OnChanges {
@@ -29,18 +37,18 @@ export class PasswordSettingsModalComponent implements OnChanges {
   @Output() submitPassword = new EventEmitter<PasswordModalSubmitPayload>();
   @Output() resetPassword = new EventEmitter<PasswordModalResetPayload>();
 
-  public currentPassword = "";
-  public nextPassword = "";
-  public confirmPassword = "";
+  public currentPassword = '';
+  public nextPassword = '';
+  public confirmPassword = '';
   public localErrorMessage: string | null = null;
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes["visible"]?.currentValue) {
+    if (changes['visible']?.currentValue) {
       this.resetFields();
     }
   }
 
-  @HostListener("document:keydown.escape")
+  @HostListener('document:keydown.escape')
   public onEscapeKey(): void {
     if (!this.visible || this.isSaving) {
       return;
@@ -61,17 +69,17 @@ export class PasswordSettingsModalComponent implements OnChanges {
     this.localErrorMessage = null;
 
     if (this.requiresCurrentPassword && !this.currentPassword.trim()) {
-      this.localErrorMessage = "Le mot de passe actuel est requis.";
+      this.localErrorMessage = 'Le mot de passe actuel est requis.';
       return;
     }
 
     if (!this.nextPassword.trim()) {
-      this.localErrorMessage = "Le nouveau mot de passe est requis.";
+      this.localErrorMessage = 'Le nouveau mot de passe est requis.';
       return;
     }
 
     if (this.nextPassword !== this.confirmPassword) {
-      this.localErrorMessage = "La confirmation ne correspond pas au nouveau mot de passe.";
+      this.localErrorMessage = 'La confirmation ne correspond pas au nouveau mot de passe.';
       return;
     }
 
@@ -85,7 +93,7 @@ export class PasswordSettingsModalComponent implements OnChanges {
     this.localErrorMessage = null;
 
     if (this.requiresCurrentPassword && !this.currentPassword.trim()) {
-      this.localErrorMessage = "Le mot de passe actuel est requis.";
+      this.localErrorMessage = 'Le mot de passe actuel est requis.';
       return;
     }
 
@@ -95,9 +103,9 @@ export class PasswordSettingsModalComponent implements OnChanges {
   }
 
   private resetFields(): void {
-    this.currentPassword = "";
-    this.nextPassword = "";
-    this.confirmPassword = "";
+    this.currentPassword = '';
+    this.nextPassword = '';
+    this.confirmPassword = '';
     this.localErrorMessage = null;
   }
 }

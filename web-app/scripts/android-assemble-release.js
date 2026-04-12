@@ -69,9 +69,11 @@ if (signedMode) {
   gradleArgs.push('-PrequireSigning=true');
 
   const signingStoreFile = getArgValue('--store-file') ?? process.env.ANDROID_SIGNING_STORE_FILE;
-  const signingStorePassword = getArgValue('--store-password') ?? process.env.ANDROID_SIGNING_STORE_PASSWORD;
+  const signingStorePassword =
+    getArgValue('--store-password') ?? process.env.ANDROID_SIGNING_STORE_PASSWORD;
   const signingKeyAlias = getArgValue('--key-alias') ?? process.env.ANDROID_SIGNING_KEY_ALIAS;
-  const signingKeyPassword = getArgValue('--key-password') ?? process.env.ANDROID_SIGNING_KEY_PASSWORD;
+  const signingKeyPassword =
+    getArgValue('--key-password') ?? process.env.ANDROID_SIGNING_KEY_PASSWORD;
 
   if (signingStoreFile) {
     gradleArgs.push(`-PsigningStoreFile=${signingStoreFile}`);
@@ -87,15 +89,11 @@ if (signedMode) {
   }
 }
 
-const result = spawnSync(
-  'cmd.exe',
-  ['/c', gradleWrapper, ...gradleArgs],
-  {
-    cwd: path.join(root, 'android'),
-    stdio: 'inherit',
-    env,
-  }
-);
+const result = spawnSync('cmd.exe', ['/c', gradleWrapper, ...gradleArgs], {
+  cwd: path.join(root, 'android'),
+  stdio: 'inherit',
+  env,
+});
 
 if (result.status !== 0) {
   process.exit(result.status ?? 1);

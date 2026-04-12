@@ -1,5 +1,5 @@
-import { FormArray, FormBuilder, FormGroup } from "@angular/forms";
-import { AppItem, TodoInformation } from "./app-item.model";
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AppItem, TodoInformation } from './app-item.model';
 
 export function createItemForm(formBuilder: FormBuilder, item?: AppItem): FormGroup {
   if (!item) {
@@ -41,7 +41,9 @@ export function mapItemFormToAppItem(itemForm: FormGroup, sourceItem: AppItem): 
   const formValue = itemForm.getRawValue();
   const todoContent: TodoInformation[] = (formValue.todoContent ?? []).map((subItem: any) => ({
     id: subItem.id,
-    createdAt: sourceItem.todoContent?.find((existing) => existing.id === subItem.id)?.createdAt ?? new Date().toISOString(),
+    createdAt:
+      sourceItem.todoContent?.find((existing) => existing.id === subItem.id)?.createdAt ??
+      new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     title: subItem.title,
     config: {

@@ -8,5 +8,5 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled' })),
     // provideHttpClient(withInterceptors([authInterceptor, errorInterceptor]))
-  ]
+  ],
 };

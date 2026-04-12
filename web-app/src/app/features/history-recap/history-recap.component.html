@@ -6,8 +6,7 @@
 
   @if (isLoading) {
     <div class="recap-loading">Chargement des statistiques...</div>
-  }
-  @else {
+  } @else {
     <div class="recap-cards">
       <article class="recap-card recap-highlight">
         <span class="recap-label">Tâches réalisées</span>
@@ -17,7 +16,7 @@
 
       <article class="recap-card">
         <span class="recap-label">Moyenne / semaine</span>
-        <strong class="recap-value">{{ summary.averageDonePerWeek | number:'1.0-1' }}</strong>
+        <strong class="recap-value">{{ summary.averageDonePerWeek | number: '1.0-1' }}</strong>
         <small>tâches terminées</small>
       </article>
 
@@ -46,7 +45,8 @@
             id="recap-month-select"
             class="recap-period-select"
             [value]="selectedMonthKey"
-            (change)="selectMonth($any($event.target).value)">
+            (change)="selectMonth($any($event.target).value)"
+          >
             @for (month of availableMonths; track month.key) {
               <option [value]="month.key">{{ month.label }}</option>
             }
@@ -60,64 +60,67 @@
 
       @if (weeklyStats.length === 0) {
         <p class="recap-empty">Aucune semaine avec activité sur la période analysée.</p>
-      }
-      @else {
+      } @else {
         <div class="recap-period-picker">
           <label class="recap-period-label" for="recap-period-select">Périodes</label>
           <select
             id="recap-period-select"
             class="recap-period-select"
             [value]="selectedWeek?.label ?? ''"
-            (change)="selectWeekByLabel($any($event.target).value)">
+            (change)="selectWeekByLabel($any($event.target).value)"
+          >
             <option value="">Sélectionner une période</option>
             @for (week of weeklyStats; track week.label) {
-              <option [value]="week.label">{{ week.rangeLabel }} - {{ week.doneCount }} tâche(s)</option>
+              <option [value]="week.label">
+                {{ week.rangeLabel }} - {{ week.doneCount }} tâche(s)
+              </option>
             }
           </select>
         </div>
 
-      @if (selectedWeek) {
-        <div class="selected-week-layout">
-          <div class="selected-week-summary">
-            <div class="selected-week-stat">
-              <span class="selected-week-label">Semaine choisie</span>
-              <strong class="selected-week-value">{{ selectedWeek.rangeLabel }}</strong>
-            </div>
-            <div class="selected-week-stat">
-              <span class="selected-week-label">Tâches terminées</span>
-              <strong class="selected-week-value">{{ selectedWeek.doneCount }}</strong>
-            </div>
-            <div class="selected-week-stat">
-              <span class="selected-week-label">Sous-tâches distinctes</span>
-              <strong class="selected-week-value">{{ selectedWeek.uniqueTodos }}</strong>
-            </div>
-          </div>
-
-          <div class="selected-week-days">
-            <div class="selected-week-days-header">
-              <h3>Rythme de la semaine</h3>
-              <span>{{ selectedWeek.doneCount }} tâche(s)</span>
+        @if (selectedWeek) {
+          <div class="selected-week-layout">
+            <div class="selected-week-summary">
+              <div class="selected-week-stat">
+                <span class="selected-week-label">Semaine choisie</span>
+                <strong class="selected-week-value">{{ selectedWeek.rangeLabel }}</strong>
+              </div>
+              <div class="selected-week-stat">
+                <span class="selected-week-label">Tâches terminées</span>
+                <strong class="selected-week-value">{{ selectedWeek.doneCount }}</strong>
+              </div>
+              <div class="selected-week-stat">
+                <span class="selected-week-label">Sous-tâches distinctes</span>
+                <strong class="selected-week-value">{{ selectedWeek.uniqueTodos }}</strong>
+              </div>
             </div>
 
-            <div class="selected-week-day-list">
-              @for (day of selectedWeek.dayStats; track day.label) {
-                <div class="selected-week-day-row">
-                  <div class="selected-week-day-meta">
-                    <span class="day-name">{{ day.label }}</span>
-                    <span class="day-date">{{ day.shortLabel }}</span>
+            <div class="selected-week-days">
+              <div class="selected-week-days-header">
+                <h3>Rythme de la semaine</h3>
+                <span>{{ selectedWeek.doneCount }} tâche(s)</span>
+              </div>
+
+              <div class="selected-week-day-list">
+                @for (day of selectedWeek.dayStats; track day.label) {
+                  <div class="selected-week-day-row">
+                    <div class="selected-week-day-meta">
+                      <span class="day-name">{{ day.label }}</span>
+                      <span class="day-date">{{ day.shortLabel }}</span>
+                    </div>
+                    <div class="selected-week-day-bar-track">
+                      <div
+                        class="selected-week-day-bar-fill"
+                        [style.width.%]="(day.doneCount / getSelectedWeekMaxDone()) * 100"
+                      ></div>
+                    </div>
+                    <span class="day-count">{{ day.doneCount }}</span>
                   </div>
-                  <div class="selected-week-day-bar-track">
-                    <div
-                      class="selected-week-day-bar-fill"
-                      [style.width.%]="(day.doneCount / getSelectedWeekMaxDone()) * 100"></div>
-                  </div>
-                  <span class="day-count">{{ day.doneCount }}</span>
-                </div>
-              }
+                }
+              </div>
             </div>
           </div>
-        </div>
-      }
+        }
       }
     </article>
 
@@ -128,11 +131,9 @@
 
       @if (!selectedWeek) {
         <p class="recap-empty">Sélectionne une période pour afficher le détail.</p>
-      }
-      @else if (selectedWeek.topTodos.length === 0) {
+      } @else if (selectedWeek.topTodos.length === 0) {
         <p class="recap-empty">Aucune donnée disponible.</p>
-      }
-      @else {
+      } @else {
         <div class="top-todo-list">
           @for (todo of selectedWeek.topTodos; track todo.todoItemId) {
             <div class="top-todo-row">
@@ -141,7 +142,8 @@
                 <div class="top-todo-bar-track">
                   <div
                     class="top-todo-bar-fill"
-                    [style.width.%]="(todo.count / getSelectedWeekTopTodoMaxCount()) * 100"></div>
+                    [style.width.%]="(todo.count / getSelectedWeekTopTodoMaxCount()) * 100"
+                  ></div>
                 </div>
               </div>
               <span class="todo-count">{{ todo.count }} fois</span>

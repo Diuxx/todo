@@ -1,14 +1,15 @@
-<app-item-detail-skeleton [todoRows]="4" [style.display]="isLoading ? 'block' : 'none'"></app-item-detail-skeleton>
+<app-item-detail-skeleton
+  [todoRows]="4"
+  [style.display]="isLoading ? 'block' : 'none'"
+></app-item-detail-skeleton>
 
 @if (!isLoading && item && itemForm) {
   @if (shouldShowProtectedContent) {
     <div class="detail-container" [ngStyle]="{ height: item.type != 'todo' ? '100%' : null }">
-      <article 
-        [class]="'type-' + item.type + ' detail-card'"
-        [formGroup]="itemForm">
+      <article [class]="'type-' + item.type + ' detail-card'" [formGroup]="itemForm">
         <span class="detail-card-title">
           <div class="detail-card-actions">
-            <div class="detail-toggles" style="align-self: flex-start;">
+            <div class="detail-toggles" style="align-self: flex-start">
               <label class="item-toggle">
                 <input type="checkbox" formControlName="isArchived" />
                 <span>Archiver cet item</span>
@@ -18,22 +19,35 @@
             <button
               type="button"
               class="icon-action-btn lock-toggle"
-              [attr.aria-label]="itemForm.get('isLocked')?.value ? 'Déverrouiller l\'item' : 'Verrouiller l\'item'"
-              (click)="toggleLock()">
-              <i class="bi" [ngClass]="itemForm.get('isLocked')?.value ? 'bi-lock-fill' : 'bi-unlock-fill'"></i>
+              [attr.aria-label]="
+                itemForm.get('isLocked')?.value ? 'Déverrouiller l\'item' : 'Verrouiller l\'item'
+              "
+              (click)="toggleLock()"
+            >
+              <i
+                class="bi"
+                [ngClass]="itemForm.get('isLocked')?.value ? 'bi-lock-fill' : 'bi-unlock-fill'"
+              ></i>
             </button>
             <button
               type="button"
               class="icon-action-btn favorite-toggle"
-              [attr.aria-label]="itemForm.get('isFavorite')?.value ? 'Retirer des favoris' : 'Ajouter aux favoris'"
-              (click)="toggleFavorite()">
-              <i class="bi" [ngClass]="itemForm.get('isFavorite')?.value ? 'bi-star-fill' : 'bi-star'"></i>
+              [attr.aria-label]="
+                itemForm.get('isFavorite')?.value ? 'Retirer des favoris' : 'Ajouter aux favoris'
+              "
+              (click)="toggleFavorite()"
+            >
+              <i
+                class="bi"
+                [ngClass]="itemForm.get('isFavorite')?.value ? 'bi-star-fill' : 'bi-star'"
+              ></i>
             </button>
             <button
               type="button"
               class="icon-action-btn delete-btn"
               aria-label="Supprimer l'item"
-              (click)="deleteItem()">
+              (click)="deleteItem()"
+            >
               <i class="bi bi-trash-fill"></i>
             </button>
           </div>
@@ -44,9 +58,10 @@
               class="editable title-editable"
               [ngClass]="{ 'to-be-saved': isFormChanged() }"
               formControlName="title"
-              placeholder="Titre de l'item" />
+              placeholder="Titre de l'item"
+            />
             @if (item.type === 'citation') {
-              <div class="detail-toggles">            
+              <div class="detail-toggles">
                 <label class="item-toggle">
                   <input type="checkbox" formControlName="isAffirmation" />
                   <span>
@@ -60,46 +75,72 @@
         </span>
         @if (item.type === 'todo') {
           <div class="todo-list">
-            @for (subItemForm of todoSubItemsControls; track subItemForm.get('id')?.value; let i = $index) {
+            @for (
+              subItemForm of todoSubItemsControls;
+              track subItemForm.get('id')?.value;
+              let i = $index
+            ) {
               <div class="todo-row" [formGroup]="subItemForm">
-
                 <label class="todo-subitem-check">
                   <input
                     type="checkbox"
                     class="todo-checkbox"
                     [checked]="!!subItemForm.get('isDone')?.value"
-                    (change)="onTodoStatusChange(subItemForm, $any($event.target).checked)" />
+                    (change)="onTodoStatusChange(subItemForm, $any($event.target).checked)"
+                  />
                   <span class="todo-subitem-icons">
                     @if (!!subItemForm.get('alertEnabled')?.value) {
-                      <i class="bi bi-bell todo-status-icon" aria-label="Alerte activée" title="Alerte activée"></i>
+                      <i
+                        class="bi bi-bell todo-status-icon"
+                        aria-label="Alerte activée"
+                        title="Alerte activée"
+                      ></i>
                     }
                     @if (subItemForm.get('recurrenceType')?.value !== 'none') {
-                      <i class="bi bi-arrow-repeat todo-status-icon" aria-label="Tâche récurrente" title="Tâche récurrente"></i>
+                      <i
+                        class="bi bi-arrow-repeat todo-status-icon"
+                        aria-label="Tâche récurrente"
+                        title="Tâche récurrente"
+                      ></i>
                     }
                   </span>
-                  <span class="todo-subitem-title" [class.is-done]="!!subItemForm.get('isDone')?.value">{{ subItemForm.get('title')?.value }}</span>
+                  <span
+                    class="todo-subitem-title"
+                    [class.is-done]="!!subItemForm.get('isDone')?.value"
+                    >{{ subItemForm.get('title')?.value }}</span
+                  >
                 </label>
                 <div class="todo-actions">
-                  <button type="button" class="todo-action-btn" aria-label="Éditer la sous-tâche" (click)="openTodoEditModal(subItemForm)">
-                    <i class="bi bi-pencil-fill" style="color: #576072;"></i>
+                  <button
+                    type="button"
+                    class="todo-action-btn"
+                    aria-label="Éditer la sous-tâche"
+                    (click)="openTodoEditModal(subItemForm)"
+                  >
+                    <i class="bi bi-pencil-fill" style="color: #576072"></i>
                   </button>
-                  <button type="button" class="todo-action-btn" aria-label="Supprimer la sous-tâche" (click)="deleteTodoSubItem(subItemForm)">
-                    <i class="bi bi-trash-fill" style="color: #F95E5E;"></i>
+                  <button
+                    type="button"
+                    class="todo-action-btn"
+                    aria-label="Supprimer la sous-tâche"
+                    (click)="deleteTodoSubItem(subItemForm)"
+                  >
+                    <i class="bi bi-trash-fill" style="color: #f95e5e"></i>
                   </button>
                 </div>
               </div>
             }
             <div class="todo-row todo-add clickable" (click)="addTodoSubItem()">
               <i class="bi bi-plus-lg"></i> Ajouter une tâche
-            </div>    
+            </div>
           </div>
-        }
-        @else {
+        } @else {
           <textarea
             #contentTextarea
             class="detail-card-content content editable"
             formControlName="content"
-            placeholder="Écris ton contenu ici..."></textarea>
+            placeholder="Écris ton contenu ici..."
+          ></textarea>
         }
       </article>
     </div>
@@ -107,7 +148,8 @@
       [visible]="isTodoEditModalVisible"
       [subItemForm]="editingSubItemForm"
       (close)="closeTodoEditModal()"
-      (save)="saveTodoModal()">
+      (save)="saveTodoModal()"
+    >
     </todo-edit-modal>
   }
 
@@ -119,6 +161,7 @@
     [errorMessage]="unlockErrorMessage"
     [isSubmitting]="isUnlockSubmitting"
     (close)="closeUnlockModal()"
-    (submitPassword)="unlockItem($event)">
+    (submitPassword)="unlockItem($event)"
+  >
   </app-password-prompt-modal>
 }

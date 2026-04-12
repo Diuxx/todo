@@ -50,7 +50,9 @@
   padding: 0.2rem 0.75rem;
   opacity: 0;
   transform: translateY(-4px);
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
   pointer-events: none;
 
   &.visible {
@@ -144,7 +146,10 @@
   font-size: 0.88rem;
   font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -417,7 +422,10 @@
   font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
 
   &:hover:not(:disabled) {
     background: rgba(200, 57, 57, 0.18);

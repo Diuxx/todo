@@ -13,12 +13,18 @@ import { environment } from '../env/env';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, FormsModule, TodoHeaderComponent, TodoFooterComponent, ConfirmDialogComponent],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    FormsModule,
+    TodoHeaderComponent,
+    TodoFooterComponent,
+    ConfirmDialogComponent,
+  ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit, OnDestroy {
-
   // services
   private readonly router: Router = inject(Router);
   private readonly databaseService = inject(DatabaseService);
@@ -36,7 +42,10 @@ export class AppComponent implements OnInit, OnDestroy {
   private searchDebounceTimer?: ReturnType<typeof setTimeout>;
   private readonly destroy$ = new Subject<void>();
   private lastDashboardFilter: 'todo' | 'note' | 'citation' | null = null;
-  public readonly itemTypeFilters: Array<{ label: string; value: 'all' | 'todo' | 'note' | 'citation' }> = [
+  public readonly itemTypeFilters: Array<{
+    label: string;
+    value: 'all' | 'todo' | 'note' | 'citation';
+  }> = [
     { label: 'Tous', value: 'all' },
     { label: 'Todo', value: 'todo' },
     { label: 'Notes', value: 'note' },
@@ -45,6 +54,9 @@ export class AppComponent implements OnInit, OnDestroy {
   public canGoBack: boolean = false;
   public isAppReady: boolean = false;
 
+  /**
+   * Cleans up subscriptions and pending timers to avoid memory leaks.
+   */
   public ngOnDestroy(): void {
     clearTimeout(this.searchDebounceTimer);
     this.destroy$.next();
@@ -94,14 +106,23 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Returns true when the current route points to the dashboard path.
+   */
   public isHomePage(): boolean {
     return this.router.url.split('?')[0] === '/';
   }
 
+  /**
+   * Navigates back to dashboard while restoring the last selected dashboard filter.
+   */
   public goHome(): void {
     this.router.navigate(['/'], { queryParams: { filter: this.lastDashboardFilter, q: null } });
   }
 
+  /**
+   * Toggles the header search mode and resets query parameters when closing.
+   */
   public toggleSearch(): void {
     this.isSearchOpen = !this.isSearchOpen;
 
@@ -112,13 +133,22 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Debounces search input updates and syncs the query to router params.
+   */
   public onSearchChange(value: string): void {
     clearTimeout(this.searchDebounceTimer);
     this.searchDebounceTimer = setTimeout(() => {
-      this.router.navigate(['/'], { queryParams: { q: value.trim() || null }, queryParamsHandling: 'merge' });
+      this.router.navigate(['/'], {
+        queryParams: { q: value.trim() || null },
+        queryParamsHandling: 'merge',
+      });
     }, 300);
   }
 
+  /**
+   * Computes active state for header filter pills.
+   */
   public isItemTypeFilterActive(value: 'all' | 'todo' | 'note' | 'citation'): boolean {
     const current = this.getCurrentItemTypeFilter();
 
@@ -129,7 +159,12 @@ export class AppComponent implements OnInit, OnDestroy {
     return current === value;
   }
 
-  public getItemTypeFilterQueryParams(value: 'all' | 'todo' | 'note' | 'citation'): { filter: 'todo' | 'note' | 'citation' | null } {
+  /**
+   * Returns query params for filter navigation with toggle behavior.
+   */
+  public getItemTypeFilterQueryParams(value: 'all' | 'todo' | 'note' | 'citation'): {
+    filter: 'todo' | 'note' | 'citation' | null;
+  } {
     if (value === 'all') {
       return { filter: null };
     }
@@ -142,6 +177,9 @@ export class AppComponent implements OnInit, OnDestroy {
     return { filter: value };
   }
 
+  /**
+   * Reads the currently selected item-type filter from URL query params.
+   */
   private getCurrentItemTypeFilter(): 'todo' | 'note' | 'citation' | null {
     const query = this.router.url.split('?')[1] ?? '';
     const selected = new URLSearchParams(query).get('filter');
@@ -153,6 +191,9 @@ export class AppComponent implements OnInit, OnDestroy {
     return null;
   }
 
+  /**
+   * Extracts a valid item-type filter from any absolute/relative URL string.
+   */
   private extractFilterFromUrl(url: string): 'todo' | 'note' | 'citation' | null {
     const query = url.split('?')[1] ?? '';
     const selected = new URLSearchParams(query).get('filter');

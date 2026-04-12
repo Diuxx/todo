@@ -3,14 +3,15 @@
     <div class="select-type-modal" (click)="$event.stopPropagation()">
       <h3>Créer un nouvel item</h3>
       <p class="modal-description">Quel type de contenu veux-tu créer?</p>
-      
+
       <div class="type-options">
         <button
           type="button"
           class="type-button"
           (click)="selectItemType('todo')"
-          aria-label="Créer une TODO">
-          <img src="/svgs/todo-2.svg" alt="TODO" width="48" height="48" class="type-icon">
+          aria-label="Créer une TODO"
+        >
+          <img src="/svgs/todo-2.svg" alt="TODO" width="48" height="48" class="type-icon" />
           <span class="type-label">TODO</span>
           <span class="type-description">Une liste de tâches</span>
         </button>
@@ -19,8 +20,9 @@
           type="button"
           class="type-button"
           (click)="selectItemType('note')"
-          aria-label="Créer une note">
-          <img src="/svgs/note.svg" alt="Note" width="48" height="48" class="type-icon">
+          aria-label="Créer une note"
+        >
+          <img src="/svgs/note.svg" alt="Note" width="48" height="48" class="type-icon" />
           <span class="type-label">Note</span>
           <span class="type-description">Un contenu texte</span>
         </button>
@@ -29,19 +31,21 @@
           type="button"
           class="type-button"
           (click)="selectItemType('citation')"
-          aria-label="Créer une citation">
-          <img src="/svgs/quote-up-square-svgrepo-com.svg" alt="Citation" width="48" height="48" class="type-icon">
+          aria-label="Créer une citation"
+        >
+          <img
+            src="/svgs/quote-up-square-svgrepo-com.svg"
+            alt="Citation"
+            width="48"
+            height="48"
+            class="type-icon"
+          />
           <span class="type-label">Citation</span>
           <span class="type-description">Une citation ou affirmation</span>
         </button>
       </div>
 
-      <button
-        type="button"
-        class="modal-btn-cancel"
-        (click)="closeModal()">
-        Annuler
-      </button>
+      <button type="button" class="modal-btn-cancel" (click)="closeModal()">Annuler</button>
     </div>
   </div>
 }

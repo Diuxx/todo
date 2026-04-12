@@ -62,7 +62,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 
   &:hover {
     border-color: var(--input-focus-border-color);
@@ -148,7 +150,9 @@
   color: var(--app-fg-color);
   padding: 0.45rem 0.75rem;
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 
   &:hover {
     border-color: var(--input-focus-border-color);

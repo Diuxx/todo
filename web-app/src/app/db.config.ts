@@ -28,31 +28,26 @@ export class AppDb extends Dexie {
     // Single schema (mock reset workflow): no migration path needed.
     this.version(dbVersion).stores({
       items: 'id, type, createdAt, updatedAt',
-      todoHistory: 'id, todoItemId, status, completedAt, createdAt, [todoItemId+completedAt], [todoItemId+createdAt]',
+      todoHistory:
+        'id, todoItemId, status, completedAt, createdAt, [todoItemId+completedAt], [todoItemId+createdAt]',
       citationsMeta: 'id, itemId, author',
       imagesMeta: 'id, itemId',
-      settings: 'id'
+      settings: 'id',
     });
   }
 }
 
 /**
  * Exports all app data as a single object for backup or migration purposes.
- * @returns 
+ * @returns
  */
 async function exportAppData(): Promise<AppData> {
-  const [
-    items,
-    todoHistory,
-    citationsMeta,
-    imagesMeta,
-    settingsList
-  ] = await Promise.all([
+  const [items, todoHistory, citationsMeta, imagesMeta, settingsList] = await Promise.all([
     db.items.toArray(),
     db.todoHistory.toArray(),
     db.citationsMeta.toArray(),
     db.imagesMeta.toArray(),
-    db.settings.toArray()
+    db.settings.toArray(),
   ]);
 
   return {
@@ -61,7 +56,7 @@ async function exportAppData(): Promise<AppData> {
     todoHistory,
     citationsMeta,
     imagesMeta,
-    settings: settingsList[0]
+    settings: settingsList[0],
   };
 }
 

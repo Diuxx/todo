@@ -10,9 +10,10 @@
         [attr.tabindex]="isHomePage() ? -1 : 0"
         [attr.aria-hidden]="isHomePage()"
         (keydown.enter)="!isHomePage() && goHome()"
-        (keydown.space)="!isHomePage() && goHome()">
-          <i class="bi bi-arrow-left"></i>
-          Home
+        (keydown.space)="!isHomePage() && goHome()"
+      >
+        <i class="bi bi-arrow-left"></i>
+        Home
       </span>
       <span class="app-version">v{{ appVersion }}</span>
       <!-- <span class="app-version">Bonjour {{ (settings$ | async)?.userName ?? '' }}</span> -->
@@ -35,7 +36,8 @@
               [routerLink]="['/']"
               [queryParams]="getItemTypeFilterQueryParams(option.value)"
               class="item-type-filter"
-              [class.is-active]="isItemTypeFilterActive(option.value)">
+              [class.is-active]="isItemTypeFilterActive(option.value)"
+            >
               {{ option.label }}
             </a>
           }
@@ -49,7 +51,8 @@
           class="search-toggle-btn"
           [class.is-active]="isSearchOpen"
           (click)="toggleSearch()"
-          [attr.aria-label]="isSearchOpen ? 'Fermer la recherche' : 'Ouvrir la recherche'">
+          [attr.aria-label]="isSearchOpen ? 'Fermer la recherche' : 'Ouvrir la recherche'"
+        >
           <i class="bi bi-search"></i>
         </button>
       }

@@ -1,4 +1,4 @@
-import { BaseEntity, TodoStatus } from "./base-entity.model";
+import { BaseEntity, TodoStatus } from './base-entity.model';
 
 export interface TodoHistoryEntry extends BaseEntity {
   todoItemId: string;

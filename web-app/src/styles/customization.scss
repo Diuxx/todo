@@ -1,10 +1,9 @@
-
 /**
  * Custom styles for the application, including overrides for form controls and layout adjustments.
  */
 .form-check-input:checked {
-    background-color: var(--app-color-grey);
-    border-color: var(--app-color-grey);
+  background-color: var(--app-color-grey);
+  border-color: var(--app-color-grey);
 }
 .form-check-input:focus {
   border-color: inherit;

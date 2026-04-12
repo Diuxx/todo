@@ -1,5 +1,5 @@
-import { BaseEntity, ItemColor, ItemType, SimpleBaseEntity, Visibility } from "./base-entity.model";
-import { TodoConfig } from "./todo-config.model";
+import { BaseEntity, ItemColor, ItemType, SimpleBaseEntity, Visibility } from './base-entity.model';
+import { TodoConfig } from './todo-config.model';
 
 export interface AppItem extends BaseEntity {
   type: ItemType;

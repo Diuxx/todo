@@ -1,28 +1,28 @@
-import { CommonModule } from "@angular/common";
-import { Component, EventEmitter, HostListener, Input, Output } from "@angular/core";
-import { FormsModule } from "@angular/forms";
+import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   standalone: true,
-  selector: "app-password-prompt-modal",
-  templateUrl: "./password-prompt-modal.component.html",
-  styleUrls: ["./password-prompt-modal.component.scss"],
+  selector: 'app-password-prompt-modal',
+  templateUrl: './password-prompt-modal.component.html',
+  styleUrls: ['./password-prompt-modal.component.scss'],
   imports: [CommonModule, FormsModule],
 })
 export class PasswordPromptModalComponent {
   @Input() visible = false;
-  @Input() title = "Mot de passe requis";
-  @Input() message = "Entre le mot de passe pour continuer.";
-  @Input() confirmText = "Déverrouiller";
+  @Input() title = 'Mot de passe requis';
+  @Input() message = 'Entre le mot de passe pour continuer.';
+  @Input() confirmText = 'Déverrouiller';
   @Input() errorMessage: string | null = null;
   @Input() isSubmitting = false;
 
   @Output() close = new EventEmitter<void>();
   @Output() submitPassword = new EventEmitter<string>();
 
-  public password = "";
+  public password = '';
 
-  @HostListener("document:keydown.escape")
+  @HostListener('document:keydown.escape')
   public onEscapeKey(): void {
     if (!this.visible || this.isSubmitting) {
       return;
@@ -36,7 +36,7 @@ export class PasswordPromptModalComponent {
       return;
     }
 
-    this.password = "";
+    this.password = '';
     this.close.emit();
   }
 

@@ -1,73 +1,74 @@
 @if (isLoading) {
-<app-dashboard-skeleton [count]="6"></app-dashboard-skeleton>
-}
-@else if (items.length > 0) {
-<div class="dashboard-container">
-  @if (affirmationItem) {
-    <div class="dashboard-card-large" (click)="displayItemDetails(affirmationItem)">
-      <div class="dashboard-card-large-badge">
-        <i class="bi bi-stars"></i>
-        Affirmation du jour
-      </div>
-      <div class="dashboard-card-large-content">
-        @if (affirmationItem.isLocked) {
-          <div class="locked-preview locked-preview-large">
-            <div class="locked-preview-badge">
-              <i class="bi bi-lock-fill"></i>
-              Contenu verrouillé
+  <app-dashboard-skeleton [count]="6"></app-dashboard-skeleton>
+} @else if (items.length > 0) {
+  <div class="dashboard-container">
+    @if (affirmationItem) {
+      <div class="dashboard-card-large" (click)="displayItemDetails(affirmationItem)">
+        <div class="dashboard-card-large-badge">
+          <i class="bi bi-stars"></i>
+          Affirmation du jour
+        </div>
+        <div class="dashboard-card-large-content">
+          @if (affirmationItem.isLocked) {
+            <div class="locked-preview locked-preview-large">
+              <div class="locked-preview-badge">
+                <i class="bi bi-lock-fill"></i>
+                Contenu verrouillé
+              </div>
+              <div class="locked-preview-lines">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
             </div>
+          } @else {
+            <p>"{{ affirmationItem.content }}"</p>
+          }
+        </div>
+        <div class="dashboard-card-large-footer">
+          <span>{{ affirmationItem.title || 'Citation' }}</span>
+          <span>{{
+            affirmationItem.isLocked ? 'Appuie pour déverrouiller' : 'Appuie pour modifier'
+          }}</span>
+        </div>
+      </div>
+    }
+    @for (item of displayedItems; track item.id; let i = $index) {
+      <div
+        class="dashboard-card"
+        [ngClass]="['type-' + item.type, selectedItemId === item.id ? 'is-selected' : '']"
+        (click)="displayItemDetails(item)"
+      >
+        <div class="dashboard-card-title">
+          <h2>{{ item.title }}</h2>
+          @if (item.type === 'todo') {
+            <span style="font-size: 0.6em">{{ formatTodoProgress(item) }}</span>
+          }
+          @if (item.isLocked) {
+            <i class="bi bi-lock-fill dashboard-lock-icon"></i>
+          }
+          @if (item.isFavorite) {
+            <i class="bi bi-star-fill"></i>
+          } @else {
+            <i class="bi bi-star"></i>
+          }
+        </div>
+        @if (item.isLocked) {
+          <div class="dashboard-card-content locked-content">
             <div class="locked-preview-lines">
               <span></span>
               <span></span>
               <span></span>
             </div>
           </div>
-        }
-        @else {
-          <p>"{{ affirmationItem.content }}"</p>
-        }
-      </div>
-      <div class="dashboard-card-large-footer">
-        <span>{{ affirmationItem.title || 'Citation' }}</span>
-        <span>{{ affirmationItem.isLocked ? 'Appuie pour déverrouiller' : 'Appuie pour modifier' }}</span>
-      </div>
-    </div>
-  }
-  @for (item of displayedItems; track item.id; let i = $index) {
-    <div class="dashboard-card" [ngClass]="['type-' + item.type, selectedItemId === item.id ? 'is-selected' : '']" (click)="displayItemDetails(item)">
-      <div class="dashboard-card-title">
-        <h2>{{ item.title }}</h2>
-        @if (item.type === 'todo') {
-          <span style="font-size: 0.6em;">{{ formatTodoProgress(item) }}</span>
-        }
-        @if (item.isLocked) {
-          <i class="bi bi-lock-fill dashboard-lock-icon"></i>
-        }
-        @if (item.isFavorite) {
-          <i class="bi bi-star-fill"></i>
-        } 
-        @else {
-          <i class="bi bi-star"></i>
-        }
-      </div>
-      @if (item.isLocked) {
-        <div class="dashboard-card-content locked-content">
-          <div class="locked-preview-lines">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-        </div>
-      }
-      @else if (item.type == 'todo' && item.todoContent && item.todoContent.length > 0) {
-        <div class="dashboard-card-content">
+        } @else if (item.type == 'todo' && item.todoContent && item.todoContent.length > 0) {
+          <div class="dashboard-card-content">
             @for (subItem of item.todoContent.slice(0, 3); track subItem.id) {
               <div class="dashboard-card-content-todo-item">
                 <span class="dashboard-card-content-todo-item-status">
                   @if (subItem.isDone) {
                     <i class="bi bi-check2"></i>
-                  }
-                  @else {
+                  } @else {
                     <i class="bi bi-square"></i>
                   }
                 </span>
@@ -82,23 +83,21 @@
                 </span>
               </div>
             }
-        </div>
-      }
-      @else if (item.type != 'todo' && item.content) {
-        <div class="dashboard-card-content">
-          {{ item.content }}
-        </div>
-      }
-      <!-- <div class="dashboard-card-tag">
+          </div>
+        } @else if (item.type != 'todo' && item.content) {
+          <div class="dashboard-card-content">
+            {{ item.content }}
+          </div>
+        }
+        <!-- <div class="dashboard-card-tag">
         @for (tag of item.tags; track tag) {
           <span class="dashboard-card-tag-item">{{ tag }}</span>
         }
       </div> -->
-    </div>
-  }
-</div>
-} 
-@else {
+      </div>
+    }
+  </div>
+} @else {
   <p class="dashboard-empty">Aucun item pour le moment.</p>
 }
 
@@ -110,5 +109,6 @@
   [errorMessage]="unlockErrorMessage"
   [isSubmitting]="isUnlockSubmitting"
   (close)="closeUnlockModal()"
-  (submitPassword)="unlockAndOpenItem($event)">
+  (submitPassword)="unlockAndOpenItem($event)"
+>
 </app-password-prompt-modal>

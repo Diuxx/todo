@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable } from '@angular/core';
 import {
   LocalNotifications,
   LocalNotificationSchema,
@@ -8,10 +8,9 @@ import {
   ActionPerformed,
   Weekday,
 } from '@capacitor/local-notifications';
-import { DailyTaskNotification } from "../models/daily-task-notification.model";
-import { AppItem, TodoInformation } from "../models/app-item.model";
-import { db } from "../../db.config";
-
+import { DailyTaskNotification } from '../models/daily-task-notification.model';
+import { AppItem, TodoInformation } from '../models/app-item.model';
+import { db } from '../../db.config';
 
 @Injectable({
   providedIn: 'root',
@@ -178,7 +177,7 @@ export class LocalNotificationService {
    * Verifies and recreates the expected todo notifications when the app starts.
    */
   async syncScheduledTodoNotifications(): Promise<void> {
-    if (!await this.hasNotificationPermission()) {
+    if (!(await this.hasNotificationPermission())) {
       return;
     }
 
@@ -193,7 +192,10 @@ export class LocalNotificationService {
         .map((notification) => notification.id)
     );
     const staleIds = pending.notifications
-      .filter((notification) => this.isManagedTodoNotification(notification) && !expectedIds.has(notification.id))
+      .filter(
+        (notification) =>
+          this.isManagedTodoNotification(notification) && !expectedIds.has(notification.id)
+      )
       .map((notification) => notification.id);
 
     await this.cancelNotificationsByIds(staleIds);
@@ -211,7 +213,7 @@ export class LocalNotificationService {
    * Synchronizes notifications for one todo item after create or update.
    */
   async syncTodoNotificationsForItem(item: AppItem, previousItem?: AppItem): Promise<void> {
-    if (!await this.hasNotificationPermission()) {
+    if (!(await this.hasNotificationPermission())) {
       return;
     }
 
@@ -254,7 +256,9 @@ export class LocalNotificationService {
    */
   async clearAllTodoNotifications(): Promise<void> {
     const pending = await this.getPending();
-    const pendingNotifications = pending.notifications.filter((notification) => this.isManagedTodoNotification(notification));
+    const pendingNotifications = pending.notifications.filter((notification) =>
+      this.isManagedTodoNotification(notification)
+    );
 
     if (pendingNotifications.length) {
       await LocalNotifications.cancel({
@@ -268,7 +272,9 @@ export class LocalNotificationService {
     );
 
     if (deliveredNotifications.length) {
-      await LocalNotifications.removeDeliveredNotifications({ notifications: deliveredNotifications });
+      await LocalNotifications.removeDeliveredNotifications({
+        notifications: deliveredNotifications,
+      });
     }
   }
 
@@ -346,7 +352,9 @@ export class LocalNotificationService {
   }
 
   private async buildNotificationsForItems(items: AppItem[]): Promise<DailyTaskNotification[]> {
-    const notifications = await Promise.all(items.map((item) => this.buildNotificationsForItem(item)));
+    const notifications = await Promise.all(
+      items.map((item) => this.buildNotificationsForItem(item))
+    );
     return notifications.flat();
   }
 
@@ -358,37 +366,41 @@ export class LocalNotificationService {
       return [];
     }
 
-    const notifications = await Promise.all(item.todoContent.map(async (todo) => {
-      if (!this.shouldScheduleTodo(todo)) {
-        return null;
-      }
+    const notifications = await Promise.all(
+      item.todoContent.map(async (todo) => {
+        if (!this.shouldScheduleTodo(todo)) {
+          return null;
+        }
 
-      if (await this.isTodoCompletedForCurrentPeriod(todo)) {
-        return null;
-      }
+        if (await this.isTodoCompletedForCurrentPeriod(todo)) {
+          return null;
+        }
 
-      const notification = this.createNotificationFromTodo(todo, {
-        route: `/item/${item.id}`,
-        fallbackTitle: item.title?.trim() || 'Todo reminder',
-        body: todo.title?.trim() || item.title?.trim() || 'Todo reminder',
-      });
+        const notification = this.createNotificationFromTodo(todo, {
+          route: `/item/${item.id}`,
+          fallbackTitle: item.title?.trim() || 'Todo reminder',
+          body: todo.title?.trim() || item.title?.trim() || 'Todo reminder',
+        });
 
-      if (!notification) {
-        return null;
-      }
+        if (!notification) {
+          return null;
+        }
 
-      if (todo.config?.recurrenceType === 'weekly' && !notification.weekday) {
-        return null;
-      }
+        if (todo.config?.recurrenceType === 'weekly' && !notification.weekday) {
+          return null;
+        }
 
-      if (todo.config?.recurrenceType === 'monthly' && !notification.dayOfMonth) {
-        return null;
-      }
+        if (todo.config?.recurrenceType === 'monthly' && !notification.dayOfMonth) {
+          return null;
+        }
 
-      return notification;
-    }));
+        return notification;
+      })
+    );
 
-    return notifications.filter((notification): notification is DailyTaskNotification => notification !== null);
+    return notifications.filter(
+      (notification): notification is DailyTaskNotification => notification !== null
+    );
   }
 
   /**
@@ -444,7 +456,9 @@ export class LocalNotificationService {
     }
 
     const delivered = await LocalNotifications.getDeliveredNotifications();
-    const notifications = delivered.notifications.filter((notification) => ids.includes(notification.id));
+    const notifications = delivered.notifications.filter((notification) =>
+      ids.includes(notification.id)
+    );
 
     if (!notifications.length) {
       return;
@@ -477,18 +491,22 @@ export class LocalNotificationService {
     const count = await db.todoHistory
       .where('todoItemId')
       .equals(todo.id)
-      .and((entry) =>
-        entry.status === 'done'
-        && entry.completedAt !== undefined
-        && entry.completedAt >= startISO
-        && entry.completedAt < endISO
+      .and(
+        (entry) =>
+          entry.status === 'done' &&
+          entry.completedAt !== undefined &&
+          entry.completedAt >= startISO &&
+          entry.completedAt < endISO
       )
       .count();
 
     return count > 0;
   }
 
-  private getPeriodBounds(period: 'daily' | 'weekly' | 'monthly'): { startISO: string; endISO: string } {
+  private getPeriodBounds(period: 'daily' | 'weekly' | 'monthly'): {
+    startISO: string;
+    endISO: string;
+  } {
     const now = new Date();
 
     if (period === 'daily') {
@@ -535,7 +553,14 @@ export class LocalNotificationService {
     const hour = Number(match[1]);
     const minute = Number(match[2]);
 
-    if (Number.isNaN(hour) || Number.isNaN(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+    if (
+      Number.isNaN(hour) ||
+      Number.isNaN(minute) ||
+      hour < 0 ||
+      hour > 23 ||
+      minute < 0 ||
+      minute > 59
+    ) {
       return null;
     }
 
@@ -577,7 +602,7 @@ export class LocalNotificationService {
     let hash = 0;
 
     for (let index = 0; index < sourceId.length; index++) {
-      hash = ((hash << 5) - hash) + sourceId.charCodeAt(index);
+      hash = (hash << 5) - hash + sourceId.charCodeAt(index);
       hash |= 0;
     }
 

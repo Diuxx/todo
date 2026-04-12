@@ -45,19 +45,24 @@
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
-  &.type-todo { background-color: var(--todo-color); }
-  &.type-note { 
+
+  &.type-todo {
+    background-color: var(--todo-color);
+  }
+  &.type-note {
     grid-template-rows: auto 1fr;
-    background-color: var(--note-color); }
-  &.type-citation { 
+    background-color: var(--note-color);
+  }
+  &.type-citation {
     grid-template-rows: auto 1fr;
-    background-color: var(--citation-color); 
+    background-color: var(--citation-color);
     .detail-card-title-container {
       grid-template-columns: 1fr auto;
     }
   }
-  &.type-image { background-color: var(--image-color); }
+  &.type-image {
+    background-color: var(--image-color);
+  }
 }
 
 .detail-card-actions {
@@ -95,7 +100,12 @@
   background: var(--app-color-white-75);
   color: var(--app-fg-color);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
 
   i {
     font-size: 1.2rem;
@@ -197,7 +207,6 @@
     accent-color: var(--app-color-yellow-star);
   }
 }
-
 
 .todo-list {
   display: flex;

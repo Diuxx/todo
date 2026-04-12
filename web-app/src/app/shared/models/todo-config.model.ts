@@ -1,4 +1,4 @@
-import { RecurrenceType, TodoStatus } from "./base-entity.model";
+import { RecurrenceType, TodoStatus } from './base-entity.model';
 
 export interface TodoConfig {
   status?: TodoStatus;

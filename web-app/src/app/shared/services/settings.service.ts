@@ -1,15 +1,14 @@
-import { Injectable } from "@angular/core";
-import { BehaviorSubject, from, Observable } from "rxjs";
-import { tap } from "rxjs/operators";
-import { AppSettings } from "../models/app-settings.model";
-import { db } from "../../db.config";
-import { PasswordService } from "./password.service";
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, from, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { AppSettings } from '../models/app-settings.model';
+import { db } from '../../db.config';
+import { PasswordService } from './password.service';
 
 const SETTINGS_ID = 'app-settings';
 
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
-
   private readonly settingsSubject = new BehaviorSubject<AppSettings | null>(null);
   private readonly passwordService = new PasswordService();
 
@@ -24,10 +23,8 @@ export class SettingsService {
    * @returns Observable<AppSettings | undefined>
    */
   public get(): Observable<AppSettings | undefined> {
-    return from(
-      this.loadSettings()
-    ).pipe(
-      tap(settings => {
+    return from(this.loadSettings()).pipe(
+      tap((settings) => {
         if (settings) {
           this.settingsSubject.next(settings);
         }
@@ -47,10 +44,8 @@ export class SettingsService {
       passwordHash: settings.passwordHash || this.passwordService.defaultPasswordHash,
     };
 
-    return from(
-      db.settings.put(payload).then(() => payload)
-    ).pipe(
-      tap(saved => this.settingsSubject.next(saved))
+    return from(db.settings.put(payload).then(() => payload)).pipe(
+      tap((saved) => this.settingsSubject.next(saved))
     );
   }
 

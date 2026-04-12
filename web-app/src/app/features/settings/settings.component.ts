@@ -1,23 +1,23 @@
-import { Component, OnDestroy, OnInit, inject } from "@angular/core";
-import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { NgClass } from "@angular/common";
-import { Capacitor } from "@capacitor/core";
-import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
-import { Share } from "@capacitor/share";
-import { Subject, debounceTime, firstValueFrom, takeUntil } from "rxjs";
-import { SettingsService } from "../../shared/services/settings.service";
-import { AppSettings } from "../../shared/models/app-settings.model";
-import { db } from "../../db.config";
-import { AppData } from "../../shared/models/app-data.model";
-import { ConfirmDialogService } from "../../shared/services/confirm-dialog.service";
-import { DatabaseService } from "../../shared/services/database.service";
-import { LocalNotificationService } from "../../shared/services/local-notification.service";
-import { PasswordService } from "../../shared/services/password.service";
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { NgClass } from '@angular/common';
+import { Capacitor } from '@capacitor/core';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+import { Subject, debounceTime, firstValueFrom, takeUntil } from 'rxjs';
+import { SettingsService } from '../../shared/services/settings.service';
+import { AppSettings } from '../../shared/models/app-settings.model';
+import { db } from '../../db.config';
+import { AppData } from '../../shared/models/app-data.model';
+import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
+import { DatabaseService } from '../../shared/services/database.service';
+import { LocalNotificationService } from '../../shared/services/local-notification.service';
+import { PasswordService } from '../../shared/services/password.service';
 import {
   PasswordModalResetPayload,
   PasswordModalSubmitPayload,
   PasswordSettingsModalComponent,
-} from "../../shared/components/password-settings-modal/password-settings-modal.component";
+} from '../../shared/components/password-settings-modal/password-settings-modal.component';
 
 @Component({
   selector: 'app-settings',
@@ -26,7 +26,6 @@ import {
   imports: [ReactiveFormsModule, NgClass, PasswordSettingsModalComponent],
 })
 export class SettingsComponent implements OnInit, OnDestroy {
-
   private readonly fb = inject(FormBuilder);
   private readonly settingsService = inject(SettingsService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
@@ -49,7 +48,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public isImportingData = false;
 
   public ngOnInit(): void {
-    this.settingsService.get().subscribe(settings => {
+    this.settingsService.get().subscribe((settings) => {
       if (!settings) {
         return;
       }
@@ -91,17 +90,20 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   public async savePassword(payload: PasswordModalSubmitPayload): Promise<void> {
-    const currentPasswordHash = this.settingsForm.get("passwordHash")?.value as string;
+    const currentPasswordHash = this.settingsForm.get('passwordHash')?.value as string;
 
     this.passwordErrorMessage = null;
     this.isPasswordSaving = true;
 
     try {
       if (this.hasCustomPassword) {
-        const isCurrentPasswordValid = await this.passwordService.verify(payload.currentPassword, currentPasswordHash);
+        const isCurrentPasswordValid = await this.passwordService.verify(
+          payload.currentPassword,
+          currentPasswordHash
+        );
 
         if (!isCurrentPasswordValid) {
-          this.passwordErrorMessage = "Le mot de passe actuel est incorrect.";
+          this.passwordErrorMessage = 'Le mot de passe actuel est incorrect.';
           return;
         }
       }
@@ -114,17 +116,20 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   public async resetPasswordToDefault(payload: PasswordModalResetPayload): Promise<void> {
-    const currentPasswordHash = this.settingsForm.get("passwordHash")?.value as string;
+    const currentPasswordHash = this.settingsForm.get('passwordHash')?.value as string;
 
     this.passwordErrorMessage = null;
     this.isPasswordSaving = true;
 
     try {
       if (this.hasCustomPassword) {
-        const isCurrentPasswordValid = await this.passwordService.verify(payload.currentPassword, currentPasswordHash);
+        const isCurrentPasswordValid = await this.passwordService.verify(
+          payload.currentPassword,
+          currentPasswordHash
+        );
 
         if (!isCurrentPasswordValid) {
-          this.passwordErrorMessage = "Le mot de passe actuel est incorrect.";
+          this.passwordErrorMessage = 'Le mot de passe actuel est incorrect.';
           return;
         }
       }
@@ -140,13 +145,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.confirmDialogService.confirm({
-      title: 'Supprimer les donnees ?',
-      message: 'Cette action va supprimer tous les todos, les notes, les citations, leur historique local et les notifications associees. Cette action est irreversible.',
-      confirmText: 'Supprimer',
-      cancelText: 'Annuler',
-      variant: 'danger',
-    })
+    this.confirmDialogService
+      .confirm({
+        title: 'Supprimer les donnees ?',
+        message:
+          'Cette action va supprimer tous les todos, les notes, les citations, leur historique local et les notifications associees. Cette action est irreversible.',
+        confirmText: 'Supprimer',
+        cancelText: 'Annuler',
+        variant: 'danger',
+      })
       .pipe(takeUntil(this.destroy$))
       .subscribe(async (confirmed) => {
         if (!confirmed) {
@@ -205,13 +212,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const confirmed = await firstValueFrom(this.confirmDialogService.confirm({
-      title: 'Importer et ecraser les donnees ?',
-      message: 'Cette action remplacera toutes les donnees locales actuelles (todos, historique, metadonnees et options) par le contenu du fichier JSON selectionne.',
-      confirmText: 'Importer',
-      cancelText: 'Annuler',
-      variant: 'danger',
-    }));
+    const confirmed = await firstValueFrom(
+      this.confirmDialogService.confirm({
+        title: 'Importer et ecraser les donnees ?',
+        message:
+          'Cette action remplacera toutes les donnees locales actuelles (todos, historique, metadonnees et options) par le contenu du fichier JSON selectionne.',
+        confirmText: 'Importer',
+        cancelText: 'Annuler',
+        variant: 'danger',
+      })
+    );
 
     if (!confirmed) {
       input.value = '';
@@ -230,42 +240,49 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
       await this.localNotificationService.clearAllTodoNotifications();
 
-      await db.transaction('rw', [db.items, db.todoHistory, db.citationsMeta, db.imagesMeta, db.settings], async () => {
-        await db.items.clear();
-        await db.todoHistory.clear();
-        await db.citationsMeta.clear();
-        await db.imagesMeta.clear();
-        await db.settings.clear();
+      await db.transaction(
+        'rw',
+        [db.items, db.todoHistory, db.citationsMeta, db.imagesMeta, db.settings],
+        async () => {
+          await db.items.clear();
+          await db.todoHistory.clear();
+          await db.citationsMeta.clear();
+          await db.imagesMeta.clear();
+          await db.settings.clear();
 
-        if (parsed.items.length) {
-          await db.items.bulkAdd(parsed.items);
+          if (parsed.items.length) {
+            await db.items.bulkAdd(parsed.items);
+          }
+
+          if (parsed.todoHistory.length) {
+            await db.todoHistory.bulkAdd(parsed.todoHistory);
+          }
+
+          if (parsed.citationsMeta.length) {
+            await db.citationsMeta.bulkAdd(parsed.citationsMeta);
+          }
+
+          if (parsed.imagesMeta.length) {
+            await db.imagesMeta.bulkAdd(parsed.imagesMeta);
+          }
+
+          await db.settings.add(parsed.settings);
         }
+      );
 
-        if (parsed.todoHistory.length) {
-          await db.todoHistory.bulkAdd(parsed.todoHistory);
-        }
-
-        if (parsed.citationsMeta.length) {
-          await db.citationsMeta.bulkAdd(parsed.citationsMeta);
-        }
-
-        if (parsed.imagesMeta.length) {
-          await db.imagesMeta.bulkAdd(parsed.imagesMeta);
-        }
-
-        await db.settings.add(parsed.settings);
-      });
-
-      this.settingsForm.patchValue({
-        id: parsed.settings.id,
-        theme: parsed.settings.theme,
-        language: parsed.settings.language,
-        dailyAffirmationEnabled: parsed.settings.dailyAffirmationEnabled,
-        showArchivedItems: parsed.settings.showArchivedItems,
-        passwordHash: parsed.settings.passwordHash,
-        userName: parsed.settings.userName,
-        userId: parsed.settings.userId,
-      }, { emitEvent: false });
+      this.settingsForm.patchValue(
+        {
+          id: parsed.settings.id,
+          theme: parsed.settings.theme,
+          language: parsed.settings.language,
+          dailyAffirmationEnabled: parsed.settings.dailyAffirmationEnabled,
+          showArchivedItems: parsed.settings.showArchivedItems,
+          passwordHash: parsed.settings.passwordHash,
+          userName: parsed.settings.userName,
+          userId: parsed.settings.userId,
+        },
+        { emitEvent: false }
+      );
 
       this.settingsForm.markAsPristine();
       this.updatePasswordState(parsed.settings.passwordHash);
@@ -282,14 +299,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   private isValidAppData(payload: AppData): payload is AppData {
-    return !!payload
-      && Array.isArray(payload.items)
-      && Array.isArray(payload.todoHistory)
-      && Array.isArray(payload.citationsMeta)
-      && Array.isArray(payload.imagesMeta)
-      && !!payload.settings
-      && typeof payload.settings === 'object'
-      && typeof payload.settings.id === 'string';
+    return (
+      !!payload &&
+      Array.isArray(payload.items) &&
+      Array.isArray(payload.todoHistory) &&
+      Array.isArray(payload.citationsMeta) &&
+      Array.isArray(payload.imagesMeta) &&
+      !!payload.settings &&
+      typeof payload.settings === 'object' &&
+      typeof payload.settings.id === 'string'
+    );
   }
 
   private buildForm(settings: AppSettings): void {
@@ -401,7 +420,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   private async persistPasswordHash(passwordHash: string): Promise<void> {
-    this.settingsForm.get("passwordHash")?.setValue(passwordHash);
+    this.settingsForm.get('passwordHash')?.setValue(passwordHash);
     this.settingsForm.markAsDirty();
 
     const settings: AppSettings = this.settingsForm.getRawValue();

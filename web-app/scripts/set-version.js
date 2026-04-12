@@ -98,7 +98,11 @@ function main() {
 
   updatePackageVersion(packageJsonPath, versionArg);
   envPaths.forEach((envPath) => updateEnvFile(envPath, versionArg));
-  const appliedVersionCode = updateAndroidGradle(androidGradlePath, versionArg, explicitVersionCode);
+  const appliedVersionCode = updateAndroidGradle(
+    androidGradlePath,
+    versionArg,
+    explicitVersionCode
+  );
 
   console.log('Version update complete.');
   console.log(`- package.json: ${versionArg}`);

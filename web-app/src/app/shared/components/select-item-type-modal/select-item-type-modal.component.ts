@@ -6,10 +6,9 @@ import { CommonModule } from '@angular/common';
   selector: 'select-item-type-modal',
   templateUrl: './select-item-type-modal.component.html',
   styleUrls: ['./select-item-type-modal.component.scss'],
-  imports: [CommonModule]
+  imports: [CommonModule],
 })
 export class SelectItemTypeModalComponent {
-
   @Input() visible: boolean = false;
   @Output() selectType = new EventEmitter<'todo' | 'note' | 'citation'>();
   @Output() close = new EventEmitter<void>();

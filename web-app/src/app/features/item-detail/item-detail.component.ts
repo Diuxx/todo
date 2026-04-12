@@ -1,20 +1,25 @@
-import { Component, ElementRef, OnInit, ViewChild, inject } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
-import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { Observable, Subject, debounceTime, takeUntil } from "rxjs";
-import { AppItem } from "../../shared/models/app-item.model";
-import { ItemsService } from "../../shared/services/items.service";
-import { SaveActionService } from "../../shared/services/save-action.service";
-import { TodoEditModalComponent } from "./todo-edit-modal/todo-edit-modal.component";
-import { createItemForm, getTodoContentFormArray, getTodoSubItemFormGroups, mapItemFormToAppItem } from "../../shared/models/app-item-form.model";
-import { NgClass, NgStyle } from "@angular/common";
-import { generateUUID } from "../../shared/utils";
-import { ConfirmDialogService } from "../../shared/services/confirm-dialog.service";
-import { TodoHistoryService } from "../../shared/services/todo-history.service";
-import { ItemDetailSkeletonComponent } from "../../shared/components/item-detail-skeleton/item-detail-skeleton.component";
-import { LocalNotificationService } from "../../shared/services/local-notification.service";
-import { PasswordPromptModalComponent } from "../../shared/components/password-prompt-modal/password-prompt-modal.component";
-import { ItemLockService } from "../../shared/services/item-lock.service";
+import { Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Observable, Subject, debounceTime, takeUntil } from 'rxjs';
+import { AppItem } from '../../shared/models/app-item.model';
+import { ItemsService } from '../../shared/services/items.service';
+import { SaveActionService } from '../../shared/services/save-action.service';
+import { TodoEditModalComponent } from './todo-edit-modal/todo-edit-modal.component';
+import {
+  createItemForm,
+  getTodoContentFormArray,
+  getTodoSubItemFormGroups,
+  mapItemFormToAppItem,
+} from '../../shared/models/app-item-form.model';
+import { NgClass, NgStyle } from '@angular/common';
+import { generateUUID } from '../../shared/utils';
+import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
+import { TodoHistoryService } from '../../shared/services/todo-history.service';
+import { ItemDetailSkeletonComponent } from '../../shared/components/item-detail-skeleton/item-detail-skeleton.component';
+import { LocalNotificationService } from '../../shared/services/local-notification.service';
+import { PasswordPromptModalComponent } from '../../shared/components/password-prompt-modal/password-prompt-modal.component';
+import { ItemLockService } from '../../shared/services/item-lock.service';
 
 const ITEM_DETAIL_IMPORTS = [
   ReactiveFormsModule,
@@ -33,7 +38,6 @@ const ITEM_DETAIL_IMPORTS = [
   imports: ITEM_DETAIL_IMPORTS,
 })
 export class ItemDetailComponent implements OnInit {
-
   // services
   private readonly route: ActivatedRoute = inject(ActivatedRoute);
   private readonly itemsService = inject(ItemsService);
@@ -51,7 +55,7 @@ export class ItemDetailComponent implements OnInit {
   private pendingTextareaFocus: boolean = false;
   private contentTextareaElement?: HTMLTextAreaElement;
   private editingSubItemSnapshot: Record<string, unknown> | null = null;
-  
+
   public isTodoEditModalVisible: boolean = false;
   public itemForm: FormGroup = createItemForm(this.formBuilder);
   public editingSubItemForm?: FormGroup;
@@ -99,7 +103,8 @@ export class ItemDetailComponent implements OnInit {
         this.setupAutoSaveSubscriptions();
         this.emitTodoProgress();
         this.pendingTextareaFocus = !!item && !(item.type === 'todo' && item.todoContent?.length);
-        this.hasCurrentAccess = !!item && (!item.isLocked || this.itemLockService.isUnlocked(item.id));
+        this.hasCurrentAccess =
+          !!item && (!item.isLocked || this.itemLockService.isUnlocked(item.id));
         this.isLoading = false;
 
         if (item?.isLocked && !this.hasCurrentAccess) {
@@ -109,12 +114,10 @@ export class ItemDetailComponent implements OnInit {
       error: (err) => {
         console.log('Error fetching item with id:', id, err);
         this.isLoading = false;
-      }
+      },
     });
 
-    this.saveActionService.save$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.saveElement());
+    this.saveActionService.save$.pipe(takeUntil(this.destroy$)).subscribe(() => this.saveElement());
   }
 
   public ngOnDestroy(): void {
@@ -155,7 +158,7 @@ export class ItemDetailComponent implements OnInit {
         variant: 'danger',
       })
       .pipe(takeUntil(this.destroy$))
-      .subscribe(confirmed => {
+      .subscribe((confirmed) => {
         if (!confirmed || !this.item) {
           return;
         }
@@ -164,7 +167,7 @@ export class ItemDetailComponent implements OnInit {
           next: () => {
             this.router.navigate(['/']);
           },
-          error: () => console.log('Error deleting item')
+          error: () => console.log('Error deleting item'),
         });
       });
   }
@@ -183,11 +186,11 @@ export class ItemDetailComponent implements OnInit {
 
     // --
     this.itemsService.updateItem(payload).subscribe({
-        next: () => {
-          this.itemForm.markAsPristine();
-          this.triggerSavedFeedback()
-        },
-        error: () => console.log('Error updating item')
+      next: () => {
+        this.itemForm.markAsPristine();
+        this.triggerSavedFeedback();
+      },
+      error: () => console.log('Error updating item'),
     });
   }
 
@@ -246,7 +249,7 @@ export class ItemDetailComponent implements OnInit {
         variant: 'danger',
       })
       .pipe(takeUntil(this.destroy$))
-      .subscribe(confirmed => {
+      .subscribe((confirmed) => {
         if (!confirmed) {
           return;
         }
@@ -343,18 +346,16 @@ export class ItemDetailComponent implements OnInit {
       statusUpdate$ = this.todoHistoryService.unDoneTodoItem(subItemId);
     }
 
-    statusUpdate$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.emitTodoProgress();
-          this.syncTodoNotifications();
-        },
-        error: () => {
-          subItemForm.get('isDone')?.setValue(!isChecked, { emitEvent: false });
-          this.emitTodoProgress();
-        },
-      });
+    statusUpdate$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.emitTodoProgress();
+        this.syncTodoNotifications();
+      },
+      error: () => {
+        subItemForm.get('isDone')?.setValue(!isChecked, { emitEvent: false });
+        this.emitTodoProgress();
+      },
+    });
 
     this.emitTodoProgress();
   }
@@ -445,7 +446,7 @@ export class ItemDetailComponent implements OnInit {
 
     const controls = getTodoSubItemFormGroups(this.itemForm);
     const total = controls.length;
-    const done = controls.filter(fg => !!fg.get('isDone')?.value).length;
+    const done = controls.filter((fg) => !!fg.get('isDone')?.value).length;
     this.saveActionService.updateTodoProgress({ done, total });
   }
 
@@ -454,7 +455,8 @@ export class ItemDetailComponent implements OnInit {
       return;
     }
 
-    this.itemsService.getItemById(this.item.id)
+    this.itemsService
+      .getItemById(this.item.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: async (item) => {
@@ -510,5 +512,4 @@ export class ItemDetailComponent implements OnInit {
       contentTextarea?.classList.remove('saved-feedback');
     }, 1200);
   }
-
 }

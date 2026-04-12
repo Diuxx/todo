@@ -1,7 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 
 // 2) Reset mobile-first (Bootstrap gère déjà pas mal, mais on ajuste)
-html, body {
+html,
+body {
   height: 100%;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
@@ -10,16 +11,23 @@ html, body {
 }
 
 body {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
   background-color: var(--bs-body-bg);
   color: var(--app-fg-color);
   line-height: 1.5;
-  
+
   display: grid;
   grid-template-areas:
-    "header"
-    "main"
-    "footer";
+    'header'
+    'main'
+    'footer';
 
   grid-template-rows: auto 1fr auto;
   overflow: hidden;
@@ -50,7 +58,9 @@ h1 {
 }
 
 // 6) Inputs : améliorer accessibilité mobile
-input, select, textarea {
+input,
+select,
+textarea {
   border-radius: calc(var(--radius) - 4px);
   // min-height: 44px;
 }
@@ -64,8 +74,13 @@ input, select, textarea {
 }
 
 // 8) Utilities responsive (en complément de bootstrap)
-.text-muted-strong { color: #6c757d; font-weight: 500; }
-.card-rounded { border-radius: var(--radius); }
+.text-muted-strong {
+  color: #6c757d;
+  font-weight: 500;
+}
+.card-rounded {
+  border-radius: var(--radius);
+}
 .clickable {
   cursor: pointer;
 }
@@ -96,9 +111,9 @@ input, select, textarea {
   width: fit-content;
   height: 15px;
   border-radius: 3px;
-  padding:.1rem .45rem;
-  border:1px solid #d0d5dd;
-  text-align:center;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid #d0d5dd;
+  text-align: center;
   font-size: 0.6em;
   font-weight: 600;
   text-align: center;
@@ -107,23 +122,24 @@ input, select, textarea {
     vertical-align: baseline;
   }
   &:hover {
-    background-color: #B5B7BE !important;
+    background-color: #b5b7be !important;
   }
   &.active {
-    background-color: #B5B7BE;
+    background-color: #b5b7be;
   }
 }
 
-.box { 
-  border:1px solid #e5e7eb;
-  border-radius: .75rem;
-  padding: .75rem;
+.box {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
   width: 100%;
   background-color: var(--app-bg-color);
   box-shadow: var(--shadow);
 }
 
-.my-card, .form {
+.my-card,
+.form {
   display: flex;
   border-radius: 8px;
   padding: 1rem;
