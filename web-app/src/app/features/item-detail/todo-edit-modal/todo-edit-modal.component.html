@@ -11,7 +11,8 @@
         </button>
       </div>
       <p class="modal-subtitle">
-        Mets à jour le texte, la récurrence et les alertes de cette sous-tâche.
+        Mets à jour le texte, la criticité, la date, la récurrence et les alertes de cette
+        sous-tâche.
       </p>
 
       <label class="modal-label">Texte</label>
@@ -20,6 +21,67 @@
         formControlName="title"
         placeholder="Texte de la sous-tâche"
       ></textarea>
+
+      <div class="meta-row">
+        <div class="meta-field due-date-section">
+          @if (!isDueDateVisible) {
+            <button type="button" class="inline-action-btn" (click)="revealDueDate()">
+              <i class="bi bi-calendar-plus"></i>
+            </button>
+          } @else {
+            <button type="button" class="inline-action-btn" (click)="clearDueDate()">
+              <i class="bi bi-calendar-x"></i>
+            </button>
+          }
+          @if (isDueDateVisible) {
+          <input
+            id="todo-due-date-input"
+            type="date"
+            class="due-date-input"
+            formControlName="dueDate"
+          />
+          }
+        </div>
+        <div class="meta-field">
+          <button
+            type="button"
+            class="inline-action-btn"
+            [ngClass]="{ 'is-active': subItemForm.get('alertEnabled')?.value }"
+            (click)="toggleAlert()"
+          >
+            <i
+              class="bi"
+              [ngClass]="subItemForm.get('alertEnabled')?.value ? 'bi-bell-fill' : 'bi-bell'"
+            ></i>
+          </button>
+          @if (subItemForm.get('alertEnabled')?.value) {
+            <div class="alert-time-wrap">
+              <input type="time" class="alert-time-input" formControlName="alertAt" />
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="meta-row">
+        <div class="meta-row-field">
+          <label class="modal-label">Criticité : {{ getSelectedCriticalityLabel() }}</label>
+          <div class="criticality-actions">
+            @for (criticality of criticalityOptions; track criticality) {
+              <button
+                type="button"
+                class="criticality-btn"
+                [ngClass]="[
+                  isCriticalitySelected(criticality) ? 'is-active' : '',
+                  'criticality-' + criticality,
+                ]"
+                (click)="selectCriticality(criticality)"
+              >
+                {{ criticality.toUpperCase() }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
 
       <label class="modal-label">Récurrence</label>
       <div class="recurrence-actions">
@@ -75,7 +137,8 @@
           min="1"
           class="objective-input"
           placeholder="Ex: 3"
-          disabled
+          formControlName="goalCount"
+          [disabled]="true"
         />
         <small class="objective-hint">
           Occurrences à atteindre
@@ -87,27 +150,6 @@
             sur la semaine.
           }
         </small>
-      </div>
-
-      <div class="alert-section">
-        <button
-          type="button"
-          class="alert-toggle-btn"
-          [ngClass]="{ 'is-active': subItemForm.get('alertEnabled')?.value }"
-          (click)="toggleAlert()"
-        >
-          <i
-            class="bi"
-            [ngClass]="subItemForm.get('alertEnabled')?.value ? 'bi-bell-fill' : 'bi-bell'"
-          ></i>
-          Alertes
-        </button>
-        @if (subItemForm.get('alertEnabled')?.value) {
-          <div class="alert-time-wrap">
-            <label class="modal-label">Heure</label>
-            <input type="time" class="alert-time-input" formControlName="alertAt" />
-          </div>
-        }
       </div>
 
       <div class="modal-actions">

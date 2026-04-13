@@ -136,6 +136,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_1_sub_1',
           title: 'Choisir un livre ete un texte beaucoup trop long pour etre affiché dans la case.',
           config: {
+            criticality: 'm',
             status: 'pending',
             recurrenceType: 'daily',
             recurrenceRule: 'daily',
@@ -150,6 +151,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_1_sub_2',
           title: 'Lire au moins 30 minutes',
           config: {
+            criticality: 'h',
             status: 'done',
             recurrenceType: 'weekly',
             alertEnabled: false,
@@ -162,6 +164,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_1_sub_3',
           title: 'Noter une idée clé',
           config: {
+            criticality: 'l',
             status: 'done',
             recurrenceType: 'monthly',
             alertEnabled: true,
@@ -191,6 +194,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_2_sub_1',
           title: 'Réveil sans snooze',
           config: {
+            criticality: 'h',
             status: 'done',
             recurrenceType: 'daily',
             alertEnabled: true,
@@ -204,6 +208,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_2_sub_2',
           title: 'Méditation 10 min',
           config: {
+            criticality: 'm',
             status: 'done',
             recurrenceType: 'daily',
             alertEnabled: true,
@@ -217,6 +222,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_2_sub_3',
           title: 'Petit-déjeuner sain',
           config: {
+            criticality: 'm',
             status: 'done',
             recurrenceType: 'daily',
             alertEnabled: false,
@@ -229,6 +235,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_2_sub_4',
           title: 'Journaling 5 min',
           config: {
+            criticality: 'l',
             status: 'done',
             recurrenceType: 'daily',
             alertEnabled: false,
@@ -241,6 +248,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_2_sub_5',
           title: 'Douche froide',
           config: {
+            criticality: 'h',
             status: 'pending',
             recurrenceType: 'daily',
             alertEnabled: false,
@@ -268,6 +276,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_3_sub_1',
           title: 'Répondre aux emails importants',
           config: {
+            criticality: 'h',
             status: 'done',
             recurrenceType: 'daily',
             alertEnabled: true,
@@ -281,6 +290,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_3_sub_2',
           title: 'Préparer la réunion de demain',
           config: {
+            criticality: 'h',
             status: 'pending',
             recurrenceType: 'none',
             alertEnabled: false,
@@ -292,6 +302,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_3_sub_3',
           title: 'Acheter des provisions',
           config: {
+            criticality: 'm',
             status: 'pending',
             recurrenceType: 'none',
             alertEnabled: false,
@@ -303,6 +314,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_3_sub_4',
           title: 'Appeler maman',
           config: {
+            criticality: 'm',
             status: 'pending',
             recurrenceType: 'weekly',
             alertEnabled: true,
@@ -331,6 +343,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_4_sub_1',
           title: 'Stretching matinal 10 min',
           config: {
+            criticality: 'm',
             status: 'done',
             recurrenceType: 'daily',
             alertEnabled: true,
@@ -344,6 +357,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_4_sub_2',
           title: 'Séance cardio 30 min',
           config: {
+            criticality: 'h',
             status: 'done',
             recurrenceType: 'weekly',
             alertEnabled: false,
@@ -356,6 +370,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_4_sub_3',
           title: 'Séance musculation',
           config: {
+            criticality: 'h',
             status: 'pending',
             recurrenceType: 'weekly',
             alertEnabled: false,
@@ -383,6 +398,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_5_sub_1',
           title: 'Bilan de la semaine écoulée',
           config: {
+            criticality: 'm',
             status: 'done',
             recurrenceType: 'weekly',
             alertEnabled: true,
@@ -396,6 +412,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_5_sub_2',
           title: 'Planifier les objectifs de la semaine prochaine',
           config: {
+            criticality: 'h',
             status: 'pending',
             recurrenceType: 'weekly',
             alertEnabled: false,
@@ -407,6 +424,7 @@ export const appDataExample: AppData = {
           id: 'item_todo_5_sub_3',
           title: 'Nettoyer et organiser les notes',
           config: {
+            criticality: 'l',
             status: 'done',
             recurrenceType: 'weekly',
             alertEnabled: false,

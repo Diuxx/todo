@@ -6,6 +6,11 @@ import { generateUUID } from '../utils';
 import { RecurrenceType, TodoStatus } from '../models/base-entity.model';
 import { TodoHistoryEntry } from '../models/todo-history.model';
 import { LocalNotificationService } from './local-notification.service';
+import {
+  normalizeTodoCriticality,
+  normalizeTodoDueDate,
+  normalizeTodoGoalCount,
+} from '../utils/todo-config.utils';
 
 @Injectable({ providedIn: 'root' }) // No provider needed.
 export class ItemsService {
@@ -190,6 +195,23 @@ export class ItemsService {
     return {
       ...item,
       isLocked: !!item.isLocked,
+      todoContent:
+        item.type === 'todo' && item.todoContent?.length
+          ? item.todoContent.map((subItem) => ({
+              ...subItem,
+              config: {
+                criticality: normalizeTodoCriticality(subItem.config?.criticality),
+                recurrenceType: subItem.config?.recurrenceType ?? 'none',
+                goalCount: normalizeTodoGoalCount(subItem.config?.goalCount),
+                alertEnabled: subItem.config?.alertEnabled ?? false,
+                alertAt: subItem.config?.alertAt,
+                recurrenceRule: subItem.config?.recurrenceRule,
+                lastCompletedAt: subItem.config?.lastCompletedAt,
+                nextDueAt: subItem.config?.nextDueAt,
+                dueDate: normalizeTodoDueDate(subItem.config?.dueDate),
+              },
+            }))
+          : item.todoContent,
     };
   }
 
@@ -289,12 +311,15 @@ export class ItemsService {
       ...subItem,
       isDone: status === 'done',
       config: {
+        criticality: normalizeTodoCriticality(subItem.config?.criticality),
         recurrenceType,
+        goalCount: normalizeTodoGoalCount(subItem.config?.goalCount),
         alertEnabled: subItem.config?.alertEnabled ?? false,
         alertAt: subItem.config?.alertAt,
         recurrenceRule: subItem.config?.recurrenceRule,
         lastCompletedAt: subItem.config?.lastCompletedAt,
         nextDueAt: subItem.config?.nextDueAt,
+        dueDate: normalizeTodoDueDate(subItem.config?.dueDate),
       },
     };
   }

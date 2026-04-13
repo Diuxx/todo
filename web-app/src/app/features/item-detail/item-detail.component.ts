@@ -20,6 +20,10 @@ import { ItemDetailSkeletonComponent } from '../../shared/components/item-detail
 import { LocalNotificationService } from '../../shared/services/local-notification.service';
 import { PasswordPromptModalComponent } from '../../shared/components/password-prompt-modal/password-prompt-modal.component';
 import { ItemLockService } from '../../shared/services/item-lock.service';
+import {
+  getTodoCriticalityRank,
+  normalizeTodoCriticality,
+} from '../../shared/utils/todo-config.utils';
 
 const ITEM_DETAIL_IMPORTS = [
   ReactiveFormsModule,
@@ -209,12 +213,15 @@ export class ItemDetailComponent implements OnInit {
       id: [generateUUID()],
       title: [''],
       isDone: [false],
+      criticality: ['l'],
       recurrenceType: ['none'],
+      goalCount: [1],
       alertEnabled: [false],
       alertAt: [''],
       recurrenceRule: [''],
       lastCompletedAt: [''],
       nextDueAt: [''],
+      dueDate: [''],
     });
 
     todoContentArray.push(subItemForm);
@@ -428,7 +435,20 @@ export class ItemDetailComponent implements OnInit {
   }
 
   public get todoSubItemsControls(): FormGroup[] {
-    return getTodoSubItemFormGroups(this.itemForm);
+    return [...getTodoSubItemFormGroups(this.itemForm)].sort((left, right) => {
+      const rankDelta =
+        getTodoCriticalityRank(left.get('criticality')?.value) -
+        getTodoCriticalityRank(right.get('criticality')?.value);
+
+      if (rankDelta !== 0) {
+        return rankDelta;
+      }
+
+      const leftTitle = `${left.get('title')?.value ?? ''}`.trim();
+      const rightTitle = `${right.get('title')?.value ?? ''}`.trim();
+
+      return leftTitle.localeCompare(rightTitle, 'fr');
+    });
   }
 
   public get shouldShowProtectedContent(): boolean {
@@ -439,6 +459,10 @@ export class ItemDetailComponent implements OnInit {
     return !this.item.isLocked || this.hasCurrentAccess;
   }
 
+  public getTodoRowClass(subItemForm: FormGroup): string {
+    return `criticality-${normalizeTodoCriticality(subItemForm.get('criticality')?.value)}`;
+  }
+
   private emitTodoProgress(): void {
     if (this.item?.type !== 'todo') {
       return;
@@ -447,7 +471,28 @@ export class ItemDetailComponent implements OnInit {
     const controls = getTodoSubItemFormGroups(this.itemForm);
     const total = controls.length;
     const done = controls.filter((fg) => !!fg.get('isDone')?.value).length;
-    this.saveActionService.updateTodoProgress({ done, total });
+
+    const dailyControls = controls.filter((fg) => {
+      const recurrenceType = `${fg.get('recurrenceType')?.value ?? 'none'}`;
+      return recurrenceType === 'none' || recurrenceType === 'daily' || recurrenceType === 'custom';
+    });
+    const weeklyControls = controls.filter(
+      (fg) => `${fg.get('recurrenceType')?.value ?? 'none'}` === 'weekly'
+    );
+    const monthlyControls = controls.filter(
+      (fg) => `${fg.get('recurrenceType')?.value ?? 'none'}` === 'monthly'
+    );
+
+    this.saveActionService.updateTodoProgress({
+      done,
+      total,
+      dailyDone: dailyControls.filter((fg) => !!fg.get('isDone')?.value).length,
+      dailyTotal: dailyControls.length,
+      weeklyDone: weeklyControls.filter((fg) => !!fg.get('isDone')?.value).length,
+      weeklyTotal: weeklyControls.length,
+      monthlyDone: monthlyControls.filter((fg) => !!fg.get('isDone')?.value).length,
+      monthlyTotal: monthlyControls.length,
+    });
   }
 
   private syncTodoNotifications(): void {

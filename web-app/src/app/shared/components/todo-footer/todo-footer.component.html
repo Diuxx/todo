@@ -1,11 +1,5 @@
 @if (visible) {
   <footer>
-    <!-- <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
-            <a [routerLink]="['/']" [queryParams]="{ filter: 'note' }" class="footer-menu-item">
-                <img width="32px" src="/svgs/note.svg" alt="Note" class="footer-logo">
-                <span>Notes</span>
-            </a>
-        </div> -->
     <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
       <button
         type="button"
@@ -24,13 +18,16 @@
         (click)="goToCalendar()"
         aria-label="Ouvrir le calendrier"
       >
-        <i class="bi bi-calendar3 footer-icon"></i>
+        <img width="32px" src="/svgs/calendar.svg" alt="Calendrier" class="footer-logo" />
         <span>Calendrier</span>
       </button>
     </div>
     <div
       class="footer-board"
-      [ngClass]="{ 'save-icon-showed': showSaveIcon && !todoProgress }"
+      [ngClass]="{
+        'save-icon-showed': showSaveIcon && !todoProgress,
+        'todo-progress-mode': !!todoProgress,
+      }"
       (click)="onBoardClick()"
     >
       @if (todoProgress) {
@@ -39,9 +36,8 @@
           class="board-chart"
           width="90"
           height="90"
-          aria-label="Progression todo"
+          aria-label="Progression du todo par récurrence"
         ></canvas>
-        <span class="todo-progress-label">{{ todoProgress.done }}/{{ todoProgress.total }}</span>
       } @else {
         <canvas
           #progressChart

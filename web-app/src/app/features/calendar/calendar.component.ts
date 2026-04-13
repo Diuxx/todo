@@ -2,10 +2,15 @@ import { DatePipe, NgClass } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppItem, TodoInformation } from '../../shared/models/app-item.model';
-import { RecurrenceType } from '../../shared/models/base-entity.model';
+import { RecurrenceType, TodoCriticality } from '../../shared/models/base-entity.model';
 import { ItemsService } from '../../shared/services/items.service';
 import { TodoHistoryService } from '../../shared/services/todo-history.service';
 import { TodoHistoryEntry } from '../../shared/models/todo-history.model';
+import {
+  getTodoCriticalityRank,
+  normalizeTodoCriticality,
+  normalizeTodoDueDate,
+} from '../../shared/utils/todo-config.utils';
 
 type CalendarViewMode = 'day' | 'week' | 'month';
 
@@ -22,6 +27,7 @@ type ScheduledTodo = {
   itemTitle: string;
   subItemId: string;
   subItemTitle: string;
+  criticality: TodoCriticality;
   reminderAt: Date | null;
   recurrenceType: RecurrenceType;
   recurrenceRule?: string;
@@ -189,6 +195,12 @@ export class CalendarComponent implements OnInit {
         isDoneForDate: this.isDoneForDate(todo, date),
       }))
       .sort((a, b) => {
+        const criticalityDelta = getTodoCriticalityRank(a.criticality) - getTodoCriticalityRank(b.criticality);
+
+        if (criticalityDelta !== 0) {
+          return criticalityDelta;
+        }
+
         if (!a.reminderAt && !b.reminderAt) {
           return a.subItemTitle.localeCompare(b.subItemTitle, 'fr');
         }
@@ -274,10 +286,11 @@ export class CalendarComponent implements OnInit {
       for (const subItem of item.todoContent) {
         const recurrenceType = this.getRecurrenceType(subItem);
         const hasRecurrence = recurrenceType !== 'none';
+        const dueDate = this.getDueDate(subItem);
         const reminderAt = this.resolveReminderDate(item, subItem);
         const baseDate = this.resolveBaseDate(item, subItem) ?? this.startOfDay(new Date());
 
-        if (!hasRecurrence && !reminderAt) {
+        if (!hasRecurrence && !reminderAt && !dueDate) {
           continue;
         }
 
@@ -286,6 +299,7 @@ export class CalendarComponent implements OnInit {
           itemTitle,
           subItemId: subItem.id,
           subItemTitle: subItem.title?.trim() || 'Sous-tâche',
+          criticality: normalizeTodoCriticality(subItem.config?.criticality),
           reminderAt,
           recurrenceType,
           recurrenceRule: this.getRecurrenceRule(subItem),
@@ -298,8 +312,10 @@ export class CalendarComponent implements OnInit {
   }
 
   private resolveBaseDate(item: AppItem, subItem: TodoInformation): Date | null {
-    const baseDateSource = this.getNextDueAt(subItem) || item.updatedAt || item.createdAt;
-    const baseDate = new Date(baseDateSource);
+    const dueDate = this.getDueDate(subItem);
+    const baseDateSource = dueDate || this.getNextDueAt(subItem) || item.updatedAt || item.createdAt;
+    const parsedSource = dueDate ? `${dueDate}T00:00:00` : baseDateSource;
+    const baseDate = new Date(parsedSource);
 
     if (Number.isNaN(baseDate.getTime())) {
       return null;
@@ -552,6 +568,12 @@ export class CalendarComponent implements OnInit {
 
   private getNextDueAt(subItem: TodoInformation): string | undefined {
     return subItem.config?.nextDueAt || (subItem as { nextDueAt?: string }).nextDueAt || undefined;
+  }
+
+  private getDueDate(subItem: TodoInformation): string | undefined {
+    return normalizeTodoDueDate(
+      subItem.config?.dueDate || (subItem as { dueDate?: string }).dueDate || undefined
+    );
   }
 
   private isRecurrenceType(value: unknown): value is RecurrenceType {

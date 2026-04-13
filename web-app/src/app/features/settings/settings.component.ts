@@ -18,12 +18,20 @@ import {
   PasswordModalSubmitPayload,
   PasswordSettingsModalComponent,
 } from '../../shared/components/password-settings-modal/password-settings-modal.component';
+import { PasswordPromptModalComponent } from '../../shared/components/password-prompt-modal/password-prompt-modal.component';
+
+type SensitiveAction = 'delete' | 'export' | 'import';
 
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
-  imports: [ReactiveFormsModule, NgClass, PasswordSettingsModalComponent],
+  imports: [
+    ReactiveFormsModule,
+    NgClass,
+    PasswordSettingsModalComponent,
+    PasswordPromptModalComponent,
+  ],
 })
 export class SettingsComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
@@ -34,6 +42,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private readonly passwordService = inject(PasswordService);
   private readonly destroy$ = new Subject<void>();
   private savedFeedbackTimeoutId?: ReturnType<typeof setTimeout>;
+  private pendingSensitiveAction: SensitiveAction | null = null;
+  private pendingImportInput: HTMLInputElement | null = null;
+  private importPasswordValidated = false;
 
   public settingsForm!: FormGroup;
   public savedFeedback = false;
@@ -46,6 +57,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public databaseSizeKb: number | null = null;
   public isExportingData = false;
   public isImportingData = false;
+  public isSensitivePasswordPromptVisible = false;
+  public isSensitivePasswordSubmitting = false;
+  public sensitivePasswordErrorMessage: string | null = null;
 
   public ngOnInit(): void {
     this.settingsService.get().subscribe((settings) => {
@@ -145,8 +159,217 @@ export class SettingsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.confirmDialogService
-      .confirm({
+    this.openSensitivePasswordPrompt('delete');
+  }
+
+  public downloadAppData(): void {
+    if (this.isExportingData) {
+      return;
+    }
+
+    this.openSensitivePasswordPrompt('export');
+  }
+
+  public openImportPicker(fileInput: HTMLInputElement): void {
+    if (this.isImportingData) {
+      return;
+    }
+
+    if (this.importPasswordValidated) {
+      fileInput.value = '';
+      fileInput.click();
+      return;
+    }
+
+    this.pendingImportInput = fileInput;
+    this.openSensitivePasswordPrompt('import');
+  }
+
+  public async importAppData(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file || this.isImportingData) {
+      return;
+    }
+
+    this.importPasswordValidated = false;
+    await this.performImportAppData(file, input);
+  }
+
+  public closeSensitivePasswordPrompt(): void {
+    if (this.isSensitivePasswordSubmitting) {
+      return;
+    }
+
+    this.isSensitivePasswordPromptVisible = false;
+    this.sensitivePasswordErrorMessage = null;
+    this.pendingSensitiveAction = null;
+
+    if (this.pendingImportInput) {
+      this.pendingImportInput.value = '';
+    }
+
+    this.pendingImportInput = null;
+    this.importPasswordValidated = false;
+  }
+
+  public async confirmSensitivePassword(password: string): Promise<void> {
+    if (!this.pendingSensitiveAction || !this.settingsForm) {
+      return;
+    }
+
+    const currentPasswordHash = this.settingsForm.get('passwordHash')?.value as string;
+
+    this.sensitivePasswordErrorMessage = null;
+    this.isSensitivePasswordSubmitting = true;
+
+    try {
+      const isPasswordValid = await this.passwordService.verify(password, currentPasswordHash);
+
+      if (!isPasswordValid) {
+        this.sensitivePasswordErrorMessage = 'Mot de passe incorrect.';
+        return;
+      }
+
+      const action = this.pendingSensitiveAction;
+      const importInput = this.pendingImportInput;
+
+      this.isSensitivePasswordPromptVisible = false;
+      this.pendingSensitiveAction = null;
+      this.pendingImportInput = null;
+      this.sensitivePasswordErrorMessage = null;
+
+      if (action === 'delete') {
+        await this.performDeleteAppData();
+        return;
+      }
+
+      if (action === 'export') {
+        await this.performDownloadAppData();
+        return;
+      }
+
+      if (action === 'import' && importInput) {
+        this.importPasswordValidated = true;
+        importInput.value = '';
+        importInput.click();
+      }
+    } finally {
+      this.isSensitivePasswordSubmitting = false;
+    }
+  }
+
+  public get sensitivePasswordPromptTitle(): string {
+    if (this.pendingSensitiveAction === 'delete') {
+      return 'Confirmation requise';
+    }
+
+    if (this.pendingSensitiveAction === 'export') {
+      return 'Téléchargement protégé';
+    }
+
+    if (this.pendingSensitiveAction === 'import') {
+      return 'Import protégé';
+    }
+
+    return 'Mot de passe requis';
+  }
+
+  public get sensitivePasswordPromptMessage(): string {
+    if (this.pendingSensitiveAction === 'delete') {
+      return 'Entre le mot de passe avant de supprimer les données locales.';
+    }
+
+    if (this.pendingSensitiveAction === 'export') {
+      return 'Entre le mot de passe avant de télécharger la sauvegarde JSON.';
+    }
+
+    if (this.pendingSensitiveAction === 'import') {
+      return 'Entre le mot de passe avant d’importer et d’écraser les données actuelles.';
+    }
+
+    return 'Entre le mot de passe pour continuer.';
+  }
+
+  public get sensitivePasswordPromptConfirmText(): string {
+    if (this.pendingSensitiveAction === 'delete') {
+      return 'Confirmer';
+    }
+
+    if (this.pendingSensitiveAction === 'export') {
+      return 'Télécharger';
+    }
+
+    if (this.pendingSensitiveAction === 'import') {
+      return 'Continuer';
+    }
+
+    return 'Continuer';
+  }
+
+  private isValidAppData(payload: AppData): payload is AppData {
+    return (
+      !!payload &&
+      Array.isArray(payload.items) &&
+      Array.isArray(payload.todoHistory) &&
+      Array.isArray(payload.citationsMeta) &&
+      Array.isArray(payload.imagesMeta) &&
+      !!payload.settings &&
+      typeof payload.settings === 'object' &&
+      typeof payload.settings.id === 'string'
+    );
+  }
+
+  private buildForm(settings: AppSettings): void {
+    this.settingsForm = this.fb.group({
+      id: [settings.id],
+      theme: [settings.theme],
+      language: [settings.language],
+      dailyAffirmationEnabled: [settings.dailyAffirmationEnabled],
+      showArchivedItems: [settings.showArchivedItems],
+      passwordHash: [settings.passwordHash],
+      userName: [settings.userName],
+      userId: [settings.userId],
+    });
+  }
+
+  private setupAutoSave(): void {
+    this.settingsForm.valueChanges
+      .pipe(debounceTime(800), takeUntil(this.destroy$))
+      .subscribe(() => this.saveSettings());
+  }
+
+  private saveSettings(): void {
+    if (!this.settingsForm.dirty) {
+      return;
+    }
+    const settings: AppSettings = this.settingsForm.getRawValue();
+    this.settingsService.update(settings).subscribe(() => {
+      this.settingsForm.markAsPristine();
+      this.triggerSavedFeedback();
+    });
+  }
+
+  private triggerSavedFeedback(): void {
+    this.savedFeedback = true;
+    if (this.savedFeedbackTimeoutId) {
+      clearTimeout(this.savedFeedbackTimeoutId);
+    }
+    this.savedFeedbackTimeoutId = setTimeout(() => {
+      this.savedFeedback = false;
+    }, 2000);
+  }
+
+  private openSensitivePasswordPrompt(action: SensitiveAction): void {
+    this.pendingSensitiveAction = action;
+    this.sensitivePasswordErrorMessage = null;
+    this.isSensitivePasswordPromptVisible = true;
+  }
+
+  private async performDeleteAppData(): Promise<void> {
+    const confirmed = await firstValueFrom(
+      this.confirmDialogService.confirm({
         title: 'Supprimer les donnees ?',
         message:
           'Cette action va supprimer tous les todos, les notes, les citations, leur historique local et les notifications associees. Cette action est irreversible.',
@@ -154,30 +377,25 @@ export class SettingsComponent implements OnInit, OnDestroy {
         cancelText: 'Annuler',
         variant: 'danger',
       })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(async (confirmed) => {
-        if (!confirmed) {
-          return;
-        }
+    );
 
-        this.isDeletingData = true;
-
-        try {
-          await this.localNotificationService.clearAllTodoNotifications();
-          await this.databaseService.clearUserContent();
-          await this.loadStorageStats();
-          this.triggerSavedFeedback();
-        } finally {
-          this.isDeletingData = false;
-        }
-      });
-  }
-
-  public async downloadAppData(): Promise<void> {
-    if (this.isExportingData) {
+    if (!confirmed) {
       return;
     }
 
+    this.isDeletingData = true;
+
+    try {
+      await this.localNotificationService.clearAllTodoNotifications();
+      await this.databaseService.clearUserContent();
+      await this.loadStorageStats();
+      this.triggerSavedFeedback();
+    } finally {
+      this.isDeletingData = false;
+    }
+  }
+
+  private async performDownloadAppData(): Promise<void> {
     this.isExportingData = true;
 
     try {
@@ -196,22 +414,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }
   }
 
-  public openImportPicker(fileInput: HTMLInputElement): void {
-    if (this.isImportingData) {
-      return;
-    }
-
-    fileInput.click();
-  }
-
-  public async importAppData(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-
-    if (!file || this.isImportingData) {
-      return;
-    }
-
+  private async performImportAppData(file: File, input: HTMLInputElement): Promise<void> {
     const confirmed = await firstValueFrom(
       this.confirmDialogService.confirm({
         title: 'Importer et ecraser les donnees ?',
@@ -296,59 +499,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
       input.value = '';
       this.isImportingData = false;
     }
-  }
-
-  private isValidAppData(payload: AppData): payload is AppData {
-    return (
-      !!payload &&
-      Array.isArray(payload.items) &&
-      Array.isArray(payload.todoHistory) &&
-      Array.isArray(payload.citationsMeta) &&
-      Array.isArray(payload.imagesMeta) &&
-      !!payload.settings &&
-      typeof payload.settings === 'object' &&
-      typeof payload.settings.id === 'string'
-    );
-  }
-
-  private buildForm(settings: AppSettings): void {
-    this.settingsForm = this.fb.group({
-      id: [settings.id],
-      theme: [settings.theme],
-      language: [settings.language],
-      dailyAffirmationEnabled: [settings.dailyAffirmationEnabled],
-      showArchivedItems: [settings.showArchivedItems],
-      passwordHash: [settings.passwordHash],
-      userName: [settings.userName],
-      userId: [settings.userId],
-    });
-  }
-
-  private setupAutoSave(): void {
-    this.settingsForm.valueChanges
-      .pipe(debounceTime(800), takeUntil(this.destroy$))
-      .subscribe(() => this.saveSettings());
-  }
-
-  private saveSettings(): void {
-    if (!this.settingsForm.dirty) {
-      return;
-    }
-    const settings: AppSettings = this.settingsForm.getRawValue();
-    this.settingsService.update(settings).subscribe(() => {
-      this.settingsForm.markAsPristine();
-      this.triggerSavedFeedback();
-    });
-  }
-
-  private triggerSavedFeedback(): void {
-    this.savedFeedback = true;
-    if (this.savedFeedbackTimeoutId) {
-      clearTimeout(this.savedFeedbackTimeoutId);
-    }
-    this.savedFeedbackTimeoutId = setTimeout(() => {
-      this.savedFeedback = false;
-    }, 2000);
   }
 
   private async loadStorageStats(): Promise<void> {

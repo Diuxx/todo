@@ -61,6 +61,8 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
 
   private chart?: Chart;
   private weeklyHistoryChartCanvas?: HTMLCanvasElement;
+  private currentWeekChart?: Chart;
+  private currentWeekChartCanvas?: HTMLCanvasElement;
   private allDoneHistory: TodoHistoryEntry[] = [];
   private titleBySubItemId: Map<string, string> = new Map();
 
@@ -76,6 +78,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     bestWeekDone: 0,
     activeWeeksCount: 0,
   };
+  public currentWeek: WeeklyStats | null = null;
   public topTodos: TopTodo[] = [];
   public selectedWeek: WeeklyStats | null = null;
 
@@ -96,6 +99,20 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  @ViewChild('currentWeekChart')
+  private set currentWeekChartRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
+    const canvas = ref?.nativeElement;
+
+    if (!canvas) {
+      this.currentWeekChartCanvas = undefined;
+      this.destroyCurrentWeekChart();
+      return;
+    }
+
+    this.currentWeekChartCanvas = canvas;
+    this.renderCurrentWeekChart();
+  }
+
   public ngAfterViewInit(): void {
     this.loadRecap();
   }
@@ -104,6 +121,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.destroyChart();
+    this.destroyCurrentWeekChart();
   }
 
   private loadRecap(): void {
@@ -118,6 +136,11 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
           );
           this.titleBySubItemId = this.buildTitleBySubItemId(todoItems);
 
+          this.currentWeek = this.buildCurrentWeekStats(
+            this.allDoneHistory,
+            this.titleBySubItemId
+          );
+          this.renderCurrentWeekChart();
           this.availableMonths = this.buildAvailableMonths(this.allDoneHistory);
           this.selectedMonthKey = this.resolveSelectedMonthKey(
             this.selectedMonthKey,
@@ -131,10 +154,12 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
           this.selectedMonthKey = '';
           this.weeklyStats = [];
           this.chartWeeklyStats = [];
+          this.currentWeek = null;
           this.topTodos = [];
           this.selectedWeek = null;
           this.isLoading = false;
           this.destroyChart();
+          this.destroyCurrentWeekChart();
         },
       });
   }
@@ -164,6 +189,34 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     }
 
     return Math.max(...this.selectedWeek.dayStats.map((day) => day.doneCount), 1);
+  }
+
+  public getCurrentWeekMaxDone(): number {
+    if (!this.currentWeek?.dayStats.length) {
+      return 1;
+    }
+
+    return Math.max(...this.currentWeek.dayStats.map((day) => day.doneCount), 1);
+  }
+
+  public get currentWeekAverageDonePerDay(): number {
+    if (!this.currentWeek) {
+      return 0;
+    }
+
+    return this.currentWeek.doneCount / 7;
+  }
+
+  public get currentWeekBestDay(): WeekDayStats | null {
+    if (!this.currentWeek?.dayStats.length) {
+      return null;
+    }
+
+    const bestDay = this.currentWeek.dayStats.reduce((best, current) =>
+      current.doneCount > best.doneCount ? current : best
+    );
+
+    return bestDay.doneCount > 0 ? bestDay : null;
   }
 
   public getSelectedWeekTopTodoMaxCount(): number {
@@ -257,6 +310,33 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     }
 
     return rows;
+  }
+
+  private buildCurrentWeekStats(
+    doneHistory: TodoHistoryEntry[],
+    titleBySubItemId: Map<string, string>
+  ): WeeklyStats {
+    const weekStart = this.getWeekStart(new Date());
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 7);
+
+    const weekStartISO = weekStart.toISOString();
+    const weekEndISO = weekEnd.toISOString();
+    const entries = doneHistory.filter((entry) => {
+      const completedAt = entry.completedAt;
+      return !!completedAt && completedAt >= weekStartISO && completedAt < weekEndISO;
+    });
+
+    return {
+      label: 'Semaine en cours',
+      rangeLabel: `${this.formatShortDate(weekStart)} - ${this.formatShortDate(new Date(weekEnd.getTime() - 1))}`,
+      startISO: weekStartISO,
+      endISO: weekEndISO,
+      doneCount: entries.length,
+      uniqueTodos: new Set(entries.map((entry) => entry.todoItemId)).size,
+      dayStats: this.buildDayStats(entries, weekStart),
+      topTodos: this.buildTopTodos(entries, titleBySubItemId),
+    };
   }
 
   private buildSummary(weeklyStats: WeeklyStats[]): RecapSummary {
@@ -471,6 +551,70 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
   private destroyChart(): void {
     this.chart?.destroy();
     this.chart = undefined;
+  }
+
+  private renderCurrentWeekChart(): void {
+    const canvas = this.currentWeekChartCanvas;
+    const currentWeek = this.currentWeek;
+
+    if (!canvas || !currentWeek) {
+      return;
+    }
+
+    this.destroyCurrentWeekChart();
+
+    const config: ChartConfiguration<'line'> = {
+      type: 'line',
+      data: {
+        labels: currentWeek.dayStats.map((day) => day.label),
+        datasets: [
+          {
+            label: 'Tâches réalisées',
+            data: currentWeek.dayStats.map((day) => day.doneCount),
+            borderColor: '#dc2626',
+            backgroundColor: 'rgba(220, 38, 38, 0.12)',
+            borderWidth: 3,
+            pointRadius: 4,
+            pointHoverRadius: 5,
+            pointBackgroundColor: '#dc2626',
+            pointBorderColor: '#dc2626',
+            fill: true,
+            tension: 0.38,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: true },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#6b7280' },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              color: '#6b7280',
+            },
+            grid: {
+              color: 'rgba(107, 114, 128, 0.16)',
+            },
+          },
+        },
+      },
+    };
+
+    this.currentWeekChart = new Chart(canvas, config);
+  }
+
+  private destroyCurrentWeekChart(): void {
+    this.currentWeekChart?.destroy();
+    this.currentWeekChart = undefined;
   }
 
   private getWeekStart(date: Date): Date {

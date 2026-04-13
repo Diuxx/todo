@@ -1,7 +1,12 @@
 import { NgClass } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { RecurrenceType } from '../../../shared/models/base-entity.model';
+import { RecurrenceType, TodoCriticality } from '../../../shared/models/base-entity.model';
+import {
+  TODO_CRITICALITY_VALUES,
+  getTodoCriticalityLabel,
+  normalizeTodoCriticality,
+} from '../../../shared/utils/todo-config.utils';
 
 @Component({
   standalone: true,
@@ -10,20 +15,24 @@ import { RecurrenceType } from '../../../shared/models/base-entity.model';
   styleUrls: ['./todo-edit-modal.component.scss'],
   imports: [ReactiveFormsModule, NgClass],
 })
-export class TodoEditModalComponent {
+export class TodoEditModalComponent implements OnChanges {
   @Input() visible: boolean = false;
   @Input() subItemForm?: FormGroup;
 
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<void>();
 
+  public isDueDateVisible: boolean = false;
+
   public readonly recurrenceOptions: RecurrenceType[] = [
     'none',
     'daily',
     'weekly',
     'monthly',
-    'custom',
+    // 'custom', waiting for UI improvements to handle it properly
   ];
+
+  public readonly criticalityOptions: TodoCriticality[] = [...TODO_CRITICALITY_VALUES];
 
   public readonly customWeekdayOptions: Array<{ label: string; value: number }> = [
     { label: 'L', value: 1 },
@@ -34,6 +43,38 @@ export class TodoEditModalComponent {
     { label: 'S', value: 6 },
     { label: 'D', value: 0 },
   ];
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['subItemForm']) {
+      return;
+    }
+
+    this.isDueDateVisible = !!`${this.subItemForm?.get('dueDate')?.value ?? ''}`.trim();
+  }
+
+  public selectCriticality(criticality: TodoCriticality): void {
+    this.subItemForm?.get('criticality')?.setValue(criticality);
+    this.subItemForm?.markAllAsDirty();
+  }
+
+  public isCriticalitySelected(criticality: TodoCriticality): boolean {
+    return normalizeTodoCriticality(this.subItemForm?.get('criticality')?.value) === criticality;
+  }
+
+  public getSelectedCriticalityLabel(): string {
+    return getTodoCriticalityLabel(this.subItemForm?.get('criticality')?.value);
+  }
+
+  public revealDueDate(): void {
+    this.isDueDateVisible = true;
+    this.subItemForm?.markAllAsDirty();
+  }
+
+  public clearDueDate(): void {
+    this.subItemForm?.get('dueDate')?.setValue('');
+    this.subItemForm?.markAllAsDirty();
+    this.isDueDateVisible = false;
+  }
 
   public selectRecurrence(type: RecurrenceType): void {
     this.subItemForm?.get('recurrenceType')?.setValue(type);

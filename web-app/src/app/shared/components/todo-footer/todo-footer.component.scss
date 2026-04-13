@@ -6,7 +6,7 @@
   height: 60px;
   footer {
     display: grid;
-    grid-template-columns: 1fr 1fr 90px 1fr 1fr;
+    grid-template-columns: 1fr 1fr 90px 1fr;
     background-color: var(--footer-bg-color);
     grid-area: footer;
   }
@@ -27,17 +27,14 @@
     padding: 0;
     font-size: 2rem;
     cursor: pointer;
+
+    &.todo-progress-mode {
+      padding: 0;
+    }
+
     .board-chart {
       width: 100%;
       height: 100%;
-    }
-
-    .todo-progress-label {
-      position: absolute;
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--app-fg-color);
-      pointer-events: none;
     }
   }
   .footer-menu {
@@ -64,7 +61,8 @@
       padding: 0;
 
       .footer-icon {
-        font-size: 1.25rem;
+        // width: 32px;
+        font-size: 1.5rem;
         line-height: 1;
       }
     }

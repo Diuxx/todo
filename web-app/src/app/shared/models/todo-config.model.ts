@@ -1,7 +1,8 @@
-import { RecurrenceType, TodoStatus } from './base-entity.model';
+import { RecurrenceType, TodoCriticality, TodoStatus } from './base-entity.model';
 
 export interface TodoConfig {
   status?: TodoStatus;
+  criticality: TodoCriticality;
   recurrenceType: RecurrenceType;
 
   /**
@@ -29,4 +30,5 @@ export interface TodoConfig {
 
   lastCompletedAt?: string; // ISO date
   nextDueAt?: string; // ISO date
+  dueDate?: string; // YYYY-MM-DD
 }

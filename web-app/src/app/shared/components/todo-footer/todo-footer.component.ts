@@ -310,27 +310,90 @@ export class TodoFooterComponent implements OnDestroy {
 
     this.destroyTodoChart();
 
-    const { done, total } = this.todoProgress;
-    const remaining = Math.max(0, total - done);
+    const {
+      dailyDone,
+      dailyTotal,
+      weeklyDone,
+      weeklyTotal,
+      monthlyDone,
+      monthlyTotal,
+    } = this.todoProgress;
+
+    const safe = (done: number, total: number) =>
+      total === 0 ? [0, 1] : [done, Math.max(0, total - done)];
+
+    const legendItems = [
+      { label: 'J', color: dailyTotal === 0 ? '#C0C5CC' : '#32c493' },
+      { label: 'S', color: weeklyTotal === 0 ? '#C0C5CC' : '#6378FF' },
+      { label: 'M', color: monthlyTotal === 0 ? '#C0C5CC' : '#FFB85C' },
+    ];
+
+    const centerPlugin: any = {
+      id: 'centerLegend',
+      afterDraw(chart: any) {
+        const { ctx, chartArea } = chart;
+        if (!chartArea) {
+          return;
+        }
+        const cx = (chartArea.left + chartArea.right) / 2 + 5;
+        const cy = (chartArea.top + chartArea.bottom) / 2;
+        const rowH = 12;
+        const totalH = (legendItems.length - 1) * rowH;
+        let y = cy - totalH / 2;
+
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 9px sans-serif';
+
+        for (const item of legendItems) {
+          ctx.beginPath();
+          ctx.arc(cx - 8, y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = item.color;
+          ctx.fill();
+          ctx.fillStyle = '#888';
+          ctx.fillText(item.label, cx - 3, y);
+          y += rowH;
+        }
+
+        ctx.restore();
+      },
+    };
 
     const config: ChartConfiguration<'doughnut'> = {
       type: 'doughnut',
       data: {
+        labels: ['Done', 'Remaining'],
         datasets: [
           {
-            data: total === 0 ? [1] : [done, remaining],
-            backgroundColor: total === 0 ? ['#E5E7EB'] : ['#32c493', '#E5E7EB'],
+            label: 'Jour',
+            data: safe(dailyDone, dailyTotal),
+            backgroundColor: dailyTotal === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#32c493', '#E5E7EB'],
+            borderWidth: 0,
+          },
+          {
+            label: 'Semaine',
+            data: safe(weeklyDone, weeklyTotal),
+            backgroundColor: weeklyTotal === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#6378FF', '#E5E7EB'],
+            borderWidth: 0,
+          },
+          {
+            label: 'Mois',
+            data: safe(monthlyDone, monthlyTotal),
+            backgroundColor:
+              monthlyTotal === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#FFB85C', '#E5E7EB'],
             borderWidth: 0,
           },
         ],
       },
       options: {
         responsive: true,
-        cutout: '60%',
+        cutout: '55%',
         plugins: { legend: { display: false }, tooltip: { enabled: false } },
         animation: false,
         events: [],
       },
+      plugins: [centerPlugin],
     };
 
     this.todoProgressChart = new Chart(this.todoProgressCanvas, config);
