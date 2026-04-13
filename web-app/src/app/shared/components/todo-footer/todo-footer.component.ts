@@ -88,6 +88,10 @@ export class TodoFooterComponent implements OnDestroy {
     this.isSelectTypeModalVisible = false;
   }
 
+  public goToCalendar(): void {
+    this.router.navigate(['/calendar']);
+  }
+
   public goToSettings(): void {
     this.router.navigate(['/settings']);
   }

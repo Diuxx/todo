@@ -17,7 +17,17 @@
         <span>New</span>
       </button>
     </div>
-
+    <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
+      <button
+        type="button"
+        class="footer-menu-item"
+        (click)="goToCalendar()"
+        aria-label="Ouvrir le calendrier"
+      >
+        <i class="bi bi-calendar3 footer-icon"></i>
+        <span>Calendrier</span>
+      </button>
+    </div>
     <div
       class="footer-board"
       [ngClass]="{ 'save-icon-showed': showSaveIcon && !todoProgress }"

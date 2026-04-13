@@ -1,0 +1,125 @@
+<section class="calendar-page">
+  <header class="calendar-toolbar">
+    <div class="calendar-nav">
+      <button type="button" (click)="goToPrevious()" aria-label="Période précédente">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <button type="button" (click)="goToToday()">Aujourd'hui</button>
+      <button type="button" (click)="goToNext()" aria-label="Période suivante">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+
+    <p class="calendar-period">{{ periodLabel }}</p>
+
+    <div class="calendar-view-switch" role="tablist" aria-label="Type de vue calendrier">
+      @for (mode of viewModes; track mode) {
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="viewMode === mode"
+          [ngClass]="{ active: viewMode === mode }"
+          (click)="setViewMode(mode)"
+        >
+          {{ mode === 'day' ? 'Jour' : mode === 'week' ? 'Semaine' : 'Mois' }}
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (isLoading) {
+    <p class="calendar-loading">Chargement...</p>
+  } @else {
+    @if (viewMode === 'month') {
+      <section class="calendar-month" aria-label="Vue mensuelle">
+        <div class="month-weekday">Lun</div>
+        <div class="month-weekday">Mar</div>
+        <div class="month-weekday">Mer</div>
+        <div class="month-weekday">Jeu</div>
+        <div class="month-weekday">Ven</div>
+        <div class="month-weekday">Sam</div>
+        <div class="month-weekday">Dim</div>
+
+        @for (cell of monthGrid; track cell.date.toISOString()) {
+          <button
+            type="button"
+            class="month-cell"
+            [ngClass]="{
+              'is-outside': !cell.inCurrentMonth,
+              'is-today': cell.isToday,
+              'is-selected': cell.isSelected,
+            }"
+            (click)="selectDate(cell.date)"
+          >
+            <span class="day-number">{{ cell.date | date: 'd' }}</span>
+            @if (cell.itemsCount > 0) {
+              <span class="day-count">{{ cell.itemsCount }}</span>
+            }
+          </button>
+        }
+      </section>
+    }
+
+    @if (viewMode === 'week') {
+      <section class="calendar-week" aria-label="Vue hebdomadaire">
+        @for (date of weekDays; track date.toISOString()) {
+          <article class="week-day" [ngClass]="{ 'is-today': isToday(date) }">
+            <header class="week-day-header">
+              <h3>{{ date | date: 'EEEE' : '' : 'fr' }}</h3>
+              <span class="week-day-number">{{ date | date: 'd' }}</span>
+            </header>
+            <div class="week-day-chips">
+              <span class="chip chip-total">{{ getDayStats(date).total }} taches</span>
+              <span class="chip chip-done">{{ getDayStats(date).done }} faites</span>
+            </div>
+            @for (todo of getWeekDayTodos(date); track todo.subItemId) {
+              <p
+                class="week-todo"
+                [ngClass]="{ 'is-done': todo.isDoneForDate }"
+                (click)="openTodo(todo)"
+                (keydown.enter)="openTodo(todo)"
+                (keydown.space)="openTodo(todo)"
+                tabindex="0"
+                role="button"
+              >
+                @if (getReminderTime(todo)) {
+                  <strong>{{ getReminderTime(todo) }}</strong>
+                }
+                <span>{{ getTodoDisplayTitle(todo) }}</span>
+              </p>
+            }
+            @if (getTodosForDate(date).length === 0) {
+              <p class="empty">Aucun item</p>
+            }
+          </article>
+        }
+      </section>
+    }
+
+    @if (viewMode === 'day') {
+      <section class="calendar-day" aria-label="Vue journalière">
+        @if (dayTodos.length === 0) {
+          <p class="empty">Aucun item sur cette journée.</p>
+        } @else {
+          @for (todo of dayTodos; track todo.subItemId) {
+            <article
+              class="day-item type-todo"
+              [ngClass]="{ 'is-done': todo.isDoneForDate }"
+              (click)="openTodo(todo)"
+              (keydown.enter)="openTodo(todo)"
+              (keydown.space)="openTodo(todo)"
+              tabindex="0"
+              role="button"
+            >
+              <h4>{{ getTodoDisplayTitle(todo) }}</h4>
+              @if (getReminderTime(todo)) {
+                <p>Rappel à {{ getReminderTime(todo) }}</p>
+              }
+              <small>todo planifié</small>
+            </article>
+          }
+        }
+      </section>
+    }
+  }
+</section>

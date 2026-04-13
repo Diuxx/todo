@@ -1,0 +1,275 @@
+:host {
+  grid-area: main;
+  margin-top: 110px;
+  margin-bottom: 60px;
+  display: block;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.calendar-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.calendar-toolbar {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.calendar-nav {
+  display: flex;
+  gap: 0.5rem;
+
+  button {
+    border: 1px solid var(--box-border);
+    border-radius: 999px;
+    padding: 0.35rem 0.7rem;
+    background: var(--app-bg-color);
+    color: var(--app-fg-color);
+  }
+}
+
+.calendar-period {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.calendar-view-switch {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid var(--box-border);
+  border-radius: 999px;
+  overflow: hidden;
+
+  button {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary-color);
+    padding: 0.35rem 0.7rem;
+
+    &.active {
+      background: var(--app-color-white-75);
+      color: var(--app-fg-color);
+      font-weight: 600;
+    }
+  }
+}
+
+.calendar-loading,
+.empty {
+  margin: 0;
+  color: var(--text-secondary-color);
+}
+
+.calendar-month {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.month-weekday {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-secondary-color);
+}
+
+.month-cell {
+  display: grid;
+  gap: 0.2rem;
+  align-content: start;
+  border: 1px solid var(--box-border);
+  border-radius: 0.55rem;
+  background: var(--app-bg-color);
+  min-height: 62px;
+  padding: 0.35rem;
+  text-align: left;
+
+  &.is-outside {
+    opacity: 0.45;
+  }
+
+  &.is-today {
+    border-color: var(--app-color-blue);
+  }
+
+  &.is-selected {
+    background: var(--app-color-white-75);
+  }
+
+  .day-number {
+    font-weight: 600;
+    font-size: 0.78rem;
+  }
+
+  .day-count {
+    font-size: 0.7rem;
+    color: var(--text-secondary-color);
+  }
+}
+
+.calendar-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.week-day {
+  border: 1px solid var(--box-border);
+  border-radius: 0.65rem;
+  padding: 0.5rem;
+  min-height: 120px;
+  background: var(--app-bg-color);
+
+  &.is-today {
+    border-color: var(--app-color-blue);
+  }
+
+  .week-day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+
+    h3 {
+      margin: 0;
+      font-size: 0.82rem;
+      text-transform: capitalize;
+    }
+  }
+
+  .week-day-number {
+    min-width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--box-border);
+    font-size: 0.76rem;
+    font-weight: 600;
+  }
+
+  .week-day-chips {
+    display: flex;
+    gap: 0.35rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.12rem 0.42rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+  }
+
+  .chip-total {
+    background: var(--app-color-white-75);
+    color: var(--app-fg-color);
+  }
+
+  .chip-done {
+    background: var(--todo-color);
+    color: var(--app-fg-color);
+  }
+
+  p {
+    margin: 0.2rem 0;
+    font-size: 0.74rem;
+  }
+}
+
+.week-todo {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: baseline;
+  margin: 0.2rem 0;
+  font-size: 0.74rem;
+  cursor: pointer;
+
+  strong {
+    flex: 0 0 auto;
+  }
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+  }
+
+  &.is-done {
+    opacity: 0.7;
+
+    span,
+    strong {
+      text-decoration: line-through;
+    }
+  }
+}
+
+.calendar-day {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.day-item {
+  border: 1px solid var(--box-border);
+  border-radius: 0.7rem;
+  padding: 0.65rem;
+  display: grid;
+  gap: 0.3rem;
+  cursor: pointer;
+
+  h4,
+  p,
+  small {
+    margin: 0;
+  }
+
+  h4 {
+    font-size: 0.88rem;
+  }
+
+  p {
+    font-size: 0.78rem;
+    color: var(--text-secondary-color);
+  }
+
+  small {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-secondary-color);
+  }
+
+  &.type-todo {
+    background: var(--todo-color);
+  }
+
+  &.type-note {
+    background: var(--note-color);
+  }
+
+  &.type-citation {
+    background: var(--citation-color);
+  }
+
+  &.is-done {
+    opacity: 0.72;
+
+    h4,
+    p,
+    small {
+      text-decoration: line-through;
+    }
+  }
+}
+
+@media (max-width: 920px) {
+  .calendar-week {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

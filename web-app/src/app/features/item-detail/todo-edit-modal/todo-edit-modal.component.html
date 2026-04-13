@@ -35,6 +35,28 @@
         }
       </div>
 
+      @if (subItemForm.get('recurrenceType')?.value === 'custom') {
+        <div class="custom-rule-section">
+          <label class="modal-label">Jours</label>
+          <div class="custom-weekdays" role="group" aria-label="Jours de la semaine">
+            @for (option of customWeekdayOptions; track option.value) {
+              <button
+                type="button"
+                class="weekday-toggle"
+                [ngClass]="{ 'is-active': isCustomWeekdaySelected(option.value) }"
+                (click)="toggleCustomWeekday(option.value)"
+              >
+                {{ option.label }}
+              </button>
+            }
+          </div>
+          <small class="objective-hint">
+            La règle custom est générée automatiquement.
+            {{ subItemForm.get('recurrenceRule')?.value }}
+          </small>
+        </div>
+      }
+
       <div class="objective-section">
         <label class="modal-label" for="todo-objective-input">
           Objectif

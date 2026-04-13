@@ -108,6 +108,46 @@
   gap: 0.35rem;
 }
 
+.custom-rule-section {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.custom-weekdays {
+  display: inline-flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.weekday-toggle {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid var(--input-border-color);
+  background: transparent;
+  color: var(--app-fg-color);
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--input-focus-border-color);
+    background-color: var(--surface-muted);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--input-focus-border-color);
+  }
+
+  &.is-active {
+    border-color: var(--input-focus-border-color);
+    background-color: var(--surface-muted);
+  }
+}
+
 .objective-input {
   width: 100%;
   border: 1px solid var(--input-border-color);

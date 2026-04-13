@@ -24,4 +24,9 @@ export const DASHBOARD_ROUTES: Routes = [
       import('../history-recap/history-recap.component').then((m) => m.HistoryRecapComponent),
     title: 'Todo - Récap',
   },
+  {
+    path: 'calendar',
+    loadComponent: () => import('../calendar/calendar.component').then((m) => m.CalendarComponent),
+    title: 'Todo - Calendrier',
+  },
 ];
