@@ -43,7 +43,9 @@
             <div class="month-cell-head">
               <span class="day-number">{{ cell.date | date: 'd' }}</span>
               @if (cell.itemsCount > 0) {
-                <span class="day-count">{{ cell.itemsCount }}</span>
+                <span class="day-count">
+                  {{ cell.itemsCount }}
+                </span>
               }
             </div>
 
@@ -94,6 +96,7 @@
                 'criticality-' + todo.criticality,
                 todo.isDoneForDate ? 'is-done' : '',
                 todo.fromCalendar ? 'from-calendar' : '',
+                isPastPendingTodo(todo, anchorDate) ? 'is-overdue' : '',
               ]"
               (click)="openTodo(todo)"
               (keydown.enter)="openTodo(todo)"
@@ -109,6 +112,9 @@
               <div class="day-item-meta">
                 @if (todo.fromCalendar) {
                   <span class="day-item-chip day-item-chip-calendar">Calendrier</span>
+                }
+                @if (isPastPendingTodo(todo, anchorDate)) {
+                  <span class="day-item-chip day-item-chip-overdue">En retard</span>
                 }
                 <span class="day-item-chip">{{ getRecurrenceLabel(todo) }}</span>
                 @if (getReminderTime(todo)) {

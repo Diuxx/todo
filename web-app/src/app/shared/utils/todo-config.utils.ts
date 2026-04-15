@@ -81,3 +81,54 @@ export function formatTodoDueDate(value: unknown, locale: string = 'fr-FR'): str
     year: 'numeric',
   });
 }
+
+export function isTodoOccurrenceOverdue({
+  isDone,
+  occurrenceDate,
+  reminderAt,
+  canBeChecked = true,
+  includePastDays = false,
+  now = new Date(),
+}: {
+  isDone?: boolean;
+  occurrenceDate: Date;
+  reminderAt?: Date | null;
+  canBeChecked?: boolean;
+  includePastDays?: boolean;
+  now?: Date;
+}): boolean {
+  if (isDone || !canBeChecked) {
+    return false;
+  }
+
+  const today = startOfDay(now).getTime();
+  const scheduledDay = startOfDay(occurrenceDate).getTime();
+
+  if (scheduledDay < today) {
+    return includePastDays;
+  }
+
+  if (scheduledDay > today) {
+    return false;
+  }
+
+  if (!reminderAt) {
+    return false;
+  }
+
+  const reminderForOccurrence = new Date(
+    occurrenceDate.getFullYear(),
+    occurrenceDate.getMonth(),
+    occurrenceDate.getDate(),
+    reminderAt.getHours(),
+    reminderAt.getMinutes(),
+    0,
+    0
+  );
+
+  return reminderForOccurrence.getTime() < now.getTime();
+}
+
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}

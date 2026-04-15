@@ -9,6 +9,7 @@ import { TodoHistoryService } from '../../shared/services/todo-history.service';
 import { TodoHistoryEntry } from '../../shared/models/todo-history.model';
 import {
   getTodoCriticalityRank,
+  isTodoOccurrenceOverdue,
   normalizeTodoCriticality,
   normalizeTodoDueDate,
 } from '../../shared/utils/todo-config.utils';
@@ -246,6 +247,16 @@ export class CalendarComponent implements OnInit {
 
   public getMonthCellOverflowCount(date: Date): number {
     return Math.max(0, this.getTodosForDate(date).length - 3);
+  }
+
+  public isPastPendingTodo(todo: CalendarTodoOccurrence, date: Date): boolean {
+    return isTodoOccurrenceOverdue({
+      isDone: todo.isDoneForDate,
+      occurrenceDate: date,
+      reminderAt: todo.reminderAt,
+      canBeChecked: !todo.subItemId.endsWith('-calendar-item'),
+      includePastDays: true,
+    });
   }
 
   public getRecurrenceLabel(todo: ScheduledTodo): string {

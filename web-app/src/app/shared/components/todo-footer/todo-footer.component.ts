@@ -6,7 +6,8 @@ import { Subject, filter, takeUntil } from 'rxjs';
 import { SaveActionService, TodoProgress } from '../../services/save-action.service';
 import { SelectItemTypeModalComponent } from '../select-item-type-modal/select-item-type-modal.component';
 import { ItemsService } from '../../services/items.service';
-import { AppItem } from '../../models/app-item.model';
+import { AppItem, TodoInformation } from '../../models/app-item.model';
+import { isTodoOccurrenceOverdue, normalizeTodoDueDate } from '../../utils/todo-config.utils';
 
 Chart.register(...registerables);
 
@@ -22,6 +23,7 @@ export class TodoFooterComponent implements OnDestroy {
   public isDashboardRoute: boolean = true;
   public isSelectTypeModalVisible: boolean = false;
   public todoProgress: TodoProgress | null = null;
+  public overdueCalendarCount: number = 0;
 
   private readonly destroy$ = new Subject<void>();
   private readonly staticRoutes = new Set(['settings', 'recap']);
@@ -285,6 +287,8 @@ export class TodoFooterComponent implements OnDestroy {
         monthDone: 0,
         monthTotal: 0,
       };
+      const now = new Date();
+      let overdueCalendarCount = 0;
 
       for (const item of items) {
         if (item.type !== 'todo' || !item.todoContent?.length) {
@@ -305,9 +309,14 @@ export class TodoFooterComponent implements OnDestroy {
             stats.monthTotal++;
             if (isDone) stats.monthDone++;
           }
+
+          if (this.isPastUncheckedTodo(sub, now)) {
+            overdueCalendarCount++;
+          }
         }
       }
 
+      this.overdueCalendarCount = overdueCalendarCount;
       this.progressStats = stats;
       if (this.progressCanvas) {
         this.renderProgressChart();
@@ -414,6 +423,118 @@ export class TodoFooterComponent implements OnDestroy {
   private destroyTodoChart(): void {
     this.todoProgressChart?.destroy();
     this.todoProgressChart = undefined;
+  }
+
+  private isPastUncheckedTodo(subItem: TodoInformation, now: Date): boolean {
+    const occurrenceDate = this.resolveOccurrenceDateForToday(subItem, now);
+
+    if (!occurrenceDate) {
+      return false;
+    }
+
+    const reminderAt = this.resolveReminderDate(occurrenceDate, subItem.config?.alertAt);
+
+    return isTodoOccurrenceOverdue({
+      isDone: subItem.isDone,
+      occurrenceDate,
+      reminderAt,
+      canBeChecked: true,
+      now,
+    });
+  }
+
+  private resolveOccurrenceDateForToday(subItem: TodoInformation, now: Date): Date | null {
+    const dueDate = normalizeTodoDueDate(subItem.config?.dueDate);
+
+    if (dueDate) {
+      const parsedDate = new Date(`${dueDate}T00:00:00`);
+      return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+    }
+
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const recurrenceType = subItem.config?.recurrenceType ?? 'none';
+
+    if (recurrenceType === 'daily' || recurrenceType === 'none' || recurrenceType === 'custom') {
+      return today;
+    }
+
+    if (recurrenceType === 'weekly') {
+      const weekdays = this.parseWeeklyRule(subItem.config?.recurrenceRule);
+      return !weekdays.length || weekdays.includes(today.getDay()) ? today : null;
+    }
+
+    if (recurrenceType === 'monthly') {
+      const scheduledDay = this.parseMonthlyRule(subItem.config?.recurrenceRule);
+      return scheduledDay == null || scheduledDay === today.getDate() ? today : null;
+    }
+
+    return today;
+  }
+
+  private resolveReminderDate(baseDate: Date, alertAt?: string): Date | null {
+    if (!alertAt) {
+      return null;
+    }
+
+    const [hourText, minuteText] = alertAt.split(':');
+    const hours = Number.parseInt(hourText, 10);
+    const minutes = Number.parseInt(minuteText, 10);
+
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+      return null;
+    }
+
+    return new Date(
+      baseDate.getFullYear(),
+      baseDate.getMonth(),
+      baseDate.getDate(),
+      hours,
+      minutes,
+      0,
+      0
+    );
+  }
+
+  private parseWeeklyRule(rule?: string): number[] {
+    const rawValue = rule?.split(':')[1]?.trim().toLowerCase();
+
+    if (!rawValue) {
+      return [];
+    }
+
+    const dayMap: Record<string, number> = {
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
+      dimanche: 0,
+      lundi: 1,
+      mardi: 2,
+      mercredi: 3,
+      jeudi: 4,
+      vendredi: 5,
+      samedi: 6,
+    };
+
+    return rawValue
+      .split(',')
+      .map((day) => day.trim())
+      .map((day) => dayMap[day])
+      .filter((day): day is number => day !== undefined);
+  }
+
+  private parseMonthlyRule(rule?: string): number | undefined {
+    const rawValue = rule?.split(':')[1]?.trim();
+
+    if (!rawValue) {
+      return undefined;
+    }
+
+    const day = Number.parseInt(rawValue, 10);
+    return Number.isFinite(day) && day >= 1 && day <= 31 ? day : undefined;
   }
 
   private updateCenterActionFromUrl(url: string): void {

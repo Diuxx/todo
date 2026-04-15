@@ -20,10 +20,16 @@
       <button
         type="button"
         class="footer-menu-item"
+        [ngClass]="{ 'has-badge': overdueCalendarCount > 0 }"
         (click)="goToCalendar()"
         aria-label="Ouvrir le calendrier"
       >
-        <img width="32px" src="/svgs/calendar.svg" alt="Calendrier" class="footer-logo" />
+        <span class="footer-icon-wrapper">
+          <img width="32px" src="/svgs/calendar.svg" alt="Calendrier" class="footer-logo" />
+          @if (overdueCalendarCount > 0) {
+            <span class="footer-badge">{{ overdueCalendarCount > 99 ? '99+' : overdueCalendarCount }}</span>
+          }
+        </span>
         <span>Calendrier</span>
       </button>
     </div>
