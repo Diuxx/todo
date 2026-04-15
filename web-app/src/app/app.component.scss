@@ -67,6 +67,8 @@
   font-size: 0.72rem;
   line-height: 1;
   transition: all 120ms ease;
+  background: transparent;
+  cursor: pointer;
 
   &.is-active {
     color: var(--app-fg-color);

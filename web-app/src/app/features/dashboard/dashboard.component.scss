@@ -101,6 +101,11 @@
       background-color: var(--image-color);
     }
 
+    &.is-calendar-item {
+      border-style: dashed;
+      border-color: #6366f1;
+    }
+
     .dashboard-card-content {
       font-size: 0.875rem;
       color: var(--text-secondary-color);
@@ -136,6 +141,30 @@
           gap: 0.25rem;
         }
       }
+    }
+
+    .dashboard-card-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .dashboard-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.28rem;
+      border-radius: 999px;
+      padding: 0.14rem 0.45rem;
+      background: rgba(15, 23, 42, 0.08);
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-secondary-color);
+    }
+
+    .dashboard-chip-calendar {
+      background: rgba(99, 102, 241, 0.14);
+      color: #4338ca;
     }
 
     .dashboard-lock-icon {

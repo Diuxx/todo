@@ -19,6 +19,7 @@ Chart.register(...registerables);
 export class TodoFooterComponent implements OnDestroy {
   @Input() visible: boolean = true;
   public showSaveIcon: boolean = false;
+  public isDashboardRoute: boolean = true;
   public isSelectTypeModalVisible: boolean = false;
   public todoProgress: TodoProgress | null = null;
 
@@ -80,6 +81,15 @@ export class TodoFooterComponent implements OnDestroy {
     this.router.navigate(['/recap']);
   }
 
+  public onPrimaryAction(): void {
+    if (this.isDashboardRoute) {
+      this.openSelectTypeModal();
+      return;
+    }
+
+    this.router.navigate(['/']);
+  }
+
   public openSelectTypeModal(): void {
     this.isSelectTypeModalVisible = true;
   }
@@ -108,6 +118,8 @@ export class TodoFooterComponent implements OnDestroy {
       isFavorite: false,
       isLocked: false,
       isAffirmation: false,
+      fromCalendar: false,
+      date: undefined,
       tags: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -406,6 +418,7 @@ export class TodoFooterComponent implements OnDestroy {
 
   private updateCenterActionFromUrl(url: string): void {
     const normalizedPath = url.split('?')[0].replace(/^\//, '');
+    this.isDashboardRoute = !normalizedPath || normalizedPath === 'dashboard';
 
     if (!normalizedPath) {
       this.showSaveIcon = false;

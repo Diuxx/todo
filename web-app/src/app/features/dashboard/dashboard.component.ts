@@ -10,6 +10,7 @@ import { switchMap } from 'rxjs';
 import { AppSettings } from '../../shared/models/app-settings.model';
 import { PasswordPromptModalComponent } from '../../shared/components/password-prompt-modal/password-prompt-modal.component';
 import { ItemLockService } from '../../shared/services/item-lock.service';
+import { getTodoCriticalityRank, normalizeTodoDueDate } from '../../shared/utils/todo-config.utils';
 
 @Component({
   standalone: true,
@@ -29,6 +30,7 @@ export class DashboardComponent implements OnInit {
   public data: AppData | null = null;
   public filter: string | null = null;
   public searchQuery: string | null = null;
+  public calendarOnlyMode: boolean = false;
 
   public items: AppItem[] = [];
   public settings: AppSettings | undefined;
@@ -43,9 +45,11 @@ export class DashboardComponent implements OnInit {
   public ngOnInit(): void {
     console.log('DashboardComponent initialized');
     this.route.queryParamMap.subscribe((params) => {
-      this.filter = params.get('filter') || null;
+      const rawFilter = params.get('filter');
+      this.calendarOnlyMode = params.get('calendar') === '1' || rawFilter === 'calendar';
+      this.filter = rawFilter === 'todo' || rawFilter === 'note' || rawFilter === 'citation' ? rawFilter : null;
       this.searchQuery = params.get('q') || null;
-      console.log('filter:', this.filter);
+      console.log('filter:', this.filter, 'calendarOnly:', this.calendarOnlyMode);
 
       this.getData(this.searchQuery ? null : this.filter);
     });
@@ -63,8 +67,47 @@ export class DashboardComponent implements OnInit {
     return `${done} / ${total}`;
   }
 
+  public formatItemDate(item: AppItem): string {
+    const itemDate = normalizeTodoDueDate(item.date);
+
+    if (!itemDate) {
+      return '';
+    }
+
+    return new Date(`${itemDate}T00:00:00`).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+    });
+  }
+
+  public getSortedTodoPreview(item: AppItem) {
+    if (item.type !== 'todo' || !item.todoContent?.length) {
+      return [];
+    }
+
+    return [...item.todoContent]
+      .sort((left, right) => {
+        const doneDelta = Number(!!left.isDone) - Number(!!right.isDone);
+
+        if (doneDelta !== 0) {
+          return doneDelta;
+        }
+
+        const criticalityDelta =
+          getTodoCriticalityRank(left.config?.criticality) -
+          getTodoCriticalityRank(right.config?.criticality);
+
+        if (criticalityDelta !== 0) {
+          return criticalityDelta;
+        }
+
+        return `${left.title ?? ''}`.localeCompare(`${right.title ?? ''}`, 'fr');
+      })
+      .slice(0, 3);
+  }
+
   public get affirmationItem(): AppItem | undefined {
-    if (this.filter || this.searchQuery) {
+    if (this.filter || this.searchQuery || this.calendarOnlyMode) {
       return undefined;
     }
 
@@ -75,9 +118,23 @@ export class DashboardComponent implements OnInit {
 
   public get displayedItems(): AppItem[] {
     const affirmation = this.affirmationItem;
-    const baseItems = affirmation
-      ? this.items.filter((item) => item.id !== affirmation.id)
-      : this.items;
+    const baseItems = this.items.filter((item) => {
+      if (affirmation && item.id === affirmation.id) {
+        return false;
+      }
+
+      const isCalendarItem = !!item.fromCalendar;
+
+      if (this.calendarOnlyMode ? !isCalendarItem : isCalendarItem) {
+        return false;
+      }
+
+      if (!this.filter && item.type === 'citation') {
+        return false;
+      }
+
+      return true;
+    });
 
     if (!this.searchQuery) {
       return baseItems;

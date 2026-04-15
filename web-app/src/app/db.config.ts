@@ -40,7 +40,7 @@ export class AppDb extends Dexie {
     });
 
     this.version(dbVersion).stores({
-      items: 'id, type, createdAt, updatedAt',
+      items: 'id, type, createdAt, updatedAt, date, fromCalendar',
       todoHistory:
         'id, todoItemId, status, completedAt, createdAt, [todoItemId+completedAt], [todoItemId+createdAt]',
       citationsMeta: 'id, itemId, author',
@@ -51,6 +51,9 @@ export class AppDb extends Dexie {
         .table<AppItem, string>('items')
         .toCollection()
         .modify((item) => {
+          item.date = normalizeTodoDueDate(item.date);
+          item.fromCalendar = !!item.fromCalendar;
+
           if (item.type !== 'todo' || !item.todoContent?.length) {
             return;
           }

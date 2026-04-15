@@ -12,6 +12,8 @@ export interface AppItem extends BaseEntity {
   isLocked: boolean;
   isAffirmation: boolean;
   tags: string[];
+  date?: string; // YYYY-MM-DD, used to assign any item to the calendar
+  fromCalendar?: boolean; // true when the item was created from the calendar UI
   todoContent?: TodoInformation[]; // only for type 'todo'.
   coverImageUrl?: string; // todo: feature à venir.
 }

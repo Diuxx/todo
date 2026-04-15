@@ -4,11 +4,16 @@
       <button
         type="button"
         class="footer-menu-item"
-        (click)="openSelectTypeModal()"
-        aria-label="Créer un nouvel item"
+        (click)="onPrimaryAction()"
+        [attr.aria-label]="isDashboardRoute ? 'Créer un nouvel item' : 'Retour à l\'accueil'"
       >
-        <img width="32px" src="/svgs/new-2.svg" alt="Créer" class="footer-logo" />
-        <span>New</span>
+        @if (isDashboardRoute) {
+          <img width="32px" src="/svgs/new-2.svg" alt="Créer" class="footer-logo" />
+          <span>New</span>
+        } @else {
+          <img width="32px" src="/svgs/home.svg" alt="Accueil" class="footer-logo" />
+          <span>Home</span>
+        }
       </button>
     </div>
     <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">

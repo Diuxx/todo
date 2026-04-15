@@ -1,37 +1,26 @@
 <section class="calendar-page">
   <header class="calendar-toolbar">
-    <div class="calendar-nav">
-      <button type="button" (click)="goToPrevious()" aria-label="Période précédente">
-        <i class="bi bi-chevron-left"></i>
-      </button>
-      <button type="button" (click)="goToToday()">Aujourd'hui</button>
-      <button type="button" (click)="goToNext()" aria-label="Période suivante">
-        <i class="bi bi-chevron-right"></i>
-      </button>
+    <div>
+      <h1>Calendrier</h1>
+      <!-- <p class="calendar-period">{{ periodLabel }}</p> -->
     </div>
 
-    <p class="calendar-period">{{ periodLabel }}</p>
-
-    <div class="calendar-view-switch" role="tablist" aria-label="Type de vue calendrier">
-      @for (mode of viewModes; track mode) {
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="viewMode === mode"
-          [ngClass]="{ active: viewMode === mode }"
-          (click)="setViewMode(mode)"
-        >
-          {{ mode === 'day' ? 'Jour' : mode === 'week' ? 'Semaine' : 'Mois' }}
-        </button>
-      }
+    <div class="calendar-nav">
+      <button type="button" (click)="goToPrevious()" aria-label="Mois précédent">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <button type="button" (click)="goToToday()">{{ periodLabel }}</button>
+      <button type="button" (click)="goToNext()" aria-label="Mois suivant">
+        <i class="bi bi-chevron-right"></i>
+      </button>
     </div>
   </header>
 
   @if (isLoading) {
     <p class="calendar-loading">Chargement...</p>
   } @else {
-    @if (viewMode === 'month') {
-      <section class="calendar-month" aria-label="Vue mensuelle">
+    <section class="calendar-month-panel" aria-label="Calendrier mensuel">
+      <div class="calendar-month">
         <div class="month-weekday">Lun</div>
         <div class="month-weekday">Mar</div>
         <div class="month-weekday">Mer</div>
@@ -51,75 +40,92 @@
             }"
             (click)="selectDate(cell.date)"
           >
-            <span class="day-number">{{ cell.date | date: 'd' }}</span>
-            @if (cell.itemsCount > 0) {
-              <span class="day-count">{{ cell.itemsCount }}</span>
-            }
+            <div class="month-cell-head">
+              <span class="day-number">{{ cell.date | date: 'd' }}</span>
+              @if (cell.itemsCount > 0) {
+                <span class="day-count">{{ cell.itemsCount }}</span>
+              }
+            </div>
+
+            <div class="month-cell-list">
+              <div class="month-cell-dots">
+                @for (todo of getMonthCellPreview(cell.date); track todo.subItemId) {
+                  <span
+                    class="bullet-dot"
+                    [ngClass]="[
+                      'criticality-' + todo.criticality,
+                      todo.isDoneForDate ? 'is-done' : '',
+                      todo.fromCalendar ? 'from-calendar' : '',
+                    ]"
+                  ></span>
+                }
+              </div>
+
+              @if (getMonthCellOverflowCount(cell.date) > 0) {
+                <span class="more-items">+{{ getMonthCellOverflowCount(cell.date) }}</span>
+              }
+            </div>
           </button>
         }
-      </section>
-    }
+      </div>
+    </section>
 
-    @if (viewMode === 'week') {
-      <section class="calendar-week" aria-label="Vue hebdomadaire">
-        @for (date of weekDays; track date.toISOString()) {
-          <article class="week-day" [ngClass]="{ 'is-today': isToday(date) }">
-            <header class="week-day-header">
-              <h3>{{ date | date: 'EEEE' : '' : 'fr' }}</h3>
-              <span class="week-day-number">{{ date | date: 'd' }}</span>
-            </header>
-            <div class="week-day-chips">
-              <span class="chip chip-total">{{ getDayStats(date).total }} taches</span>
-              <span class="chip chip-done">{{ getDayStats(date).done }} faites</span>
-            </div>
-            @for (todo of getWeekDayTodos(date); track todo.subItemId) {
-              <p
-                class="week-todo"
-                [ngClass]="{ 'is-done': todo.isDoneForDate }"
-                (click)="openTodo(todo)"
-                (keydown.enter)="openTodo(todo)"
-                (keydown.space)="openTodo(todo)"
-                tabindex="0"
-                role="button"
-              >
-                @if (getReminderTime(todo)) {
-                  <strong>{{ getReminderTime(todo) }}</strong>
-                }
-                <span>{{ getTodoDisplayTitle(todo) }}</span>
-              </p>
-            }
-            @if (getTodosForDate(date).length === 0) {
-              <p class="empty">Aucun item</p>
-            }
-          </article>
-        }
-      </section>
-    }
+    <section class="selected-day-panel">
+      <div class="selected-day-header">
+        <div>
+          <h2>{{ selectedDateLabel }}</h2>
+          <p>{{ dayTodos.length }} item(s) lié(s) à cette journée</p>
+        </div>
 
-    @if (viewMode === 'day') {
-      <section class="calendar-day" aria-label="Vue journalière">
-        @if (dayTodos.length === 0) {
-          <p class="empty">Aucun item sur cette journée.</p>
-        } @else {
+        <button type="button" class="calendar-add-btn" (click)="openSelectTypeModal()">
+          <i class="bi bi-plus-lg"></i>
+          Ajouter
+        </button>
+      </div>
+
+      @if (dayTodos.length === 0) {
+        <p class="empty">Aucun item prévu pour ce jour.</p>
+      } @else {
+        <div class="day-items">
           @for (todo of dayTodos; track todo.subItemId) {
             <article
-              class="day-item type-todo"
-              [ngClass]="{ 'is-done': todo.isDoneForDate }"
+              class="day-item"
+              [ngClass]="[
+                'criticality-' + todo.criticality,
+                todo.isDoneForDate ? 'is-done' : '',
+                todo.fromCalendar ? 'from-calendar' : '',
+              ]"
               (click)="openTodo(todo)"
               (keydown.enter)="openTodo(todo)"
               (keydown.space)="openTodo(todo)"
               tabindex="0"
               role="button"
             >
-              <h4>{{ getTodoDisplayTitle(todo) }}</h4>
-              @if (getReminderTime(todo)) {
-                <p>Rappel à {{ getReminderTime(todo) }}</p>
-              }
-              <small>todo planifié</small>
+              <div class="day-item-main">
+                <h3>{{ todo.subItemTitle }}</h3>
+                <p>{{ todo.itemTitle }}</p>
+              </div>
+
+              <div class="day-item-meta">
+                @if (todo.fromCalendar) {
+                  <span class="day-item-chip day-item-chip-calendar">Calendrier</span>
+                }
+                <span class="day-item-chip">{{ getRecurrenceLabel(todo) }}</span>
+                @if (getReminderTime(todo)) {
+                  <span class="day-item-time">{{ getReminderTime(todo) }}</span>
+                }
+              </div>
             </article>
           }
-        }
-      </section>
-    }
+        </div>
+      }
+    </section>
+
+    <select-item-type-modal
+      [visible]="isSelectTypeModalVisible"
+      (selectType)="onSelectItemType($event)"
+      (close)="closeSelectTypeModal()"
+    >
+    </select-item-type-modal>
   }
 </section>

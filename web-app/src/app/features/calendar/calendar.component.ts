@@ -1,6 +1,7 @@
 import { DatePipe, NgClass } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { SelectItemTypeModalComponent } from '../../shared/components/select-item-type-modal/select-item-type-modal.component';
 import { AppItem, TodoInformation } from '../../shared/models/app-item.model';
 import { RecurrenceType, TodoCriticality } from '../../shared/models/base-entity.model';
 import { ItemsService } from '../../shared/services/items.service';
@@ -32,6 +33,7 @@ type ScheduledTodo = {
   recurrenceType: RecurrenceType;
   recurrenceRule?: string;
   baseDate: Date;
+  fromCalendar: boolean;
 };
 
 type CalendarTodoOccurrence = ScheduledTodo & {
@@ -43,7 +45,7 @@ type CalendarTodoOccurrence = ScheduledTodo & {
   selector: 'todo-calendar',
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
-  imports: [NgClass, DatePipe],
+  imports: [NgClass, DatePipe, SelectItemTypeModalComponent],
 })
 export class CalendarComponent implements OnInit {
   private readonly itemsService = inject(ItemsService);
@@ -52,11 +54,12 @@ export class CalendarComponent implements OnInit {
   public readonly today = new Date();
 
   public readonly viewModes: CalendarViewMode[] = ['day', 'week', 'month'];
-  public viewMode: CalendarViewMode = 'day';
+  public viewMode: CalendarViewMode = 'month';
   public anchorDate = this.startOfDay(new Date());
 
   public isLoading = true;
   public items: AppItem[] = [];
+  public isSelectTypeModalVisible = false;
   private scheduledTodos: ScheduledTodo[] = [];
   private doneHistoryBySubItem = new Map<string, number[]>();
   private historyWindowStart = Number.NaN;
@@ -128,6 +131,47 @@ export class CalendarComponent implements OnInit {
     this.reloadDoneHistoryForVisiblePeriod();
   }
 
+  public openSelectTypeModal(): void {
+    this.isSelectTypeModalVisible = true;
+  }
+
+  public closeSelectTypeModal(): void {
+    this.isSelectTypeModalVisible = false;
+  }
+
+  public onSelectItemType(type: 'todo' | 'note' | 'citation'): void {
+    const selectedDate = this.toDateKey(this.anchorDate);
+    const newItem: AppItem = {
+      id: '',
+      type,
+      title: '',
+      content: '',
+      color: 'default',
+      visibility: 'private',
+      isArchived: false,
+      isFavorite: false,
+      isLocked: false,
+      isAffirmation: false,
+      fromCalendar: true,
+      date: selectedDate,
+      tags: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...(type === 'todo' ? { todoContent: [] } : {}),
+    };
+
+    this.itemsService.createItem(newItem).subscribe({
+      next: (createdItem) => {
+        this.closeSelectTypeModal();
+        this.router.navigate(['/item', createdItem.id]);
+      },
+      error: (error) => {
+        console.error('Error creating calendar item:', error);
+        this.closeSelectTypeModal();
+      },
+    });
+  }
+
   public get periodLabel(): string {
     if (this.viewMode === 'day') {
       return this.anchorDate.toLocaleDateString('fr-FR', {
@@ -187,6 +231,43 @@ export class CalendarComponent implements OnInit {
     return this.getTodosForDate(this.anchorDate);
   }
 
+  public get selectedDateLabel(): string {
+    return this.anchorDate.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  public getMonthCellPreview(date: Date): CalendarTodoOccurrence[] {
+    return this.getTodosForDate(date).slice(0, 3);
+  }
+
+  public getMonthCellOverflowCount(date: Date): number {
+    return Math.max(0, this.getTodosForDate(date).length - 3);
+  }
+
+  public getRecurrenceLabel(todo: ScheduledTodo): string {
+    if (todo.recurrenceType === 'daily') {
+      return 'Quotidien';
+    }
+
+    if (todo.recurrenceType === 'weekly') {
+      return 'Hebdo';
+    }
+
+    if (todo.recurrenceType === 'monthly') {
+      return 'Mensuel';
+    }
+
+    if (todo.recurrenceType === 'custom') {
+      return 'Custom';
+    }
+
+    return 'Ponctuel';
+  }
+
   public getTodosForDate(date: Date): CalendarTodoOccurrence[] {
     return this.scheduledTodos
       .filter((todo) => this.occursOnDate(todo, date))
@@ -195,7 +276,20 @@ export class CalendarComponent implements OnInit {
         isDoneForDate: this.isDoneForDate(todo, date),
       }))
       .sort((a, b) => {
-        const criticalityDelta = getTodoCriticalityRank(a.criticality) - getTodoCriticalityRank(b.criticality);
+        const fromCalendarDelta = Number(!a.fromCalendar) - Number(!b.fromCalendar);
+
+        if (fromCalendarDelta !== 0) {
+          return fromCalendarDelta;
+        }
+
+        const doneDelta = Number(!!a.isDoneForDate) - Number(!!b.isDoneForDate);
+
+        if (doneDelta !== 0) {
+          return doneDelta;
+        }
+
+        const criticalityDelta =
+          getTodoCriticalityRank(a.criticality) - getTodoCriticalityRank(b.criticality);
 
         if (criticalityDelta !== 0) {
           return criticalityDelta;
@@ -273,15 +367,42 @@ export class CalendarComponent implements OnInit {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
+  private toDateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   private extractScheduledTodos(items: AppItem[]): ScheduledTodo[] {
     const todos: ScheduledTodo[] = [];
 
     for (const item of items) {
+      const itemTitle = item.title?.trim() || 'Item';
+      const itemAssignedDate = normalizeTodoDueDate(item.date);
+
+      if (itemAssignedDate) {
+        const assignedBaseDate = new Date(`${itemAssignedDate}T00:00:00`);
+
+        if (!Number.isNaN(assignedBaseDate.getTime())) {
+          todos.push({
+            itemId: item.id,
+            itemTitle,
+            subItemId: `${item.id}-calendar-item`,
+            subItemTitle: itemTitle,
+            criticality: 'l',
+            reminderAt: null,
+            recurrenceType: 'none',
+            recurrenceRule: undefined,
+            baseDate: this.startOfDay(assignedBaseDate),
+            fromCalendar: !!item.fromCalendar,
+          });
+        }
+      }
+
       if (item.type !== 'todo' || !item.todoContent?.length) {
         continue;
       }
-
-      const itemTitle = item.title?.trim() || 'Todo';
 
       for (const subItem of item.todoContent) {
         const recurrenceType = this.getRecurrenceType(subItem);
@@ -304,6 +425,7 @@ export class CalendarComponent implements OnInit {
           recurrenceType,
           recurrenceRule: this.getRecurrenceRule(subItem),
           baseDate,
+          fromCalendar: !!item.fromCalendar,
         });
       }
     }

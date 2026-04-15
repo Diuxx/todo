@@ -5,15 +5,15 @@
       <span
         class="header-home-link"
         [class.is-hidden]="isHomePage()"
-        (click)="!isHomePage() && goHome()"
+        (click)="!isHomePage() && goBack()"
         role="button"
         [attr.tabindex]="isHomePage() ? -1 : 0"
         [attr.aria-hidden]="isHomePage()"
-        (keydown.enter)="!isHomePage() && goHome()"
-        (keydown.space)="!isHomePage() && goHome()"
+        (keydown.enter)="!isHomePage() && goBack()"
+        (keydown.space)="!isHomePage() && goBack()"
       >
         <i class="bi bi-arrow-left"></i>
-        Home
+        Retour
       </span>
       <span class="app-version">v{{ appVersion }}</span>
       <!-- <span class="app-version">Bonjour {{ (settings$ | async)?.userName ?? '' }}</span> -->
@@ -35,12 +35,22 @@
             <a
               [routerLink]="['/']"
               [queryParams]="getItemTypeFilterQueryParams(option.value)"
+              queryParamsHandling="merge"
               class="item-type-filter"
               [class.is-active]="isItemTypeFilterActive(option.value)"
             >
               {{ option.label }}
             </a>
           }
+
+          <button
+            type="button"
+            class="item-type-filter"
+            [class.is-active]="isCalendarFilterActive()"
+            (click)="toggleCalendarFilter()"
+          >
+            Calendrier
+          </button>
         </nav>
       }
     }
