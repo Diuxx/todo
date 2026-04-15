@@ -73,8 +73,8 @@ export class TodoFooterComponent implements OnDestroy {
    * Handles the click event on the board menu item. Currently, this method is a placeholder and does not perform any actions.
    */
   public onBoardClick(): void {
+    console.log('Board menu item clicked', this.showSaveIcon);
     if (this.showSaveIcon) {
-      this.saveActionService.triggerSave();
       return;
     }
     this.router.navigate(['/recap']);
@@ -413,7 +413,6 @@ export class TodoFooterComponent implements OnDestroy {
     }
 
     const segments = normalizedPath.split('/').filter(Boolean);
-
     this.showSaveIcon = segments.length > 1 && segments[0] === 'item' && segments[1] != null;
   }
 }

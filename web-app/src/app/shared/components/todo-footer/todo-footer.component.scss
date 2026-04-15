@@ -18,9 +18,9 @@
     border-radius: 50%;
     background-color: var(--footer-bg-color);
     bottom: 45px;
-    border-top: 1px solid var(--footer-border-color);
-    border-left: 1px solid var(--footer-border-color);
-    border-right: 1px solid var(--footer-border-color);
+    border-top: 1px solid var(--footer-save-border-color);
+    border-left: 1px solid var(--footer-save-border-color);
+    border-right: 1px solid var(--footer-save-border-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -67,10 +67,4 @@
       }
     }
   }
-}
-
-.save-icon-showed {
-  border-top: 1px solid var(--footer-save-border-color) !important;
-  border-left: 1px solid var(--footer-save-border-color) !important;
-  border-right: 1px solid var(--footer-save-border-color) !important;
 }

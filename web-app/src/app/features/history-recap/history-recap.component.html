@@ -85,35 +85,9 @@
       }
     </article>
 
-    <div class="recap-cards">
-      <article class="recap-card recap-highlight">
-        <span class="recap-label">Tâches réalisées</span>
-        <strong class="recap-value">{{ summary.totalDone }}</strong>
-        <small>sur les semaines analysées</small>
-      </article>
-
-      <article class="recap-card">
-        <span class="recap-label">Moyenne / semaine</span>
-        <strong class="recap-value">{{ summary.averageDonePerWeek | number: '1.0-1' }}</strong>
-        <small>tâches terminées</small>
-      </article>
-
-      <article class="recap-card">
-        <span class="recap-label">Meilleure semaine</span>
-        <strong class="recap-value">{{ summary.bestWeekDone }}</strong>
-        <small>{{ summary.bestWeekLabel }}</small>
-      </article>
-
-      <article class="recap-card">
-        <span class="recap-label">Semaines actives</span>
-        <strong class="recap-value">{{ summary.activeWeeksCount }}</strong>
-        <small>avec au moins une tâche faite</small>
-      </article>
-    </div>
-
     <article class="recap-panel">
       <div class="recap-panel-header">
-        <h2>Progression hebdomadaire</h2>
+        <h2>Récap du mois</h2>
       </div>
 
       @if (availableMonths.length > 0) {
@@ -131,6 +105,32 @@
           </select>
         </div>
       }
+
+      <div class="recap-cards recap-cards-compact">
+        <article class="recap-card recap-highlight">
+          <span class="recap-label">Tâches réalisées</span>
+          <strong class="recap-value">{{ summary.totalDone }}</strong>
+          <small>sur les semaines analysées</small>
+        </article>
+
+        <article class="recap-card">
+          <span class="recap-label">Moyenne / semaine</span>
+          <strong class="recap-value">{{ summary.averageDonePerWeek | number: '1.0-1' }}</strong>
+          <small>tâches terminées</small>
+        </article>
+
+        <article class="recap-card">
+          <span class="recap-label">Meilleure semaine</span>
+          <strong class="recap-value">{{ summary.bestWeekDone }}</strong>
+          <small>{{ summary.bestWeekLabel }}</small>
+        </article>
+
+        <article class="recap-card">
+          <span class="recap-label">Semaines actives</span>
+          <strong class="recap-value">{{ summary.activeWeeksCount }}</strong>
+          <small>avec au moins une tâche faite</small>
+        </article>
+      </div>
 
       <div class="recap-chart-wrapper">
         <canvas #weeklyHistoryChart></canvas>

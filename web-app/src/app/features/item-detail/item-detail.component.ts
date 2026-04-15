@@ -59,6 +59,7 @@ export class ItemDetailComponent implements OnInit {
   private pendingTextareaFocus: boolean = false;
   private contentTextareaElement?: HTMLTextAreaElement;
   private editingSubItemSnapshot: Record<string, unknown> | null = null;
+  private readonly initialTodoDoneState = new Map<string, boolean>();
 
   public isTodoEditModalVisible: boolean = false;
   public itemForm: FormGroup = createItemForm(this.formBuilder);
@@ -104,6 +105,8 @@ export class ItemDetailComponent implements OnInit {
       next: (item) => {
         this.item = item;
         this.itemForm = createItemForm(this.formBuilder, item);
+        this.initializeTodoDoneState();
+        this.sortTodoSubItemsOnInit();
         this.setupAutoSaveSubscriptions();
         this.emitTodoProgress();
         this.pendingTextareaFocus = !!item && !(item.type === 'todo' && item.todoContent?.length);
@@ -209,8 +212,9 @@ export class ItemDetailComponent implements OnInit {
     }
 
     const todoContentArray = getTodoContentFormArray(this.itemForm);
+    const subItemId = generateUUID();
     const subItemForm = this.formBuilder.group({
-      id: [generateUUID()],
+      id: [subItemId],
       title: [''],
       isDone: [false],
       criticality: ['l'],
@@ -225,6 +229,7 @@ export class ItemDetailComponent implements OnInit {
     });
 
     todoContentArray.push(subItemForm);
+    this.initialTodoDoneState.set(subItemId, false);
     subItemForm.markAsDirty();
     this.itemForm.markAsDirty();
     this.emitTodoProgress();
@@ -311,6 +316,7 @@ export class ItemDetailComponent implements OnInit {
   // If the title is empty, silently removes the sub-item instead of saving it.
   public saveTodoModal(): void {
     const title = `${this.editingSubItemForm?.get('title')?.value ?? ''}`.trim();
+    const hasChanges = !!this.editingSubItemForm?.dirty;
 
     if (!title) {
       const formToRemove = this.editingSubItemForm;
@@ -323,10 +329,15 @@ export class ItemDetailComponent implements OnInit {
       return;
     }
 
-    if (this.editingSubItemForm?.dirty) {
+    if (hasChanges) {
       this.itemForm.markAsDirty();
     }
+
     this.closeTodoEditModal(false);
+
+    if (hasChanges) {
+      this.saveElement();
+    }
   }
 
   public onTodoStatusChange(subItemForm: FormGroup, isChecked: boolean): void {
@@ -435,20 +446,9 @@ export class ItemDetailComponent implements OnInit {
   }
 
   public get todoSubItemsControls(): FormGroup[] {
-    return [...getTodoSubItemFormGroups(this.itemForm)].sort((left, right) => {
-      const rankDelta =
-        getTodoCriticalityRank(left.get('criticality')?.value) -
-        getTodoCriticalityRank(right.get('criticality')?.value);
-
-      if (rankDelta !== 0) {
-        return rankDelta;
-      }
-
-      const leftTitle = `${left.get('title')?.value ?? ''}`.trim();
-      const rightTitle = `${right.get('title')?.value ?? ''}`.trim();
-
-      return leftTitle.localeCompare(rightTitle, 'fr');
-    });
+    return [...getTodoSubItemFormGroups(this.itemForm)].sort((left, right) =>
+      this.compareTodoSubItems(left, right)
+    );
   }
 
   public get shouldShowProtectedContent(): boolean {
@@ -461,6 +461,82 @@ export class ItemDetailComponent implements OnInit {
 
   public getTodoRowClass(subItemForm: FormGroup): string {
     return `criticality-${normalizeTodoCriticality(subItemForm.get('criticality')?.value)}`;
+  }
+
+  private initializeTodoDoneState(): void {
+    this.initialTodoDoneState.clear();
+
+    if (this.item?.type !== 'todo') {
+      return;
+    }
+
+    for (const subItemForm of getTodoSubItemFormGroups(this.itemForm)) {
+      const subItemId = `${subItemForm.get('id')?.value ?? ''}`;
+
+      if (subItemId) {
+        this.initialTodoDoneState.set(subItemId, !!subItemForm.get('isDone')?.value);
+      }
+    }
+  }
+
+  private sortTodoSubItemsOnInit(): void {
+    if (this.item?.type !== 'todo') {
+      return;
+    }
+
+    const todoContentArray = getTodoContentFormArray(this.itemForm);
+    const sortedControls = [...todoContentArray.controls].sort((left, right) =>
+      this.compareTodoSubItems(left as FormGroup, right as FormGroup)
+    );
+
+    const hasOrderChanged = sortedControls.some(
+      (control, index) => control !== todoContentArray.at(index)
+    );
+
+    if (!hasOrderChanged) {
+      return;
+    }
+
+    todoContentArray.clear({ emitEvent: false });
+
+    for (const control of sortedControls) {
+      todoContentArray.push(control, { emitEvent: false });
+    }
+
+    todoContentArray.markAsPristine();
+    this.itemForm.markAsPristine();
+  }
+
+  private compareTodoSubItems(left: FormGroup, right: FormGroup): number {
+    const leftIsInitiallyDone = this.getInitialDoneState(left);
+    const rightIsInitiallyDone = this.getInitialDoneState(right);
+
+    if (leftIsInitiallyDone !== rightIsInitiallyDone) {
+      return Number(leftIsInitiallyDone) - Number(rightIsInitiallyDone);
+    }
+
+    const rankDelta =
+      getTodoCriticalityRank(left.get('criticality')?.value) -
+      getTodoCriticalityRank(right.get('criticality')?.value);
+
+    if (rankDelta !== 0) {
+      return rankDelta;
+    }
+
+    const leftTitle = `${left.get('title')?.value ?? ''}`.trim();
+    const rightTitle = `${right.get('title')?.value ?? ''}`.trim();
+
+    return leftTitle.localeCompare(rightTitle, 'fr');
+  }
+
+  private getInitialDoneState(subItemForm: FormGroup): boolean {
+    const subItemId = `${subItemForm.get('id')?.value ?? ''}`;
+
+    if (!subItemId) {
+      return !!subItemForm.get('isDone')?.value;
+    }
+
+    return this.initialTodoDoneState.get(subItemId) ?? false;
   }
 
   private emitTodoProgress(): void {
@@ -528,6 +604,11 @@ export class ItemDetailComponent implements OnInit {
 
     if (this.editingSubItemForm === subItemForm) {
       this.closeTodoEditModal(false);
+    }
+
+    const subItemId = `${subItemForm.get('id')?.value ?? ''}`;
+    if (subItemId) {
+      this.initialTodoDoneState.delete(subItemId);
     }
 
     todoContentArray.removeAt(index);

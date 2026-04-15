@@ -24,10 +24,7 @@
     </div>
     <div
       class="footer-board"
-      [ngClass]="{
-        'save-icon-showed': showSaveIcon && !todoProgress,
-        'todo-progress-mode': !!todoProgress,
-      }"
+      [ngClass]="{ 'todo-progress-mode': !!todoProgress }"
       (click)="onBoardClick()"
     >
       @if (todoProgress) {
