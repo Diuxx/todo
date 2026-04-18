@@ -36,7 +36,11 @@
     @for (item of displayedItems; track item.id; let i = $index) {
       <div
         class="dashboard-card"
-        [ngClass]="['type-' + item.type, selectedItemId === item.id ? 'is-selected' : '']"
+        [ngClass]="[
+          'type-' + item.type,
+          selectedItemId === item.id ? 'is-selected' : '',
+          item.fromCalendar ? 'is-calendar-item' : '',
+        ]"
         (click)="displayItemDetails(item)"
       >
         <div class="dashboard-card-title">
@@ -53,6 +57,21 @@
             <i class="bi bi-star"></i>
           }
         </div>
+
+        @if (item.fromCalendar || item.date) {
+          <div class="dashboard-card-meta-row">
+            @if (item.fromCalendar) {
+              <span class="dashboard-chip dashboard-chip-calendar">Calendrier</span>
+            }
+            @if (item.date) {
+              <span class="dashboard-chip">
+                <i class="bi bi-calendar-event"></i>
+                {{ formatItemDate(item) }}
+              </span>
+            }
+          </div>
+        }
+
         @if (item.isLocked) {
           <div class="dashboard-card-content locked-content">
             <div class="locked-preview-lines">
@@ -63,7 +82,7 @@
           </div>
         } @else if (item.type == 'todo' && item.todoContent && item.todoContent.length > 0) {
           <div class="dashboard-card-content">
-            @for (subItem of item.todoContent.slice(0, 3); track subItem.id) {
+            @for (subItem of getSortedTodoPreview(item); track subItem.id) {
               <div class="dashboard-card-content-todo-item">
                 <span class="dashboard-card-content-todo-item-status">
                   @if (subItem.isDone) {

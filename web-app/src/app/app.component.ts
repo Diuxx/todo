@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
@@ -27,6 +28,7 @@ import { environment } from '../env/env';
 export class AppComponent implements OnInit, OnDestroy {
   // services
   private readonly router: Router = inject(Router);
+  private readonly location = inject(Location);
   private readonly databaseService = inject(DatabaseService);
   private readonly settingsService = inject(SettingsService);
   private readonly notificationService = inject(LocalNotificationService);
@@ -114,9 +116,14 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Navigates back to dashboard while restoring the last selected dashboard filter.
+   * Navigates back to the previous page, or falls back to the dashboard.
    */
-  public goHome(): void {
+  public goBack(): void {
+    if (window.history.length > 1) {
+      this.location.back();
+      return;
+    }
+
     this.router.navigate(['/'], { queryParams: { filter: this.lastDashboardFilter, q: null } });
   }
 
@@ -175,6 +182,18 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     return { filter: value };
+  }
+
+  public isCalendarFilterActive(): boolean {
+    const query = this.router.url.split('?')[1] ?? '';
+    return new URLSearchParams(query).get('calendar') === '1';
+  }
+
+  public toggleCalendarFilter(): void {
+    this.router.navigate(['/'], {
+      queryParams: { calendar: this.isCalendarFilterActive() ? null : '1' },
+      queryParamsHandling: 'merge',
+    });
   }
 
   /**

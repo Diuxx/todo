@@ -1,5 +1,10 @@
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { AppItem, TodoInformation } from './app-item.model';
+import {
+  normalizeTodoCriticality,
+  normalizeTodoDueDate,
+  normalizeTodoGoalCount,
+} from '../utils/todo-config.utils';
 
 export function createItemForm(formBuilder: FormBuilder, item?: AppItem): FormGroup {
   if (!item) {
@@ -47,12 +52,15 @@ export function mapItemFormToAppItem(itemForm: FormGroup, sourceItem: AppItem): 
     updatedAt: new Date().toISOString(),
     title: subItem.title,
     config: {
+      criticality: normalizeTodoCriticality(subItem.criticality),
       recurrenceType: subItem.recurrenceType,
       alertEnabled: !!subItem.alertEnabled,
       alertAt: subItem.alertEnabled ? subItem.alertAt || undefined : undefined,
       recurrenceRule: subItem.recurrenceRule || undefined,
+      goalCount: normalizeTodoGoalCount(subItem.goalCount),
       lastCompletedAt: subItem.lastCompletedAt || undefined,
       nextDueAt: subItem.nextDueAt || undefined,
+      dueDate: normalizeTodoDueDate(subItem.dueDate),
     },
   }));
 
@@ -73,11 +81,14 @@ function createTodoSubItemGroup(formBuilder: FormBuilder, subItem: TodoInformati
     id: [subItem.id],
     title: [subItem.title ?? ''],
     isDone: [subItem.isDone ?? false],
+    criticality: [normalizeTodoCriticality(subItem.config?.criticality)],
     recurrenceType: [subItem.config?.recurrenceType ?? 'none'],
+    goalCount: [normalizeTodoGoalCount(subItem.config?.goalCount)],
     alertEnabled: [subItem.config?.alertEnabled ?? false],
     alertAt: [subItem.config?.alertAt ?? ''],
     recurrenceRule: [subItem.config?.recurrenceRule ?? ''],
     lastCompletedAt: [subItem.config?.lastCompletedAt ?? ''],
     nextDueAt: [subItem.config?.nextDueAt ?? ''],
+    dueDate: [subItem.config?.dueDate ?? ''],
   });
 }

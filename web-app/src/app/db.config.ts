@@ -6,6 +6,11 @@ import { CitationMeta } from './shared/models/citation-meta.model';
 import { ImageMeta } from './shared/models/image-meta.model';
 import { AppSettings } from './shared/models/app-settings.model';
 import { AppData } from './shared/models/app-data.model';
+import {
+  normalizeTodoCriticality,
+  normalizeTodoDueDate,
+  normalizeTodoGoalCount,
+} from './shared/utils/todo-config.utils';
 
 /*
 table items
@@ -25,14 +30,49 @@ export class AppDb extends Dexie {
   constructor(dbName: string, dbVersion: number) {
     super(dbName);
 
-    // Single schema (mock reset workflow): no migration path needed.
-    this.version(dbVersion).stores({
+    this.version(1).stores({
       items: 'id, type, createdAt, updatedAt',
       todoHistory:
         'id, todoItemId, status, completedAt, createdAt, [todoItemId+completedAt], [todoItemId+createdAt]',
       citationsMeta: 'id, itemId, author',
       imagesMeta: 'id, itemId',
       settings: 'id',
+    });
+
+    this.version(dbVersion).stores({
+      items: 'id, type, createdAt, updatedAt, date, fromCalendar',
+      todoHistory:
+        'id, todoItemId, status, completedAt, createdAt, [todoItemId+completedAt], [todoItemId+createdAt]',
+      citationsMeta: 'id, itemId, author',
+      imagesMeta: 'id, itemId',
+      settings: 'id',
+    }).upgrade(async (transaction) => {
+      await transaction
+        .table<AppItem, string>('items')
+        .toCollection()
+        .modify((item) => {
+          item.date = normalizeTodoDueDate(item.date);
+          item.fromCalendar = !!item.fromCalendar;
+
+          if (item.type !== 'todo' || !item.todoContent?.length) {
+            return;
+          }
+
+          item.todoContent = item.todoContent.map((subItem) => ({
+            ...subItem,
+            config: {
+              criticality: normalizeTodoCriticality(subItem.config?.criticality),
+              recurrenceType: subItem.config?.recurrenceType ?? 'none',
+              alertEnabled: subItem.config?.alertEnabled ?? false,
+              alertAt: subItem.config?.alertAt,
+              recurrenceRule: subItem.config?.recurrenceRule,
+              goalCount: normalizeTodoGoalCount(subItem.config?.goalCount),
+              lastCompletedAt: subItem.config?.lastCompletedAt,
+              nextDueAt: subItem.config?.nextDueAt,
+              dueDate: normalizeTodoDueDate(subItem.config?.dueDate),
+            },
+          }));
+        });
     });
   }
 }

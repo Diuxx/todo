@@ -1,41 +1,93 @@
 <section class="recap-page">
   <header class="recap-header">
-    <h1>Récap mensuel</h1>
-    <p>Progression par semaine du mois sélectionné.</p>
+    <h1>Récaps</h1>
+    <p>Vue de la semaine en cours puis progression mensuelle.</p>
   </header>
 
   @if (isLoading) {
     <div class="recap-loading">Chargement des statistiques...</div>
   } @else {
-    <div class="recap-cards">
-      <article class="recap-card recap-highlight">
-        <span class="recap-label">Tâches réalisées</span>
-        <strong class="recap-value">{{ summary.totalDone }}</strong>
-        <small>sur les semaines analysées</small>
-      </article>
+    <article class="recap-panel recap-weekly-panel">
+      <div class="recap-panel-header recap-panel-header-split">
+        <div>
+          <h2>Récap de la semaine</h2>
+          <p class="recap-panel-subtitle">{{ currentWeek?.rangeLabel ?? 'Semaine en cours' }}</p>
+        </div>
+        <span class="recap-panel-chip">Semaine en cours</span>
+      </div>
 
-      <article class="recap-card">
-        <span class="recap-label">Moyenne / semaine</span>
-        <strong class="recap-value">{{ summary.averageDonePerWeek | number: '1.0-1' }}</strong>
-        <small>tâches terminées</small>
-      </article>
+      <div class="recap-cards recap-cards-compact">
+        <article class="recap-card recap-highlight">
+          <span class="recap-label">Tâches réalisées</span>
+          <strong class="recap-value">{{ currentWeek?.doneCount ?? 0 }}</strong>
+          <small>cette semaine</small>
+        </article>
 
-      <article class="recap-card">
-        <span class="recap-label">Meilleure semaine</span>
-        <strong class="recap-value">{{ summary.bestWeekDone }}</strong>
-        <small>{{ summary.bestWeekLabel }}</small>
-      </article>
+        <article class="recap-card">
+          <span class="recap-label">Moyenne / jour</span>
+          <strong class="recap-value">{{ currentWeekAverageDonePerDay | number: '1.0-1' }}</strong>
+          <small>tâches terminées</small>
+        </article>
 
-      <article class="recap-card">
-        <span class="recap-label">Semaines actives</span>
-        <strong class="recap-value">{{ summary.activeWeeksCount }}</strong>
-        <small>avec au moins une tâche faite</small>
-      </article>
-    </div>
+        <article class="recap-card">
+          <span class="recap-label">Meilleur jour</span>
+          <strong class="recap-value">{{ currentWeekBestDay?.doneCount ?? 0 }}</strong>
+          <small>{{ currentWeekBestDay?.label ?? 'Aucun' }}</small>
+        </article>
+
+        <article class="recap-card">
+          <span class="recap-label">Sous-tâches distinctes</span>
+          <strong class="recap-value">{{ currentWeek?.uniqueTodos ?? 0 }}</strong>
+          <small>sur la semaine en cours</small>
+        </article>
+      </div>
+
+      @if (!currentWeek || currentWeek.doneCount === 0) {
+        <p class="recap-empty">Aucune tâche réalisée sur la semaine en cours pour le moment.</p>
+      } @else {
+        <div class="selected-week-days weekly-recap-chart-panel">
+          <div class="selected-week-days-header">
+            <h3>Courbe de la semaine</h3>
+            <span>{{ currentWeek.doneCount }} tâche(s)</span>
+          </div>
+
+          <div class="recap-chart-wrapper weekly-chart-wrapper">
+            <canvas #currentWeekChart aria-label="Courbe de la semaine en cours"></canvas>
+          </div>
+        </div>
+
+        <div class="weekly-completed-todos">
+          <div class="recap-panel-header">
+            <h2>Tâches réalisées cette semaine</h2>
+          </div>
+
+          @if (currentWeek.topTodos.length === 0) {
+            <p class="recap-empty">Aucune tâche marquante cette semaine.</p>
+          } @else {
+            <div class="top-todo-list">
+              @for (todo of currentWeek.topTodos; track todo.todoItemId) {
+                <div class="top-todo-row">
+                  <div class="top-todo-main">
+                    <span class="todo-title">{{ todo.title }}</span>
+                    <div class="top-todo-bar-track">
+                      <div
+                        class="top-todo-bar-fill"
+                        [style.width.%]="(todo.count / (currentWeek.topTodos[0].count || 1)) * 100"
+                      ></div>
+                    </div>
+                  </div>
+                  <span class="todo-count">{{ todo.count }} fois</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </article>
 
     <article class="recap-panel">
       <div class="recap-panel-header">
-        <h2>Progression hebdomadaire du mois</h2>
+        <h2>Récap du mois</h2>
       </div>
 
       @if (availableMonths.length > 0) {
@@ -53,6 +105,32 @@
           </select>
         </div>
       }
+
+      <div class="recap-cards recap-cards-compact">
+        <article class="recap-card recap-highlight">
+          <span class="recap-label">Tâches réalisées</span>
+          <strong class="recap-value">{{ summary.totalDone }}</strong>
+          <small>sur les semaines analysées</small>
+        </article>
+
+        <article class="recap-card">
+          <span class="recap-label">Moyenne / semaine</span>
+          <strong class="recap-value">{{ summary.averageDonePerWeek | number: '1.0-1' }}</strong>
+          <small>tâches terminées</small>
+        </article>
+
+        <article class="recap-card">
+          <span class="recap-label">Meilleure semaine</span>
+          <strong class="recap-value">{{ summary.bestWeekDone }}</strong>
+          <small>{{ summary.bestWeekLabel }}</small>
+        </article>
+
+        <article class="recap-card">
+          <span class="recap-label">Semaines actives</span>
+          <strong class="recap-value">{{ summary.activeWeeksCount }}</strong>
+          <small>avec au moins une tâche faite</small>
+        </article>
+      </div>
 
       <div class="recap-chart-wrapper">
         <canvas #weeklyHistoryChart></canvas>

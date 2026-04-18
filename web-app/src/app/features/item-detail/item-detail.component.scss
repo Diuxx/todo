@@ -223,6 +223,17 @@
   padding: 10px;
   border-radius: 12px;
   background-color: var(--todo-item-color);
+
+  &.criticality-h {
+    background-color: #fde7e3;
+    border-color: #efc7be;
+  }
+
+  &.criticality-m {
+    background-color: #fff0db;
+    border-color: #efd7b0;
+  }
+
   &.todo-add {
     grid-template-columns: auto 1fr;
   }
@@ -252,6 +263,7 @@
     min-height: 36px;
     display: flex;
     align-items: center;
+    min-width: 0;
   }
 
   .todo-actions {

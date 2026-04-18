@@ -80,7 +80,7 @@
               track subItemForm.get('id')?.value;
               let i = $index
             ) {
-              <div class="todo-row" [formGroup]="subItemForm">
+              <div class="todo-row" [formGroup]="subItemForm" [ngClass]="getTodoRowClass(subItemForm)">
                 <label class="todo-subitem-check">
                   <input
                     type="checkbox"

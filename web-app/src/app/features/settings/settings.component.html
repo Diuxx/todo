@@ -225,4 +225,16 @@
     (resetPassword)="resetPasswordToDefault($event)"
   >
   </app-password-settings-modal>
+
+  <app-password-prompt-modal
+    [visible]="isSensitivePasswordPromptVisible"
+    [title]="sensitivePasswordPromptTitle"
+    [message]="sensitivePasswordPromptMessage"
+    [confirmText]="sensitivePasswordPromptConfirmText"
+    [errorMessage]="sensitivePasswordErrorMessage"
+    [isSubmitting]="isSensitivePasswordSubmitting"
+    (close)="closeSensitivePasswordPrompt()"
+    (submitPassword)="confirmSensitivePassword($event)"
+  >
+  </app-password-prompt-modal>
 }

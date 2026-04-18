@@ -13,9 +13,8 @@ export type ItemColor =
   | 'gray';
 
 export type RecurrenceType = 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
-
+export type TodoCriticality = 'h' | 'm' | 'l';
 export type TodoStatus = 'pending' | 'done';
-
 export type Visibility = 'private' | 'public';
 
 export interface SimpleBaseEntity {

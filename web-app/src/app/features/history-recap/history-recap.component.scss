@@ -29,6 +29,10 @@
   gap: 0.75rem;
 }
 
+.recap-cards-compact {
+  margin-top: 0.9rem;
+}
+
 .recap-card {
   background: var(--app-bg-color);
   border: 1px solid var(--box-border);
@@ -68,6 +72,31 @@
 .recap-panel-header h2 {
   margin: 0;
   font-size: 1.05rem;
+}
+
+.recap-panel-header-split {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.recap-panel-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary-color);
+  font-size: 0.82rem;
+}
+
+.recap-panel-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .recap-chart-wrapper {
@@ -124,6 +153,21 @@
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
   gap: 0.9rem;
+}
+
+.weekly-recap-chart-panel {
+  margin-top: 1rem;
+}
+
+.weekly-chart-wrapper {
+  margin-top: 0.2rem;
+  height: 220px;
+}
+
+.weekly-completed-todos {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.5rem;
 }
 
 .selected-week-summary,
@@ -259,6 +303,11 @@
   :host {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
+  }
+
+  .recap-panel-header-split {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .recap-panel {

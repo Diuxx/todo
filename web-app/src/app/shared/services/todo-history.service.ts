@@ -31,6 +31,19 @@ export class TodoHistoryService {
   }
 
   /**
+   * Retrieves done history entries inside a time range [startISO, endISO).
+   */
+  public getDoneInRange(startISO: string, endISO: string): Observable<TodoHistoryEntry[]> {
+    return from(
+      db.todoHistory
+        .where('completedAt')
+        .between(startISO, endISO, true, false)
+        .and((entry) => entry.status === 'done')
+        .toArray()
+    );
+  }
+
+  /**
    * Creates a new todo history entry.
    * @param todoItemId The linked todo item id.
    * @param status The status recorded in history.

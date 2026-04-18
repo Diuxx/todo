@@ -407,7 +407,7 @@ export class LocalNotificationService {
    * Determines whether a notification should be scheduled for a todo item based on its configuration and status.
    */
   private shouldScheduleTodo(todo: TodoInformation): boolean {
-    return todo.isDone || !todo.config?.alertEnabled || !todo.config.alertAt;
+    return !todo.isDone && !!todo.config?.alertEnabled && !!todo.config.alertAt;
   }
 
   /**

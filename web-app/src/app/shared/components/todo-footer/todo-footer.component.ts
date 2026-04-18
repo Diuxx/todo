@@ -6,7 +6,8 @@ import { Subject, filter, takeUntil } from 'rxjs';
 import { SaveActionService, TodoProgress } from '../../services/save-action.service';
 import { SelectItemTypeModalComponent } from '../select-item-type-modal/select-item-type-modal.component';
 import { ItemsService } from '../../services/items.service';
-import { AppItem } from '../../models/app-item.model';
+import { AppItem, TodoInformation } from '../../models/app-item.model';
+import { isTodoOccurrenceOverdue, normalizeTodoDueDate } from '../../utils/todo-config.utils';
 
 Chart.register(...registerables);
 
@@ -19,8 +20,10 @@ Chart.register(...registerables);
 export class TodoFooterComponent implements OnDestroy {
   @Input() visible: boolean = true;
   public showSaveIcon: boolean = false;
+  public isDashboardRoute: boolean = true;
   public isSelectTypeModalVisible: boolean = false;
   public todoProgress: TodoProgress | null = null;
+  public overdueCalendarCount: number = 0;
 
   private readonly destroy$ = new Subject<void>();
   private readonly staticRoutes = new Set(['settings', 'recap']);
@@ -73,11 +76,20 @@ export class TodoFooterComponent implements OnDestroy {
    * Handles the click event on the board menu item. Currently, this method is a placeholder and does not perform any actions.
    */
   public onBoardClick(): void {
+    console.log('Board menu item clicked', this.showSaveIcon);
     if (this.showSaveIcon) {
-      this.saveActionService.triggerSave();
       return;
     }
     this.router.navigate(['/recap']);
+  }
+
+  public onPrimaryAction(): void {
+    if (this.isDashboardRoute) {
+      this.openSelectTypeModal();
+      return;
+    }
+
+    this.router.navigate(['/']);
   }
 
   public openSelectTypeModal(): void {
@@ -86,6 +98,10 @@ export class TodoFooterComponent implements OnDestroy {
 
   public closeSelectTypeModal(): void {
     this.isSelectTypeModalVisible = false;
+  }
+
+  public goToCalendar(): void {
+    this.router.navigate(['/calendar']);
   }
 
   public goToSettings(): void {
@@ -104,6 +120,8 @@ export class TodoFooterComponent implements OnDestroy {
       isFavorite: false,
       isLocked: false,
       isAffirmation: false,
+      fromCalendar: false,
+      date: undefined,
       tags: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -269,6 +287,8 @@ export class TodoFooterComponent implements OnDestroy {
         monthDone: 0,
         monthTotal: 0,
       };
+      const now = new Date();
+      let overdueCalendarCount = 0;
 
       for (const item of items) {
         if (item.type !== 'todo' || !item.todoContent?.length) {
@@ -289,9 +309,14 @@ export class TodoFooterComponent implements OnDestroy {
             stats.monthTotal++;
             if (isDone) stats.monthDone++;
           }
+
+          if (this.isPastUncheckedTodo(sub, now)) {
+            overdueCalendarCount++;
+          }
         }
       }
 
+      this.overdueCalendarCount = overdueCalendarCount;
       this.progressStats = stats;
       if (this.progressCanvas) {
         this.renderProgressChart();
@@ -306,27 +331,90 @@ export class TodoFooterComponent implements OnDestroy {
 
     this.destroyTodoChart();
 
-    const { done, total } = this.todoProgress;
-    const remaining = Math.max(0, total - done);
+    const {
+      dailyDone,
+      dailyTotal,
+      weeklyDone,
+      weeklyTotal,
+      monthlyDone,
+      monthlyTotal,
+    } = this.todoProgress;
+
+    const safe = (done: number, total: number) =>
+      total === 0 ? [0, 1] : [done, Math.max(0, total - done)];
+
+    const legendItems = [
+      { label: 'J', color: dailyTotal === 0 ? '#C0C5CC' : '#32c493' },
+      { label: 'S', color: weeklyTotal === 0 ? '#C0C5CC' : '#6378FF' },
+      { label: 'M', color: monthlyTotal === 0 ? '#C0C5CC' : '#FFB85C' },
+    ];
+
+    const centerPlugin: any = {
+      id: 'centerLegend',
+      afterDraw(chart: any) {
+        const { ctx, chartArea } = chart;
+        if (!chartArea) {
+          return;
+        }
+        const cx = (chartArea.left + chartArea.right) / 2 + 5;
+        const cy = (chartArea.top + chartArea.bottom) / 2;
+        const rowH = 12;
+        const totalH = (legendItems.length - 1) * rowH;
+        let y = cy - totalH / 2;
+
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 9px sans-serif';
+
+        for (const item of legendItems) {
+          ctx.beginPath();
+          ctx.arc(cx - 8, y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = item.color;
+          ctx.fill();
+          ctx.fillStyle = '#888';
+          ctx.fillText(item.label, cx - 3, y);
+          y += rowH;
+        }
+
+        ctx.restore();
+      },
+    };
 
     const config: ChartConfiguration<'doughnut'> = {
       type: 'doughnut',
       data: {
+        labels: ['Done', 'Remaining'],
         datasets: [
           {
-            data: total === 0 ? [1] : [done, remaining],
-            backgroundColor: total === 0 ? ['#E5E7EB'] : ['#32c493', '#E5E7EB'],
+            label: 'Jour',
+            data: safe(dailyDone, dailyTotal),
+            backgroundColor: dailyTotal === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#32c493', '#E5E7EB'],
+            borderWidth: 0,
+          },
+          {
+            label: 'Semaine',
+            data: safe(weeklyDone, weeklyTotal),
+            backgroundColor: weeklyTotal === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#6378FF', '#E5E7EB'],
+            borderWidth: 0,
+          },
+          {
+            label: 'Mois',
+            data: safe(monthlyDone, monthlyTotal),
+            backgroundColor:
+              monthlyTotal === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#FFB85C', '#E5E7EB'],
             borderWidth: 0,
           },
         ],
       },
       options: {
         responsive: true,
-        cutout: '60%',
+        cutout: '55%',
         plugins: { legend: { display: false }, tooltip: { enabled: false } },
         animation: false,
         events: [],
       },
+      plugins: [centerPlugin],
     };
 
     this.todoProgressChart = new Chart(this.todoProgressCanvas, config);
@@ -337,8 +425,121 @@ export class TodoFooterComponent implements OnDestroy {
     this.todoProgressChart = undefined;
   }
 
+  private isPastUncheckedTodo(subItem: TodoInformation, now: Date): boolean {
+    const occurrenceDate = this.resolveOccurrenceDateForToday(subItem, now);
+
+    if (!occurrenceDate) {
+      return false;
+    }
+
+    const reminderAt = this.resolveReminderDate(occurrenceDate, subItem.config?.alertAt);
+
+    return isTodoOccurrenceOverdue({
+      isDone: subItem.isDone,
+      occurrenceDate,
+      reminderAt,
+      canBeChecked: true,
+      now,
+    });
+  }
+
+  private resolveOccurrenceDateForToday(subItem: TodoInformation, now: Date): Date | null {
+    const dueDate = normalizeTodoDueDate(subItem.config?.dueDate);
+
+    if (dueDate) {
+      const parsedDate = new Date(`${dueDate}T00:00:00`);
+      return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+    }
+
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const recurrenceType = subItem.config?.recurrenceType ?? 'none';
+
+    if (recurrenceType === 'daily' || recurrenceType === 'none' || recurrenceType === 'custom') {
+      return today;
+    }
+
+    if (recurrenceType === 'weekly') {
+      const weekdays = this.parseWeeklyRule(subItem.config?.recurrenceRule);
+      return !weekdays.length || weekdays.includes(today.getDay()) ? today : null;
+    }
+
+    if (recurrenceType === 'monthly') {
+      const scheduledDay = this.parseMonthlyRule(subItem.config?.recurrenceRule);
+      return scheduledDay == null || scheduledDay === today.getDate() ? today : null;
+    }
+
+    return today;
+  }
+
+  private resolveReminderDate(baseDate: Date, alertAt?: string): Date | null {
+    if (!alertAt) {
+      return null;
+    }
+
+    const [hourText, minuteText] = alertAt.split(':');
+    const hours = Number.parseInt(hourText, 10);
+    const minutes = Number.parseInt(minuteText, 10);
+
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+      return null;
+    }
+
+    return new Date(
+      baseDate.getFullYear(),
+      baseDate.getMonth(),
+      baseDate.getDate(),
+      hours,
+      minutes,
+      0,
+      0
+    );
+  }
+
+  private parseWeeklyRule(rule?: string): number[] {
+    const rawValue = rule?.split(':')[1]?.trim().toLowerCase();
+
+    if (!rawValue) {
+      return [];
+    }
+
+    const dayMap: Record<string, number> = {
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
+      dimanche: 0,
+      lundi: 1,
+      mardi: 2,
+      mercredi: 3,
+      jeudi: 4,
+      vendredi: 5,
+      samedi: 6,
+    };
+
+    return rawValue
+      .split(',')
+      .map((day) => day.trim())
+      .map((day) => dayMap[day])
+      .filter((day): day is number => day !== undefined);
+  }
+
+  private parseMonthlyRule(rule?: string): number | undefined {
+    const rawValue = rule?.split(':')[1]?.trim();
+
+    if (!rawValue) {
+      return undefined;
+    }
+
+    const day = Number.parseInt(rawValue, 10);
+    return Number.isFinite(day) && day >= 1 && day <= 31 ? day : undefined;
+  }
+
   private updateCenterActionFromUrl(url: string): void {
     const normalizedPath = url.split('?')[0].replace(/^\//, '');
+    this.isDashboardRoute = !normalizedPath || normalizedPath === 'dashboard';
 
     if (!normalizedPath) {
       this.showSaveIcon = false;
@@ -346,7 +547,6 @@ export class TodoFooterComponent implements OnDestroy {
     }
 
     const segments = normalizedPath.split('/').filter(Boolean);
-
     this.showSaveIcon = segments.length > 1 && segments[0] === 'item' && segments[1] != null;
   }
 }

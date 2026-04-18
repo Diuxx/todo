@@ -6,6 +6,11 @@ import { generateUUID } from '../utils';
 import { RecurrenceType, TodoStatus } from '../models/base-entity.model';
 import { TodoHistoryEntry } from '../models/todo-history.model';
 import { LocalNotificationService } from './local-notification.service';
+import {
+  normalizeTodoCriticality,
+  normalizeTodoDueDate,
+  normalizeTodoGoalCount,
+} from '../utils/todo-config.utils';
 
 @Injectable({ providedIn: 'root' }) // No provider needed.
 export class ItemsService {
@@ -30,9 +35,21 @@ export class ItemsService {
   ): Observable<AppItem[]> {
     return from(
       db.items
-        .filter(
-          (item) => (includeArchived || !item.isArchived) && (!filter || item.type === filter)
-        )
+        .filter((item) => {
+          if (!includeArchived && item.isArchived) {
+            return false;
+          }
+
+          if (!filter) {
+            return true;
+          }
+
+          if (filter === 'calendar') {
+            return !!item.fromCalendar;
+          }
+
+          return item.type === filter;
+        })
         .toArray()
         .then(async (items) => {
           return this.hydrateTodoItemsStatus(
@@ -81,6 +98,8 @@ export class ItemsService {
       ...item,
       isLocked: !!item.isLocked,
       isAffirmation: item.type === 'citation' ? !!item.isAffirmation : false,
+      fromCalendar: !!item.fromCalendar,
+      date: normalizeTodoDueDate(item.date),
       updatedAt: now,
     };
     return from(this.updateAndSyncItem(payload));
@@ -95,6 +114,8 @@ export class ItemsService {
       id: generateUUID(),
       isLocked: !!item.isLocked,
       isAffirmation: item.type === 'citation' ? !!item.isAffirmation : false,
+      fromCalendar: !!item.fromCalendar,
+      date: normalizeTodoDueDate(item.date),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -190,6 +211,25 @@ export class ItemsService {
     return {
       ...item,
       isLocked: !!item.isLocked,
+      fromCalendar: !!item.fromCalendar,
+      date: normalizeTodoDueDate(item.date),
+      todoContent:
+        item.type === 'todo' && item.todoContent?.length
+          ? item.todoContent.map((subItem) => ({
+              ...subItem,
+              config: {
+                criticality: normalizeTodoCriticality(subItem.config?.criticality),
+                recurrenceType: subItem.config?.recurrenceType ?? 'none',
+                goalCount: normalizeTodoGoalCount(subItem.config?.goalCount),
+                alertEnabled: subItem.config?.alertEnabled ?? false,
+                alertAt: subItem.config?.alertAt,
+                recurrenceRule: subItem.config?.recurrenceRule,
+                lastCompletedAt: subItem.config?.lastCompletedAt,
+                nextDueAt: subItem.config?.nextDueAt,
+                dueDate: normalizeTodoDueDate(subItem.config?.dueDate),
+              },
+            }))
+          : item.todoContent,
     };
   }
 
@@ -289,12 +329,15 @@ export class ItemsService {
       ...subItem,
       isDone: status === 'done',
       config: {
+        criticality: normalizeTodoCriticality(subItem.config?.criticality),
         recurrenceType,
+        goalCount: normalizeTodoGoalCount(subItem.config?.goalCount),
         alertEnabled: subItem.config?.alertEnabled ?? false,
         alertAt: subItem.config?.alertAt,
         recurrenceRule: subItem.config?.recurrenceRule,
         lastCompletedAt: subItem.config?.lastCompletedAt,
         nextDueAt: subItem.config?.nextDueAt,
+        dueDate: normalizeTodoDueDate(subItem.config?.dueDate),
       },
     };
   }

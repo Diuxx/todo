@@ -4,6 +4,12 @@ import { BehaviorSubject, Observable, Subject } from 'rxjs';
 export interface TodoProgress {
   done: number;
   total: number;
+  dailyDone: number;
+  dailyTotal: number;
+  weeklyDone: number;
+  weeklyTotal: number;
+  monthlyDone: number;
+  monthlyTotal: number;
 }
 
 @Injectable({ providedIn: 'root' })
