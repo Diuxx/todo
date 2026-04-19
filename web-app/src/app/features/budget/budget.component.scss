@@ -67,6 +67,21 @@
   }
 }
 
+.month-settings-btn {
+  border: 1px solid #d4c9ee;
+  background: #f6f2ff;
+  color: #6040a8;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+
+  &:hover {
+    background: #eee7ff;
+  }
+}
+
 .month-nav-btn {
   border: none;
   background: transparent;

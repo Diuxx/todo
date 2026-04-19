@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   Account,
   Budget,
@@ -27,6 +27,7 @@ export class BudgetComponent implements OnInit {
   private readonly budgetService = inject(BudgetService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   public budget: Budget | null = null;
   public currentPeriod: Period | null = null;
@@ -58,6 +59,18 @@ export class BudgetComponent implements OnInit {
   public expenseBankFilter = 'all';
 
   public ngOnInit(): void {
+    const monthParam = this.route.snapshot.queryParamMap.get('month');
+
+    if (monthParam && /^\d{4}-\d{2}$/.test(monthParam)) {
+      const [yearRaw, monthRaw] = monthParam.split('-');
+      const year = Number(yearRaw);
+      const month = Number(monthRaw);
+
+      if (year > 0 && month >= 1 && month <= 12) {
+        this.activeMonth = new Date(year, month - 1, 1);
+      }
+    }
+
     this.loadBudgetAndPeriod();
   }
 
@@ -73,6 +86,10 @@ export class BudgetComponent implements OnInit {
 
   public goToBudgetStats(): void {
     this.router.navigate(['/budget-stats']);
+  }
+
+  public goToBudgetSettings(): void {
+    this.router.navigate(['/budget-settings']);
   }
 
   public confirmDeleteCurrentMonth(): void {

@@ -102,6 +102,38 @@ export class BudgetService {
     ).pipe(tap((saved) => this.budgetSubject.next(saved)));
   }
 
+  public upsertIncomeType(incomeType: TypeOfIncome): Observable<Budget> {
+    return from(
+      this.mutateBudget((budget) => ({
+        ...budget,
+        incomeTypes: this.upsertById(budget.incomeTypes, {
+          ...incomeType,
+          id: incomeType.id || generateUUID(),
+        }),
+      }))
+    ).pipe(tap((saved) => this.budgetSubject.next(saved)));
+  }
+
+  public deleteIncomeType(incomeTypeId: string): Observable<Budget> {
+    return from(
+      this.mutateBudget((budget) => {
+        const nextIncomeTypes = budget.incomeTypes.filter((incomeType) => incomeType.id !== incomeTypeId);
+        const fallbackIncomeType = nextIncomeTypes[0] ?? defaultIncomeTypes[0];
+
+        return {
+          ...budget,
+          incomeTypes: nextIncomeTypes.length ? nextIncomeTypes : [{ ...fallbackIncomeType }],
+          periods: budget.periods.map((period) => ({
+            ...period,
+            incomes: period.incomes.map((income) =>
+              income.type.id === incomeTypeId ? { ...income, type: { ...fallbackIncomeType } } : income
+            ),
+          })),
+        };
+      })
+    ).pipe(tap((saved) => this.budgetSubject.next(saved)));
+  }
+
   public upsertPeriod(period: Period): Observable<Budget> {
     return from(
       this.mutateBudget((budget) => ({

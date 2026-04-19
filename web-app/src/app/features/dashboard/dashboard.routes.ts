@@ -39,4 +39,10 @@ export const DASHBOARD_ROUTES: Routes = [
     loadComponent: () => import('../budget/budget-stats.component').then((m) => m.BudgetStatsComponent),
     title: 'Todo - Budget Stats',
   },
+  {
+    path: 'budget-settings',
+    loadComponent: () =>
+      import('../budget/budget-settings/budget-settings.component').then((m) => m.BudgetSettingsComponent),
+    title: 'Todo - Budget Settings',
+  },
 ];

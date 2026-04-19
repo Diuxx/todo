@@ -1,0 +1,453 @@
+:host {
+  grid-area: main;
+  margin-top: 110px;
+  margin-bottom: 60px;
+  display: block;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.budget-settings-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.budget-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h1 {
+    margin: 0.2rem 0 0;
+    font-size: 1.35rem;
+  }
+}
+
+.budget-settings-kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.back-button {
+  border: 1px solid #d0d8e6;
+  background: #f4f8ff;
+  color: #274b79;
+  border-radius: 0.55rem;
+  padding: 0.45rem 0.7rem;
+  font-weight: 600;
+}
+
+.state-line,
+.empty-line,
+.hint-line {
+  margin: 0;
+  color: #596273;
+}
+
+.settings-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+.settings-card {
+  border: 1px solid #e3e7ef;
+  background: #fff;
+  border-radius: 0.9rem;
+  padding: 0.85rem;
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.card-head {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+
+  h2 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  span {
+    font-size: 0.78rem;
+    border: 1px solid #d7deea;
+    background: #f8faff;
+    color: #46566f;
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+  }
+}
+
+.accordion-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.accordion-head {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.85rem;
+  border-bottom: 1px solid #e9edf4;
+
+  &::after {
+    content: '▾';
+    margin-left: 0.5rem;
+    font-size: 0.95rem;
+    color: #607089;
+    transition: transform 0.2s ease;
+  }
+}
+
+.accordion-title-wrap {
+  display: grid;
+  gap: 0.15rem;
+
+  h2,
+  p {
+    margin: 0;
+  }
+}
+
+.accordion-closed-hint {
+  font-size: 0.78rem;
+  color: #607089;
+  font-weight: 500;
+}
+
+details[open] .accordion-closed-hint {
+  display: none;
+}
+
+details[open] .accordion-head::after {
+  transform: rotate(180deg);
+}
+
+.accordion-head::-webkit-details-marker {
+  display: none;
+}
+
+.accordion-card > :not(summary) {
+  padding: 0.85rem;
+}
+
+.inline-form {
+  display: grid;
+  gap: 0.45rem;
+
+  input {
+    width: 100%;
+  }
+}
+
+.period-year-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  strong {
+    min-width: 4.2rem;
+    text-align: center;
+    color: #2e3a4d;
+  }
+}
+
+.period-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.period-month-card {
+  text-align: left;
+  border: 1px solid #d8dde8;
+  border-radius: 0.65rem;
+  padding: 0.5rem;
+  background: #f9fbff;
+  color: #2b3f5d;
+  display: grid;
+  gap: 0.2rem;
+
+  &.has-period {
+    border-color: #bfd4f4;
+    background: #edf4ff;
+  }
+
+  &.selected {
+    border-color: #6f8ec2;
+    box-shadow: 0 0 0 2px #dbe7fb inset;
+  }
+}
+
+.period-month-label,
+.period-month-meta {
+  margin: 0;
+}
+
+.period-month-label {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.period-month-meta {
+  font-size: 0.75rem;
+  color: #5f6f88;
+}
+
+.period-create-panel {
+  display: grid;
+  gap: 0.45rem;
+  border-top: 1px solid #e8ebf2;
+  padding-top: 0.55rem;
+}
+
+.period-create-line {
+  grid-template-columns: minmax(160px, 0.7fr) auto minmax(160px, 0.8fr) auto;
+}
+
+.single-line-editor {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.9fr) minmax(180px, 1fr) minmax(120px, 0.7fr) auto;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.single-line-editor.with-toggle {
+  grid-template-columns: minmax(170px, 0.9fr) minmax(180px, 1fr) auto auto;
+}
+
+.single-line-editor.account-editor {
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  grid-template-areas:
+    'select select select'
+    'input actions actions';
+
+  > select {
+    grid-area: select;
+  }
+
+  > input {
+    grid-area: input;
+  }
+
+  > .icon-actions {
+    grid-area: actions;
+  }
+}
+
+
+.single-line-editor.expense-editor {
+  grid-template-columns: minmax(200px, 1fr) minmax(60px, 0.25fr) auto auto;
+  grid-template-areas:
+    'select select select select'
+    'name icon actions actions';
+
+  > select {
+    grid-area: select;
+  }
+
+  > input:nth-of-type(1) {
+    grid-area: name;
+  }
+
+  > input:nth-of-type(2) {
+    grid-area: icon;
+    max-width: 60px;
+    min-width: 0;
+    padding-right: 0.3rem;
+    text-align: center;
+  }
+
+  > .icon-actions {
+    grid-area: actions;
+  }
+}
+
+.single-line-editor.income-editor {
+  grid-template-columns: minmax(200px, 1fr) auto auto;
+  grid-template-areas:
+    'select select select'
+    'input toggle actions';
+
+  > select {
+    grid-area: select;
+  }
+
+  > input {
+    grid-area: input;
+  }
+
+  > .toggle {
+    grid-area: toggle;
+    white-space: nowrap;
+  }
+
+  > .icon-actions {
+    grid-area: actions;
+  }
+}
+
+.two-columns {
+  grid-template-columns: 1fr 1fr;
+
+  button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.row {
+  border: 1px solid #e8ebf2;
+  border-radius: 0.65rem;
+  padding: 0.5rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.row-period {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.row-main {
+  p {
+    margin: 0;
+  }
+}
+
+.row-title {
+  font-weight: 600;
+  color: #2f3b4f;
+}
+
+.row-meta {
+  font-size: 0.78rem;
+  color: #6b778c;
+}
+
+.row-fields {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+input,
+select {
+  border: 1px solid #d8dde8;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  background: #fff;
+}
+
+button {
+  border: 1px solid #cad5e8;
+  background: #edf3ff;
+  color: #2a4f7b;
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  font-weight: 600;
+
+  &:disabled {
+    opacity: 0.55;
+  }
+}
+
+.icon-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.icon-btn {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
+button.danger {
+  border-color: #e4bcc2;
+  background: #fff1f3;
+  color: #93353f;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #4a5a72;
+
+  input {
+    width: auto;
+    margin: 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .row-period {
+    grid-template-columns: 1fr;
+  }
+
+  .period-calendar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .single-line-editor,
+  .single-line-editor.with-toggle,
+  .period-create-line {
+    grid-template-columns: 1fr;
+  }
+
+  .single-line-editor.account-editor {
+    grid-template-columns: 1fr auto auto;
+    grid-template-areas:
+      'select select select'
+      'input actions actions';
+  }
+
+  .single-line-editor.expense-editor {
+    grid-template-columns: 1fr minmax(50px, 0.3fr) auto auto;
+    grid-template-areas:
+      'select select select select'
+      'name icon actions actions';
+
+    > input:nth-of-type(2) {
+      max-width: 50px;
+      min-width: 0;
+      padding-right: 0.2rem;
+      text-align: center;
+    }
+  }
+
+  .single-line-editor.income-editor {
+    grid-template-columns: 1fr auto auto;
+    grid-template-areas:
+      'select select select'
+      'input toggle actions';
+  }
+
+  .icon-actions {
+    justify-self: start;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+}

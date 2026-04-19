@@ -1,0 +1,37 @@
+create table public.json_backups (
+  id uuid primary key default gen_random_uuid(),
+
+  user_id uuid not null,         -- Supabase (auth.uid)
+  todo_id text not null,         -- ton id métier
+
+  data jsonb not null,
+  version integer not null default 1,
+  updated_at timestamptz not null default now(),
+
+  constraint json_backups_unique unique (user_id, todo_id, version)
+);
+
+
+----------------------------------
+alter table public.json_backups enable row level security;
+
+create policy "read own"
+on public.json_backups
+for select
+using (auth.uid() = user_id);
+
+create policy "insert own"
+on public.json_backups
+for insert
+with check (auth.uid() = user_id);
+
+create policy "update own"
+on public.json_backups
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "delete own"
+on public.json_backups
+for delete
+using (auth.uid() = user_id);

@@ -1,0 +1,228 @@
+<section class="budget-settings-page">
+  <header class="budget-settings-header">
+    <div>
+      <p class="budget-settings-kicker">Administration Budget</p>
+      <h1>Listes budget</h1>
+    </div>
+    <button type="button" class="back-button" (click)="goToBudget()">Retour budget</button>
+  </header>
+
+  @if (isLoading) {
+    <p class="state-line">Chargement...</p>
+  } @else if (!budget) {
+    <p class="state-line">Impossible de charger le budget.</p>
+  } @else {
+    <div class="settings-grid">
+      <section class="settings-card">
+        <header class="card-head">
+          <h2>Periods</h2>
+          <span>{{ budget.periods.length }}</span>
+        </header>
+
+        <div class="period-year-nav">
+          <button type="button" class="icon-btn" (click)="goToPreviousYear()" aria-label="Année précédente">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <strong>{{ calendarYear }}</strong>
+          <button type="button" class="icon-btn" (click)="goToNextYear()" aria-label="Année suivante">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="period-calendar-grid">
+          @for (month of calendarMonths; track month.key) {
+            <button
+              type="button"
+              class="period-month-card"
+              [class.has-period]="!!month.period"
+              [class.selected]="newPeriodDate === month.key"
+              (click)="selectOrOpenPeriod(month.key)"
+            >
+              <p class="period-month-label">{{ month.label }}</p>
+              @if (month.period) {
+                <p class="period-month-meta">{{ month.period.incomes.length }} rev • {{ month.period.expenses.length }} dep</p>
+              } @else {
+                <p class="period-month-meta">Sans période</p>
+              }
+            </button>
+          }
+        </div>
+
+        <p class="hint-line">Clique une carte existante pour y naviguer (et supprimer depuis la page Budget).</p>
+
+        @if (isSelectedEmptyPeriod) {
+          <div class="period-create-panel">
+            <div class="single-line-editor period-create-line">
+              <input
+                type="month"
+                [(ngModel)]="newPeriodDate"
+                (ngModelChange)="onPeriodDateChange()"
+                placeholder="Nouvelle période"
+              />
+              <label class="toggle">
+                <input type="checkbox" [(ngModel)]="copyPeriodData" />
+                <span>Copier une période</span>
+              </label>
+              <select [(ngModel)]="copyFromPeriodDate" [disabled]="!copyPeriodData || !sortedPeriods.length">
+                @for (period of sortedPeriods; track period.date) {
+                  <option [ngValue]="period.date">{{ period.date }}</option>
+                }
+              </select>
+
+              <div class="icon-actions">
+                <button
+                  type="button"
+                  class="icon-btn"
+                  (click)="addPeriod()"
+                  [disabled]="isSaving || !newPeriodDate"
+                  title="Ajouter la période"
+                  aria-label="Ajouter la période"
+                >
+                  <i class="bi bi-plus-lg"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </section>
+
+      <details class="settings-card accordion-card">
+        <summary class="card-head accordion-head">
+          <div class="accordion-title-wrap">
+            <h2>Comptes</h2>
+            <p class="accordion-closed-hint">Gerer les noms des comptes utilisables dans l'application</p>
+          </div>
+          <span>{{ budget.accounts.length }}</span>
+        </summary>
+
+        <div class="single-line-editor account-editor">
+          <select [(ngModel)]="selectedAccountId" (ngModelChange)="onAccountSelectionChange()">
+            <option value="">Nouvelle entree</option>
+            @for (account of sortedAccounts; track account.id) {
+              <option [ngValue]="account.id">{{ account.name }}</option>
+            }
+          </select>
+          <input type="text" [(ngModel)]="accountFormName" placeholder="Nom du compte" />
+
+          <div class="icon-actions">
+            <button
+              type="button"
+              class="icon-btn"
+              (click)="saveSelectedAccount()"
+              [disabled]="isSaving || !accountFormName.trim()"
+              title="Enregistrer"
+              aria-label="Enregistrer"
+            >
+              <i class="bi bi-check2"></i>
+            </button>
+            <button
+              type="button"
+              class="icon-btn danger"
+              (click)="deleteSelectedAccount()"
+              [disabled]="isSaving || !selectedAccountId"
+              title="Supprimer"
+              aria-label="Supprimer"
+            >
+              <i class="bi bi-trash3"></i>
+            </button>
+          </div>
+        </div>
+      </details>
+
+      <details class="settings-card accordion-card">
+        <summary class="card-head accordion-head">
+          <div class="accordion-title-wrap">
+            <h2>Categories de depenses</h2>
+            <p class="accordion-closed-hint">Gerer les noms et icones des categories de depense</p>
+          </div>
+          <span>{{ budget.expenseCategories.length }}</span>
+        </summary>
+
+        <div class="single-line-editor expense-editor">
+          <select [(ngModel)]="selectedExpenseCategoryId" (ngModelChange)="onExpenseCategorySelectionChange()">
+            <option value="">Nouvelle entree</option>
+            @for (expenseCategory of sortedExpenseCategories; track expenseCategory.id) {
+              <option [ngValue]="expenseCategory.id">{{ expenseCategory.name }}</option>
+            }
+          </select>
+          <input type="text" [(ngModel)]="expenseCategoryFormName" placeholder="Nom categorie" />
+          <input type="text" [(ngModel)]="expenseCategoryFormIcon" placeholder="Icone" />
+
+          <div class="icon-actions">
+            <button
+              type="button"
+              class="icon-btn"
+              (click)="saveSelectedExpenseCategory()"
+              [disabled]="isSaving || !expenseCategoryFormName.trim()"
+              title="Enregistrer"
+              aria-label="Enregistrer"
+            >
+              <i class="bi bi-check2"></i>
+            </button>
+            <button
+              type="button"
+              class="icon-btn danger"
+              (click)="deleteSelectedExpenseCategory()"
+              [disabled]="isSaving || !selectedExpenseCategoryId"
+              title="Supprimer"
+              aria-label="Supprimer"
+            >
+              <i class="bi bi-trash3"></i>
+            </button>
+          </div>
+        </div>
+      </details>
+
+      <details class="settings-card accordion-card">
+        <summary class="card-head accordion-head">
+          <div class="accordion-title-wrap">
+            <h2>Types de revenus</h2>
+            <p class="accordion-closed-hint">Gerer les types de revenu utilisables dans l'application</p>
+          </div>
+          <span>{{ budget.incomeTypes.length }}</span>
+        </summary>
+
+        @if (budget.incomeTypes.length <= 1) {
+          <p class="hint-line">Gardez au moins un type de revenu.</p>
+        }
+
+        <div class="single-line-editor with-toggle income-editor">
+          <select [(ngModel)]="selectedIncomeTypeId" (ngModelChange)="onIncomeTypeSelectionChange()">
+            <option value="">Nouvelle entree</option>
+            @for (incomeType of sortedIncomeTypes; track incomeType.id) {
+              <option [ngValue]="incomeType.id">{{ incomeType.name }}</option>
+            }
+          </select>
+          <input type="text" [(ngModel)]="incomeTypeFormName" placeholder="Nom du type" />
+          <label class="toggle">
+            <input type="checkbox" [(ngModel)]="incomeTypeFormSaving" />
+            <span>Epargne</span>
+          </label>
+
+          <div class="icon-actions">
+            <button
+              type="button"
+              class="icon-btn"
+              (click)="saveSelectedIncomeType()"
+              [disabled]="isSaving || !incomeTypeFormName.trim()"
+              title="Enregistrer"
+              aria-label="Enregistrer"
+            >
+              <i class="bi bi-check2"></i>
+            </button>
+            <button
+              type="button"
+              class="icon-btn danger"
+              (click)="deleteSelectedIncomeType()"
+              [disabled]="isSaving || !selectedIncomeTypeId || budget.incomeTypes.length <= 1"
+              title="Supprimer"
+              aria-label="Supprimer"
+            >
+              <i class="bi bi-trash3"></i>
+            </button>
+          </div>
+        </div>
+      </details>
+    </div>
+  }
+</section>

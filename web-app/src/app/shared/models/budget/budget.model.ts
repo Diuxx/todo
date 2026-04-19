@@ -26,7 +26,7 @@ export interface Period {
 export interface IncomeItem {
     id: string;
     name: string; // Salaire, dividende, etc.
-    type: TypeOfIncome;
+    type: TypeOfIncome; // income type id...
     plannedAmount: number;
     plannedDate?: string; // optional planned date (ISO/local format)
     realAmount: number; // default to 0, updated as transactions are added.
@@ -140,8 +140,15 @@ export const defaultAccounts: Account[] = [
   { id: 'lcl', name: 'LCL' },
   { id: 'credit-mutuel', name: 'Crédit Mutuel' },
   { id: 'banque-postale', name: 'La Banque Postale' },
-  { id: 'caisse-epargne', name: 'Caisse d’Épargne' },
+  { id: 'caisse-epargne', name: 'Caisse d\'Épargne' },
   { id: 'hsbc', name: 'HSBC' },
+
+  // --
+  { id: 'banque-populaire', name: 'Banque Populaire' },
+  { id: 'fortuneo', name: 'Fortuneo' },
+  { id: 'bourso-banque', name: 'Bourso Banque' },
+  { id: 'hello-bank', name: 'Hello Bank' },
+  { id: 'ticket-restaurant', name: 'Ticket Restaurant' },
 
   // Néobanques
   { id: 'n26', name: 'N26' },
