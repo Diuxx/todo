@@ -1,4 +1,5 @@
 import { AppData } from './app-data.model';
+import { createDefaultBudget } from './budget/budget.model';
 
 const now = new Date();
 
@@ -657,6 +658,8 @@ export const appDataExample: AppData = {
     //   alt: "Lever de soleil",
     // },
   ],
+
+  budget: createDefaultBudget(),
 
   settings: {
     id: 'main',

@@ -1,0 +1,488 @@
+<section class="budget-page">
+	<header class="budget-month-nav" aria-label="Navigation des mois du budget">
+		<button
+			type="button"
+			class="month-delete-btn"
+			(click)="confirmDeleteCurrentMonth()"
+			[disabled]="isSaving || !currentPeriod"
+			aria-label="Supprimer le mois"
+		>
+			<i class="bi bi-trash3"></i>
+		</button>
+
+		<button type="button" class="month-nav-btn" (click)="goToPreviousMonth()" aria-label="Mois précédent">
+			<i class="bi bi-chevron-left"></i>
+		</button>
+
+		<p>{{ activeMonthLabel }}</p>
+
+		<button type="button" class="month-nav-btn" (click)="goToNextMonth()" aria-label="Mois suivant">
+			<i class="bi bi-chevron-right"></i>
+		</button>
+
+		<button type="button" class="month-stats-btn" (click)="goToBudgetStats()" aria-label="Statistiques annuelles">
+			<i class="bi bi-bar-chart-line"></i>
+		</button>
+	</header>
+
+	@if (isLoading) {
+		<p class="budget-state">Chargement...</p>
+	} @else if (!currentPeriod) {
+		<div class="budget-state-card">
+			<p>Aucune donnée pour {{ activeMonthLabel }}.</p>
+			<p>Le mois n'est pas créé dans periods tant qu'aucune entrée n'existe.</p>
+			<label class="copy-expenses-checkbox">
+				<input type="checkbox" [(ngModel)]="copyPreviousMonthExpenses" />
+				<span>Copier les données du mois précédent</span>
+			</label>
+			@if (copyPreviousMonthExpenses && !previousPeriodHasExpenses) {
+				<p class="budget-hint">Aucune donnée trouvée sur le mois précédent.</p>
+			}
+			<button type="button" (click)="createFirstEntry()" [disabled]="isSaving">
+				{{ isSaving ? 'Création...' : createButtonLabel }}
+			</button>
+		</div>
+	} @else {
+		<div class="budget-state-card">
+			<p>Dépenses et revenus sur la période: {{ currentPeriod.date }}</p>
+
+			<div class="period-stats" aria-label="Statistiques de la période">
+				<article class="period-stat-card">
+					<div class="period-stat-ring" [style.background]="getRingBackground(incomeRealVsPlannedPercent, '#3a8fd7')">
+						<div class="period-stat-content">
+							<p class="period-stat-title">Entrées</p>
+							<p class="period-stat-amount">{{ totalIncomeReal | number: '1.0-0' }} €</p>
+							<p class="period-stat-sub">Prévu {{ totalIncomePlanned | number: '1.0-0' }} €</p>
+							<p class="period-stat-percent">{{ incomeRealVsPlannedPercent | number: '1.0-0' }}%</p>
+						</div>
+					</div>
+				</article>
+
+				<article class="period-stat-card">
+					<div class="period-stat-ring" [style.background]="getRingBackground(plannedExpenseVsIncomePercent, '#59b78f')">
+						<div class="period-stat-content">
+							<p class="period-stat-title">Prévues</p>
+							<p class="period-stat-amount">{{ totalExpensePlanned | number: '1.0-0' }} €</p>
+							<!-- <p class="period-stat-sub">Vs entrées prévues</p> -->
+							<p class="period-stat-percent">{{ plannedExpenseVsIncomePercent | number: '1.0-0' }}%</p>
+						</div>
+					</div>
+				</article>
+
+				<article class="period-stat-card">
+					<div class="period-stat-ring" [style.background]="getRingBackground(realExpenseVsIncomePercent, '#d97ca9')">
+						<div class="period-stat-content">
+							<p class="period-stat-title">Réelles</p>
+							<p class="period-stat-amount">{{ totalExpenseReal | number: '1.0-0' }} €</p>
+							<!-- <p class="period-stat-sub">Réelles / entrées réelles</p> -->
+							<p class="period-stat-percent">{{ realExpenseVsIncomePercent | number: '1.0-0' }}%</p>
+						</div>
+					</div>
+				</article>
+			</div>
+		</div>
+
+		<section class="income-block">
+			<header class="income-block-head">
+				<h2>Entrée d'argent</h2>
+				<button type="button" (click)="openIncomeModal()">Ajouter</button>
+			</header>
+
+			@if (!currentPeriod.incomes.length) {
+				<p class="budget-hint">Aucune entrée d'argent pour ce mois.</p>
+			} @else {
+				<div class="income-list">
+					@for (income of currentPeriod.incomes; track income.id) {
+						<article class="income-row" (click)="openIncomeModal(income)">
+							<div class="income-row-left">
+								<span class="income-bank-icon" aria-hidden="true">
+									@if (isImageIcon(getIncomeAccountIcon(income.accountId))) {
+										<img [src]="getIncomeAccountIcon(income.accountId)!" alt="" />
+									} @else {
+										{{ getIncomeAccountIcon(income.accountId) || '🏦' }}
+									}
+								</span>
+								<div class="income-row-text">
+									<p class="income-bank-name">{{ getIncomeAccountName(income.accountId) }}</p>
+									<p class="income-name">[{{ getIncomeTypeName(income) }}] {{ income.name }}</p>
+									@if (income.deductedFromIncomeId && getIncomeDeductionSourceName(income)) {
+										<p class="income-origin">
+											Déduit de: {{ getIncomeDeductionSourceName(income) }}
+											@if (getIncomeDeductionPercent(income) !== null) {
+												<span class="income-deduction-percent">({{ getIncomeDeductionPercent(income) }}%)</span>
+											}
+										</p>
+									}
+								</div>
+							</div>
+
+							<div class="income-row-right">
+								<div class="income-amounts-wrap">
+									<div class="income-amounts">
+										<p class="income-amount income-amount-planned">
+											P: {{ getIncomeGrossPlanned(income) | number: '1.2-2' }} €
+										</p>
+										<p
+											class="income-amount income-amount-real"
+											[class.is-below-planned]="getIncomeGrossReal(income) < getIncomeGrossPlanned(income)"
+										>
+											R: {{ getIncomeGrossReal(income) | number: '1.2-2' }} €
+										</p>
+									</div>
+									@if (hasIncomeDeductions(income) || hasAccountExpenseDeductions(income.accountId)) {
+										<p class="income-deduction-line">
+											Avec déductions: P {{ getIncomeWithAllDeductionsPlanned(income) | number: '1.2-2' }} €
+											• R {{ getIncomeWithAllDeductionsReal(income) | number: '1.2-2' }} €
+										</p>
+									}
+								</div>
+								<i class="bi bi-chevron-right" aria-hidden="true"></i>
+							</div>
+						</article>
+					}
+				</div>
+			}
+		</section>
+
+		@if (hasSavingIncomeYearProgress) {
+			<section class="saving-year-card">
+				<div class="saving-year-head">
+					<h3>Épargne annuelle</h3>
+					<p>{{ activeMonth.getFullYear() }}</p>
+				</div>
+
+				<div class="saving-year-list">
+					@for (savingEntry of savingIncomeYearProgress; track savingEntry.typeId) {
+						<div class="saving-year-row">
+							<div class="saving-year-meta">
+								<p class="saving-year-name">{{ savingEntry.typeName }}</p>
+								<p class="saving-year-values">
+									P {{ savingEntry.planned | number: '1.2-2' }} € • R {{ savingEntry.real | number: '1.2-2' }} €
+								</p>
+							</div>
+							<div class="saving-year-track">
+								<div
+									class="saving-year-fill saving-year-fill-planned"
+									[style.width.%]="getSavingIncomeStackPercent(savingEntry.planned)"
+								></div>
+								<div
+									class="saving-year-fill saving-year-fill-real"
+									[style.width.%]="getSavingIncomeStackPercent(savingEntry.real)"
+								></div>
+							</div>
+						</div>
+					}
+				</div>
+			</section>
+		}
+
+		<section class="expense-block">
+			<header class="expense-block-head">
+				<h2>Dépenses</h2>
+				<div class="expense-block-actions">
+					@if (currentPeriod.expenses.length) {
+						<label class="expense-sort-control">
+							<span>Filtrer banque</span>
+							<select [(ngModel)]="expenseBankFilter">
+								<option value="all">Toutes</option>
+								@for (account of expenseFilterAccounts; track account.id) {
+									<option [value]="account.id">{{ account.name }}</option>
+								}
+							</select>
+						</label>
+					}
+					<button type="button" (click)="openExpenseModal()">Ajouter</button>
+				</div>
+			</header>
+
+			@if (!currentPeriod.expenses.length) {
+				<p class="budget-hint">Aucune dépense pour ce mois.</p>
+			} @else {
+				@if (!hasFilteredExpenses) {
+					<p class="budget-hint">Aucune dépense pour la banque sélectionnée.</p>
+				} @else {
+					@if (expenseBankFilter === 'all') {
+						@for (group of groupedExpensesByBank; track group.accountId) {
+							<div class="expense-bank-group">
+								<p class="expense-bank-group-title">{{ group.accountName }}</p>
+								<div class="expense-list">
+									@for (expense of group.expenses; track expense.id) {
+										<article class="expense-row" (click)="openExpenseModal(expense)">
+											<div class="expense-row-left">
+												<span class="expense-bank-icon" aria-hidden="true">
+													@if (isImageIcon(getExpenseAccountIcon(expense.accountId))) {
+														<img [src]="getExpenseAccountIcon(expense.accountId)!" alt="" />
+													} @else {
+														{{ getExpenseAccountIcon(expense.accountId) || '💳' }}
+													}
+												</span>
+												<div class="expense-row-text">
+													<p class="expense-name">{{ expense.name }}</p>
+													<p class="expense-meta">
+														{{ getExpenseAccountName(expense.accountId) }} • {{ getExpenseCategoryName(expense.categoryId) }}
+													</p>
+												</div>
+											</div>
+
+											<div class="expense-row-right">
+												<div class="expense-amounts">
+													<p class="expense-amount expense-amount-planned">
+														P: {{ expense.plannedAmount | number: '1.2-2' }} €
+													</p>
+													<p
+														class="expense-amount expense-amount-real"
+														[class.is-above-planned]="expense.realAmount > expense.plannedAmount"
+													>
+														R: {{ expense.realAmount | number: '1.2-2' }} €
+													</p>
+												</div>
+												<i class="bi bi-chevron-right" aria-hidden="true"></i>
+											</div>
+										</article>
+									}
+								</div>
+							</div>
+						}
+					} @else {
+						<div class="expense-list">
+							@for (expense of filteredExpenses; track expense.id) {
+								<article class="expense-row" (click)="openExpenseModal(expense)">
+									<div class="expense-row-left">
+										<span class="expense-bank-icon" aria-hidden="true">
+											@if (isImageIcon(getExpenseAccountIcon(expense.accountId))) {
+												<img [src]="getExpenseAccountIcon(expense.accountId)!" alt="" />
+											} @else {
+												{{ getExpenseAccountIcon(expense.accountId) || '💳' }}
+											}
+										</span>
+										<div class="expense-row-text">
+											<p class="expense-name">{{ expense.name }}</p>
+											<p class="expense-meta">
+												{{ getExpenseAccountName(expense.accountId) }} • {{ getExpenseCategoryName(expense.categoryId) }}
+											</p>
+										</div>
+									</div>
+
+									<div class="expense-row-right">
+										<div class="expense-amounts">
+											<p class="expense-amount expense-amount-planned">
+												P: {{ expense.plannedAmount | number: '1.2-2' }} €
+											</p>
+											<p
+												class="expense-amount expense-amount-real"
+												[class.is-above-planned]="expense.realAmount > expense.plannedAmount"
+											>
+												R: {{ expense.realAmount | number: '1.2-2' }} €
+											</p>
+										</div>
+										<i class="bi bi-chevron-right" aria-hidden="true"></i>
+									</div>
+								</article>
+							}
+						</div>
+					}
+				}
+			}
+		</section>
+	}
+
+	@if (isIncomeModalVisible) {
+		<div class="modal-backdrop" (click)="closeIncomeModal()">
+			<div class="income-modal" (click)="$event.stopPropagation()">
+				<h3>{{ incomeModalTitle }}</h3>
+
+				<label>
+					<span>Nom</span>
+					<input type="text" [(ngModel)]="incomeDraftName" placeholder="Ex: Salaire" />
+				</label>
+
+				<label>
+					<span>Type</span>
+					<select [(ngModel)]="incomeDraftTypeId">
+						@for (incomeType of sortedIncomeTypes; track incomeType.id) {
+							<option [value]="incomeType.id">{{ incomeType.name }}</option>
+						}
+					</select>
+				</label>
+
+				<div class="modal-row-two">
+					<label>
+						<span>Banque</span>
+						<select [(ngModel)]="incomeDraftAccountId">
+							@for (account of sortedBudgetAccounts; track account.id) {
+								<option [value]="account.id">{{ account.name }}</option>
+							}
+						</select>
+					</label>
+
+					<label>
+						<span>Déduit de</span>
+						<select [(ngModel)]="incomeDraftDeductedFromIncomeId">
+							<option value="">Aucun</option>
+							@for (incomeOption of incomeDeductionOptions; track incomeOption.id) {
+								<option [value]="incomeOption.id">
+									{{ getIncomeAccountName(incomeOption.accountId) }} - {{ incomeOption.realAmount | number: '1.2-2' }} €
+								</option>
+							}
+						</select>
+					</label>
+				</div>
+
+				<div class="modal-row-transfer">
+					<label>
+						<span>Revenu planifié</span>
+						<input type="number" min="0" step="0.01" [(ngModel)]="incomeDraftPlannedAmount" />
+					</label>
+
+					<button
+						type="button"
+						class="modal-transfer-btn"
+						(click)="copyPlannedIncomeAmountToReal()"
+						aria-label="Reporter le revenu planifié vers le revenu réel"
+					>
+						<i class="bi bi-arrow-right"></i>
+					</button>
+
+					<label>
+						<span>Revenu réel</span>
+						<input type="number" min="0" step="0.01" [(ngModel)]="incomeDraftRealAmount" />
+					</label>
+				</div>
+
+				<div class="modal-row-transfer">
+					<label>
+						<span>Date planifiée</span>
+						<input type="date" [(ngModel)]="incomeDraftPlannedDate" />
+					</label>
+
+					<button
+						type="button"
+						class="modal-transfer-btn"
+						(click)="copyPlannedIncomeDateToReal()"
+						aria-label="Reporter la date planifiée vers la date réelle du revenu"
+					>
+						<i class="bi bi-arrow-right"></i>
+					</button>
+
+					<label>
+						<span>Date réelle</span>
+						<input type="date" [(ngModel)]="incomeDraftRealDate" />
+					</label>
+				</div>
+
+				<div class="income-modal-actions">
+					@if (editingIncomeId) {
+						<button type="button" class="danger-btn" (click)="deleteIncomeEntry()" [disabled]="isSaving">
+							Supprimer
+						</button>
+					}
+					<button type="button" class="ghost-btn" (click)="closeIncomeModal()">Annuler</button>
+					<button type="button" (click)="saveIncomeEntry()" [disabled]="isSaving">
+						{{ incomeSubmitLabel }}
+					</button>
+				</div>
+			</div>
+		</div>
+	}
+
+	@if (isExpenseModalVisible) {
+		<div class="modal-backdrop" (click)="closeExpenseModal()">
+			<div class="income-modal" (click)="$event.stopPropagation()">
+				<h3>{{ expenseModalTitle }}</h3>
+
+			<label>
+				<span>Nom</span>
+				<input type="text" [(ngModel)]="expenseDraftName" placeholder="Ex: Netflix" />
+			</label>
+
+			<label>
+				<span>Banque</span>
+				<select [(ngModel)]="expenseDraftAccountId">
+					@for (account of expenseModalAccounts; track account.id) {
+						<option [value]="account.id">{{ account.name }}</option>
+					}
+				</select>
+			</label>
+
+			<div class="modal-row-two">
+				<label>
+					<span>Type</span>
+					<select [(ngModel)]="expenseDraftType">
+						<option value="fixed">Fixe</option>
+						<option value="variable">Variable</option>
+						<option value="savings">Épargne</option>
+					</select>
+				</label>
+
+				<label>
+					<span>Catégorie</span>
+					<select [(ngModel)]="expenseDraftCategoryId">
+						@for (category of sortedExpenseCategories; track category.id) {
+							<option [value]="category.id">{{ category.name }}</option>
+						}
+					</select>
+				</label>
+			</div>
+
+			<div class="modal-row-transfer">
+				<label>
+					<span>Dépense planifiée</span>
+					<input type="number" min="0" step="0.01" [(ngModel)]="expenseDraftPlannedAmount" />
+				</label>
+
+				<button
+					type="button"
+					class="modal-transfer-btn"
+					(click)="copyPlannedExpenseAmountToReal()"
+					aria-label="Reporter la dépense planifiée vers la dépense réelle"
+				>
+					<i class="bi bi-arrow-right"></i>
+				</button>
+
+				<label>
+					<span>Dépense réelle</span>
+					<input type="number" min="0" step="0.01" [(ngModel)]="expenseDraftRealAmount" />
+				</label>
+			</div>
+
+			<div class="modal-row-transfer">
+				<label>
+					<span>Date planifiée</span>
+					<input type="date" [(ngModel)]="expenseDraftPlannedDate" />
+				</label>
+
+				<button
+					type="button"
+					class="modal-transfer-btn"
+					(click)="copyPlannedExpenseDateToReal()"
+					aria-label="Reporter la date planifiée vers la date réelle"
+				>
+					<i class="bi bi-arrow-right"></i>
+				</button>
+
+				<label>
+					<span>Date réelle</span>
+					<input type="date" [(ngModel)]="expenseDraftRealDate" />
+				</label>
+			</div>
+
+			<label>
+				<span>Note</span>
+				<textarea rows="3" [(ngModel)]="expenseDraftNote" placeholder="Optionnel"></textarea>
+			</label>
+
+			<div class="income-modal-actions">
+				@if (editingExpenseId) {
+					<button type="button" class="danger-btn" (click)="deleteExpenseEntry()" [disabled]="isSaving">
+						Supprimer
+					</button>
+				}
+				<button type="button" class="ghost-btn" (click)="closeExpenseModal()">Annuler</button>
+				<button type="button" (click)="saveExpenseEntry()" [disabled]="isSaving || !expenseDraftName.trim()">
+					{{ expenseSubmitLabel }}
+				</button>
+			</div>
+		</div>
+		</div>
+	}
+</section>

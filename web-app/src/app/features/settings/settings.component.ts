@@ -9,6 +9,7 @@ import { SettingsService } from '../../shared/services/settings.service';
 import { AppSettings } from '../../shared/models/app-settings.model';
 import { db } from '../../db.config';
 import { AppData } from '../../shared/models/app-data.model';
+import { createDefaultBudget } from '../../shared/models/budget/budget.model';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 import { DatabaseService } from '../../shared/services/database.service';
 import { LocalNotificationService } from '../../shared/services/local-notification.service';
@@ -441,54 +442,62 @@ export class SettingsComponent implements OnInit, OnDestroy {
         throw new Error('Le fichier JSON ne correspond pas au format attendu.');
       }
 
+      const migratedPayload = this.withBudgetMigration(parsed);
+
       await this.localNotificationService.clearAllTodoNotifications();
 
       await db.transaction(
         'rw',
-        [db.items, db.todoHistory, db.citationsMeta, db.imagesMeta, db.settings],
+        [db.items, db.todoHistory, db.citationsMeta, db.imagesMeta, db.budgets, db.settings],
         async () => {
           await db.items.clear();
           await db.todoHistory.clear();
           await db.citationsMeta.clear();
           await db.imagesMeta.clear();
+          await db.budgets.clear();
           await db.settings.clear();
 
-          if (parsed.items.length) {
-            await db.items.bulkAdd(parsed.items);
+          if (migratedPayload.items.length) {
+            await db.items.bulkAdd(migratedPayload.items);
           }
 
-          if (parsed.todoHistory.length) {
-            await db.todoHistory.bulkAdd(parsed.todoHistory);
+          if (migratedPayload.todoHistory.length) {
+            await db.todoHistory.bulkAdd(migratedPayload.todoHistory);
           }
 
-          if (parsed.citationsMeta.length) {
-            await db.citationsMeta.bulkAdd(parsed.citationsMeta);
+          if (migratedPayload.citationsMeta.length) {
+            await db.citationsMeta.bulkAdd(migratedPayload.citationsMeta);
           }
 
-          if (parsed.imagesMeta.length) {
-            await db.imagesMeta.bulkAdd(parsed.imagesMeta);
+          if (migratedPayload.imagesMeta.length) {
+            await db.imagesMeta.bulkAdd(migratedPayload.imagesMeta);
           }
 
-          await db.settings.add(parsed.settings);
+          await db.budgets.add({
+            id: 'main',
+            ...migratedPayload.budget,
+          });
+
+          await db.settings.add(migratedPayload.settings);
         }
       );
 
       this.settingsForm.patchValue(
         {
-          id: parsed.settings.id,
-          theme: parsed.settings.theme,
-          language: parsed.settings.language,
-          dailyAffirmationEnabled: parsed.settings.dailyAffirmationEnabled,
-          showArchivedItems: parsed.settings.showArchivedItems,
-          passwordHash: parsed.settings.passwordHash,
-          userName: parsed.settings.userName,
-          userId: parsed.settings.userId,
+          id: migratedPayload.settings.id,
+          theme: migratedPayload.settings.theme,
+          language: migratedPayload.settings.language,
+          dailyAffirmationEnabled: migratedPayload.settings.dailyAffirmationEnabled,
+          showArchivedItems: migratedPayload.settings.showArchivedItems,
+          passwordHash: migratedPayload.settings.passwordHash,
+          userName: migratedPayload.settings.userName,
+          userId: migratedPayload.settings.userId,
         },
         { emitEvent: false }
       );
 
       this.settingsForm.markAsPristine();
-      this.updatePasswordState(parsed.settings.passwordHash);
+      this.updatePasswordState(migratedPayload.settings.passwordHash);
       await this.loadStorageStats();
       await this.localNotificationService.syncScheduledTodoNotifications();
       this.triggerSavedFeedback();
@@ -511,13 +520,24 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   private async getCurrentAppData(): Promise<AppData> {
-    const [items, todoHistory, citationsMeta, imagesMeta, settingsList] = await Promise.all([
+    const [items, todoHistory, citationsMeta, imagesMeta, budgets, settingsList] = await Promise.all([
       db.items.toArray(),
       db.todoHistory.toArray(),
       db.citationsMeta.toArray(),
       db.imagesMeta.toArray(),
+      db.budgets.toArray(),
       db.settings.toArray(),
     ]);
+
+    const budgetDocument = budgets[0];
+    const budget = budgetDocument
+      ? {
+          periods: budgetDocument.periods,
+          accounts: budgetDocument.accounts,
+          expenseCategories: budgetDocument.expenseCategories,
+          incomeTypes: budgetDocument.incomeTypes,
+        }
+      : createDefaultBudget();
 
     return {
       id: 'app-data',
@@ -525,8 +545,60 @@ export class SettingsComponent implements OnInit, OnDestroy {
       todoHistory,
       citationsMeta,
       imagesMeta,
+      budget,
       settings: settingsList[0],
     };
+  }
+
+  private withBudgetMigration(payload: AppData): AppData {
+    const budgetCandidate = (payload as { budget?: unknown }).budget;
+
+    if (!this.isBudgetLike(budgetCandidate)) {
+      return {
+        ...payload,
+        budget: createDefaultBudget(),
+      };
+    }
+
+    return {
+      ...payload,
+      budget: {
+        periods: Array.isArray(budgetCandidate.periods) ? budgetCandidate.periods : [],
+        accounts: Array.isArray(budgetCandidate.accounts)
+          ? budgetCandidate.accounts
+          : createDefaultBudget().accounts,
+        expenseCategories: Array.isArray(budgetCandidate.expenseCategories)
+          ? budgetCandidate.expenseCategories
+          : createDefaultBudget().expenseCategories,
+        incomeTypes: Array.isArray(budgetCandidate.incomeTypes)
+          ? budgetCandidate.incomeTypes
+          : createDefaultBudget().incomeTypes,
+      },
+    };
+  }
+
+  private isBudgetLike(value: unknown): value is {
+    periods: unknown;
+    accounts: unknown;
+    expenseCategories: unknown;
+    incomeTypes?: unknown;
+  } {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as {
+      periods?: unknown;
+      accounts?: unknown;
+      expenseCategories?: unknown;
+      incomeTypes?: unknown;
+    };
+
+    return (
+      Array.isArray(candidate.periods) &&
+      Array.isArray(candidate.accounts) &&
+      Array.isArray(candidate.expenseCategories)
+    );
   }
 
   private downloadAppDataInBrowser(fileName: string, json: string): void {

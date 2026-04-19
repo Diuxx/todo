@@ -7,6 +7,7 @@ import { CitationMeta } from '../models/citation-meta.model';
 import { ImageMeta } from '../models/image-meta.model';
 import { AppSettings, BackupState } from '../models/app-settings.model';
 import { environment } from '../../../env/env';
+import { createDefaultBudget } from '../models/budget/budget.model';
 
 @Injectable({
   providedIn: 'root',
@@ -22,11 +23,24 @@ export class DatabaseService {
     await db.open();
 
     const hasSettings = await db.settings.get(this.SETTINGS_ID);
+    const hasBudget = await db.budgets.get('main');
+
     if (!hasSettings) {
       await this.initializeDefaultDatabase();
 
       console.info('Database initialized with default settings and data.');
       return;
+    }
+
+    if (!hasBudget) {
+      const defaultBudget = createDefaultBudget();
+      await db.budgets.add({
+        periods: defaultBudget.periods,
+        accounts: defaultBudget.accounts,
+        expenseCategories: defaultBudget.expenseCategories,
+        incomeTypes: defaultBudget.incomeTypes,
+        id: 'main',
+      });
     }
 
     if (!hasSettings.passwordHash) {
@@ -74,9 +88,17 @@ export class DatabaseService {
   private async initializeDefaultDatabase(): Promise<void> {
     await db.transaction(
       'rw',
-      [db.settings, db.items, db.todoHistory, db.citationsMeta, db.imagesMeta],
+      [db.settings, db.items, db.todoHistory, db.citationsMeta, db.imagesMeta, db.budgets],
       async () => {
+        const defaultBudget = createDefaultBudget();
         await db.settings.add(this.createDefaultSettings());
+        await db.budgets.add({
+          periods: defaultBudget.periods,
+          accounts: defaultBudget.accounts,
+          expenseCategories: defaultBudget.expenseCategories,
+          incomeTypes: defaultBudget.incomeTypes,
+          id: 'main',
+        });
         await this.seedDefaultData();
       }
     );
@@ -102,12 +124,21 @@ export class DatabaseService {
   public async clearUserContent(): Promise<void> {
     await db.transaction(
       'rw',
-      [db.items, db.todoHistory, db.citationsMeta, db.imagesMeta],
+      [db.items, db.todoHistory, db.citationsMeta, db.imagesMeta, db.budgets],
       async () => {
+        const defaultBudget = createDefaultBudget();
         await db.items.clear();
         await db.todoHistory.clear();
         await db.citationsMeta.clear();
         await db.imagesMeta.clear();
+        await db.budgets.clear();
+        await db.budgets.add({
+          periods: defaultBudget.periods,
+          accounts: defaultBudget.accounts,
+          expenseCategories: defaultBudget.expenseCategories,
+          incomeTypes: defaultBudget.incomeTypes,
+          id: 'main',
+        });
       }
     );
   }

@@ -6,6 +6,7 @@ import { CitationMeta } from './shared/models/citation-meta.model';
 import { ImageMeta } from './shared/models/image-meta.model';
 import { AppSettings } from './shared/models/app-settings.model';
 import { AppData } from './shared/models/app-data.model';
+import { Budget, createDefaultBudget } from './shared/models/budget/budget.model';
 import {
   normalizeTodoCriticality,
   normalizeTodoDueDate,
@@ -17,6 +18,7 @@ table items
 table todoHistory
 table citationsMeta
 table imagesMeta
+table budgets
 table settings
 */
 
@@ -25,6 +27,7 @@ export class AppDb extends Dexie {
   todoHistory!: Table<TodoHistoryEntry, string>;
   citationsMeta!: Table<CitationMeta, string>;
   imagesMeta!: Table<ImageMeta, string>;
+  budgets!: Table<Budget, string>;
   settings!: Table<AppSettings, string>;
 
   constructor(dbName: string, dbVersion: number) {
@@ -39,7 +42,7 @@ export class AppDb extends Dexie {
       settings: 'id',
     });
 
-    this.version(dbVersion).stores({
+    this.version(3).stores({
       items: 'id, type, createdAt, updatedAt, date, fromCalendar',
       todoHistory:
         'id, todoItemId, status, completedAt, createdAt, [todoItemId+completedAt], [todoItemId+createdAt]',
@@ -74,6 +77,45 @@ export class AppDb extends Dexie {
           }));
         });
     });
+
+    this.version(4).stores({
+      items: 'id, type, createdAt, updatedAt, date, fromCalendar',
+      todoHistory:
+        'id, todoItemId, status, completedAt, createdAt, [todoItemId+completedAt], [todoItemId+createdAt]',
+      citationsMeta: 'id, itemId, author',
+      imagesMeta: 'id, itemId',
+      budgets: 'id',
+      settings: 'id',
+    }).upgrade(async (transaction) => {
+      const budgetsTable = transaction.table<Budget, string>('budgets');
+      const existingBudget = await budgetsTable.get('main');
+
+      if (existingBudget) {
+        return;
+      }
+
+      const defaultBudget = createDefaultBudget();
+
+      await budgetsTable.add({
+        periods: defaultBudget.periods,
+        accounts: defaultBudget.accounts,
+        expenseCategories: defaultBudget.expenseCategories,
+        incomeTypes: defaultBudget.incomeTypes,
+        id: 'main',
+      });
+    });
+
+    if (dbVersion > 4) {
+      this.version(dbVersion).stores({
+        items: 'id, type, createdAt, updatedAt, date, fromCalendar',
+        todoHistory:
+          'id, todoItemId, status, completedAt, createdAt, [todoItemId+completedAt], [todoItemId+createdAt]',
+        citationsMeta: 'id, itemId, author',
+        imagesMeta: 'id, itemId',
+        budgets: 'id',
+        settings: 'id',
+      });
+    }
   }
 }
 
@@ -82,13 +124,24 @@ export class AppDb extends Dexie {
  * @returns
  */
 async function exportAppData(): Promise<AppData> {
-  const [items, todoHistory, citationsMeta, imagesMeta, settingsList] = await Promise.all([
+  const [items, todoHistory, citationsMeta, imagesMeta, budgets, settingsList] = await Promise.all([
     db.items.toArray(),
     db.todoHistory.toArray(),
     db.citationsMeta.toArray(),
     db.imagesMeta.toArray(),
+    db.budgets.toArray(),
     db.settings.toArray(),
   ]);
+
+  const budgetDocument = budgets[0];
+  const budget = budgetDocument
+    ? {
+        periods: budgetDocument.periods,
+        accounts: budgetDocument.accounts,
+        expenseCategories: budgetDocument.expenseCategories,
+        incomeTypes: budgetDocument.incomeTypes,
+      }
+    : createDefaultBudget();
 
   return {
     id: 'app-data',
@@ -96,6 +149,7 @@ async function exportAppData(): Promise<AppData> {
     todoHistory,
     citationsMeta,
     imagesMeta,
+    budget,
     settings: settingsList[0],
   };
 }

@@ -29,4 +29,14 @@ export const DASHBOARD_ROUTES: Routes = [
     loadComponent: () => import('../calendar/calendar.component').then((m) => m.CalendarComponent),
     title: 'Todo - Calendrier',
   },
+  {
+    path: 'budget',
+    loadComponent: () => import('../budget/budget.component').then((m) => m.BudgetComponent),
+    title: 'Todo - Budget',
+  },
+  {
+    path: 'budget-stats',
+    loadComponent: () => import('../budget/budget-stats.component').then((m) => m.BudgetStatsComponent),
+    title: 'Todo - Budget Stats',
+  },
 ];

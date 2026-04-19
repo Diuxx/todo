@@ -108,6 +108,10 @@ export class TodoFooterComponent implements OnDestroy {
     this.router.navigate(['/settings']);
   }
 
+  public goToBudget(): void {
+    this.router.navigate(['/budget']);
+  }
+
   public onSelectItemType(type: 'todo' | 'note' | 'citation'): void {
     const newItem: AppItem = {
       id: '',

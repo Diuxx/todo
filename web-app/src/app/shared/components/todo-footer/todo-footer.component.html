@@ -60,6 +60,16 @@
       <button
         type="button"
         class="footer-menu-item"
+        (click)="goToBudget()"
+        aria-label="Ouvrir le budget">
+        <img width="32px" src="/svgs/money-bag.svg" alt="budget" class="footer-logo" />
+        <span>Budget</span>
+      </button>
+    </div>
+    <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
+      <button
+        type="button"
+        class="footer-menu-item"
         (click)="goToSettings()"
         aria-label="Ouvrir les paramètres"
       >
