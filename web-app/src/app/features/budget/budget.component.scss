@@ -413,6 +413,18 @@
 .income-origin {
   color: #7f6a3d;
   font-size: 0.76rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.income-deduction-percent {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #a07b2e;
+  background: #fef3c7;
+  border-radius: 4px;
+  padding: 0 4px;
 }
 
 .income-row-right,

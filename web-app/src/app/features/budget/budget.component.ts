@@ -591,6 +591,15 @@ export class BudgetComponent implements OnInit {
     return this.currentPeriod.incomes.find((entry) => entry.id === income.deductedFromIncomeId)?.name || '';
   }
 
+  public getIncomeDeductionPercent(income: IncomeItem): number | null {
+    if (!this.currentPeriod || !income.deductedFromIncomeId) return null;
+    const source = this.currentPeriod.incomes.find((entry) => entry.id === income.deductedFromIncomeId);
+    if (!source) return null;
+    const sourceGross = this.getIncomeGrossPlanned(source);
+    if (sourceGross === 0) return null;
+    return Math.round((income.plannedAmount / sourceGross) * 100);
+  }
+
   public get periodAccounts(): Account[] {
     if (!this.currentPeriod || !this.budget) return [];
     const usedIds = new Set(this.currentPeriod.incomes.map((i) => i.accountId));
