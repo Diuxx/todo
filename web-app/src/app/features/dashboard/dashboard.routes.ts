@@ -36,7 +36,7 @@ export const DASHBOARD_ROUTES: Routes = [
   },
   {
     path: 'budget-stats',
-    loadComponent: () => import('../budget/budget-stats.component').then((m) => m.BudgetStatsComponent),
+    loadComponent: () => import('../budget/budget-stats/budget-stats.component').then((m) => m.BudgetStatsComponent),
     title: 'Todo - Budget Stats',
   },
   {

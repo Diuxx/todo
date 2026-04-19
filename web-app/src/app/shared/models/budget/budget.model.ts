@@ -92,95 +92,46 @@ export interface ExpenseCategory {
  * Users can add custom categories as needed.
  */
 export const defaultExpenseCategories: ExpenseCategory[] = [
-  // Base
   { id: 'uncategorized', name: 'Non catégorisé', icon: '❓' },
-
-  // Logement
   { id: 'rent', name: 'Loyer', icon: '🏠' },
   { id: 'utilities', name: 'Charges', icon: '💡' },
   { id: 'internet', name: 'Internet', icon: '🌐' },
   { id: 'phone', name: 'Téléphone', icon: '📱' },
   { id: 'insurance', name: 'Assurances', icon: '🛡️' },
-
-  // Vie quotidienne
   { id: 'groceries', name: 'Alimentation', icon: '🛒' },
   { id: 'transport', name: 'Transport', icon: '🚗' },
   { id: 'fuel', name: 'Essence', icon: '⛽' },
   { id: 'health', name: 'Santé', icon: '💊' },
-
-  // Loisirs
   { id: 'entertainment', name: 'Loisirs', icon: '🎮' },
   { id: 'restaurants', name: 'Restaurants', icon: '🍽️' },
   { id: 'subscriptions', name: 'Abonnements', icon: '📺' },
-
-  // Argent & obligations
   { id: 'taxes', name: 'Impôts', icon: '💸' },
   { id: 'fees', name: 'Frais bancaires', icon: '🏦' },
   { id: 'debt', name: 'Crédits', icon: '📉' },
-
-  // Épargne & projection
   { id: 'savings', name: 'Épargne', icon: '💰' },
   { id: 'investment', name: 'Investissement', icon: '📈' },
-  { id: 'emergency', name: 'Fonds d’urgence', icon: '🚨' },
-
-  // Lifestyle
+  { id: 'emergency', name: 'Fonds d\'urgence', icon: '🚨' },
   { id: 'shopping', name: 'Shopping', icon: '🛍️' },
   { id: 'clothing', name: 'Vêtements', icon: '👕' },
   { id: 'beauty', name: 'Beauté', icon: '💄' },
   { id: 'sports', name: 'Sport', icon: '🏋️' },
-
-  // Autres
   { id: 'travel', name: 'Voyage', icon: '✈️' },
   { id: 'gifts', name: 'Cadeaux', icon: '🎁' },
   { id: 'education', name: 'Éducation', icon: '📚' },
 ];
 
 export const defaultAccounts: Account[] = [
-  // Banques classiques
-  { id: 'bnp', name: 'BNP Paribas' },
-  { id: 'socgen', name: 'Société Générale' },
-  { id: 'credit-agricole', name: 'Crédit Agricole' },
-  { id: 'lcl', name: 'LCL' },
-  { id: 'credit-mutuel', name: 'Crédit Mutuel' },
-  { id: 'banque-postale', name: 'La Banque Postale' },
-  { id: 'caisse-epargne', name: 'Caisse d\'Épargne' },
-  { id: 'hsbc', name: 'HSBC' },
-
-  // --
-  { id: 'banque-populaire', name: 'Banque Populaire' },
-  { id: 'fortuneo', name: 'Fortuneo' },
-  { id: 'bourso-banque', name: 'Bourso Banque' },
-  { id: 'hello-bank', name: 'Hello Bank' },
-  { id: 'ticket-restaurant', name: 'Ticket Restaurant' },
-
-  // Néobanques
-  { id: 'n26', name: 'N26' },
-  { id: 'revolut', name: 'Revolut' },
-  { id: 'wise', name: 'Wise' },
-  { id: 'bunq', name: 'bunq' },
-  { id: 'monese', name: 'Monese' },
-  { id: 'lydia', name: 'Lydia' },
-  { id: 'paypal', name: 'PayPal' },
-
-  // Comptes génériques
-  { id: 'main', name: 'Compte principal' },
-  { id: 'secondary', name: 'Compte secondaire' },
-  { id: 'joint', name: 'Compte joint' },
-  { id: 'savings', name: 'Épargne' },
-  { id: 'cash', name: 'Cash' },
-  { id: 'card', name: 'Carte bancaire' },
-
-  // Comptes “budget”
-  { id: 'daily', name: 'Dépenses quotidiennes' },
-  { id: 'fun', name: 'Loisirs' },
-  { id: 'subscriptions', name: 'Abonnements' },
-  { id: 'travel', name: 'Voyage' },
-  { id: 'emergency', name: 'Urgence' },
-
-  // Pro
-  { id: 'business', name: 'Compte pro' },
-  { id: 'freelance', name: 'Freelance' },
-  { id: 'side', name: 'Side project' },
+  { "id": "main", "name": "Compte principal", "icon": "🏛️" },
+  { "id": "second", "name": "Compte secondaire", "icon": "🔹" },
+  { "id": "savings", "name": "Épargne", "icon": "🐖" },
+  { "id": "revolut", "name": "Revolut", "icon": "🌍" },
+  { "id": "business", "name": "Compte pro", "icon": "📈" },
+  { "id": "ticket-restaurant", "name": "Ticket Restaurant", "icon": "🥗" },
+  { "id": "travel", "name": "Voyage", "icon": "🧳" },
+  { "id": "emergency", "name": "Urgence", "icon": "🆘" },
+  { "id": "cash", "name": "Espèces", "icon": "💶" },
+  { "id": "crypto", "name": "Crypto", "icon": "₿" },
+  { "id": "autre", "name": "Autre", "icon": "🧩" }
 ];
 
 export function createDefaultBudget(): Budget {

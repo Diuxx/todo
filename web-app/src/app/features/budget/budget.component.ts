@@ -837,8 +837,8 @@ export class BudgetComponent implements OnInit {
     return this.findAccountById(accountId)?.name || 'Compte inconnu';
   }
 
-  public getExpenseAccountIcon(accountId: string): string | undefined {
-    return this.findAccountById(accountId)?.icon;
+  public getExpenseCategoryIcon(categoryId: string): string | undefined {
+    return this.findCategoryById(categoryId)?.icon;
   }
 
   public getExpenseCategoryName(categoryId: string): string {
@@ -906,8 +906,15 @@ export class BudgetComponent implements OnInit {
   }
 
   private createPeriodWithCopiedExpenses(previousExpenses: ExpenseItem[]): void {
+    const previousPeriod = this.previousPeriod;
     const copiedExpenses = previousExpenses.map((expense) => ({
       ...expense,
+      id: generateUUID(),
+    }));
+
+    // Copier aussi les revenus du mois précédent
+    const copiedIncomes = (previousPeriod?.incomes ?? []).map((income) => ({
+      ...income,
       id: generateUUID(),
     }));
 
@@ -916,7 +923,7 @@ export class BudgetComponent implements OnInit {
     this.budgetService
       .upsertPeriod({
         date: this.activeMonthKey,
-        incomes: [],
+        incomes: copiedIncomes,
         expenses: copiedExpenses,
       })
       .subscribe({
