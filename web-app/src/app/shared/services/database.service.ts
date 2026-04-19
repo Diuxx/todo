@@ -33,12 +33,13 @@ export class DatabaseService {
     }
 
     if (!hasBudget) {
-      const defaultBudget = createDefaultBudget();
+      // If an example budget exists in `appDataExample`, use it; otherwise create defaults
+      const budgetPayload = (appDataExample && (appDataExample as any).budget) ?? createDefaultBudget();
       await db.budgets.add({
-        periods: defaultBudget.periods,
-        accounts: defaultBudget.accounts,
-        expenseCategories: defaultBudget.expenseCategories,
-        incomeTypes: defaultBudget.incomeTypes,
+        periods: budgetPayload.periods,
+        accounts: budgetPayload.accounts,
+        expenseCategories: budgetPayload.expenseCategories,
+        incomeTypes: budgetPayload.incomeTypes,
         id: 'main',
       });
     }
@@ -83,6 +84,28 @@ export class DatabaseService {
     await db.todoHistory.bulkAdd([...appDataExample.todoHistory]);
     await db.citationsMeta.bulkAdd(this.normalizeCitationMetas(appDataExample.citationsMeta));
     await db.imagesMeta.bulkAdd(this.normalizeImageMetas(appDataExample.imagesMeta));
+
+    // Seed budget from example data when available, otherwise use defaults
+    try {
+      const budgetPayload = appDataExample.budget ?? createDefaultBudget();
+      await db.budgets.add({
+        periods: budgetPayload.periods,
+        accounts: budgetPayload.accounts,
+        expenseCategories: budgetPayload.expenseCategories,
+        incomeTypes: budgetPayload.incomeTypes,
+        id: 'main',
+      });
+    } catch (err) {
+      // If adding fails (already exists), fall back to ensuring default budget exists
+      const defaultBudget = createDefaultBudget();
+      await db.budgets.put({
+        periods: defaultBudget.periods,
+        accounts: defaultBudget.accounts,
+        expenseCategories: defaultBudget.expenseCategories,
+        incomeTypes: defaultBudget.incomeTypes,
+        id: 'main',
+      });
+    }
   }
 
   private async initializeDefaultDatabase(): Promise<void> {
@@ -90,15 +113,7 @@ export class DatabaseService {
       'rw',
       [db.settings, db.items, db.todoHistory, db.citationsMeta, db.imagesMeta, db.budgets],
       async () => {
-        const defaultBudget = createDefaultBudget();
         await db.settings.add(this.createDefaultSettings());
-        await db.budgets.add({
-          periods: defaultBudget.periods,
-          accounts: defaultBudget.accounts,
-          expenseCategories: defaultBudget.expenseCategories,
-          incomeTypes: defaultBudget.incomeTypes,
-          id: 'main',
-        });
         await this.seedDefaultData();
       }
     );

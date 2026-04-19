@@ -1,0 +1,107 @@
+<section class="budget-stats-page">
+  <header class="stats-topbar">
+    <div class="year-nav" aria-label="Navigation annuelle des statistiques">
+      <button type="button" class="year-btn" (click)="goToPreviousYear()" aria-label="Année précédente">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <p>{{ selectedYear }}</p>
+      <button type="button" class="year-btn" (click)="goToNextYear()" aria-label="Année suivante">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </header>
+
+  @if (isLoading) {
+    <p class="stats-state">Chargement...</p>
+  } @else if (!hasAnyExpenseForYear) {
+    <p class="stats-state">Aucune donnée financière enregistrée pour {{ selectedYear }}.</p>
+  } @else {
+    <section class="stats-section">
+      <h2>Revenus et dépenses mensuels</h2>
+
+      <div class="stats-cards small">
+        <article class="stats-card">
+          <p class="stats-card-label">Planifiées</p>
+          <p class="stats-card-value">{{ totalExpensePlannedYear | number: '1.2-2' }} €</p>
+        </article>
+
+        <article class="stats-card small">
+          <p class="stats-card-label">Réelles</p>
+          <p class="stats-card-value">{{ totalExpenseRealYear | number: '1.2-2' }} €</p>
+        </article>
+
+        <article class="stats-card small">
+          <p class="stats-card-label">Écart annuel</p>
+          <p class="stats-card-value">{{ (totalExpenseRealYear - totalExpensePlannedYear) | number: '1.2-2' }} €</p>
+        </article>
+      </div>
+
+      <div class="line-chart-wrap">
+        <canvas #monthlyLineCanvas aria-label="Graphique linéaire mensuel revenus et dépenses"></canvas>
+      </div>
+    </section>
+
+    <section class="stats-section savings-section" *ngIf="hasSavingIncomeYearProgress">
+      <h2>Épargne par type (annuel)</h2>
+
+      <div class="savings-summary-cards">
+        <article class="stats-card small">
+          <p class="stats-card-label">Épargne planifiée</p>
+          <p class="stats-card-value">{{ savingPlannedTotal | number: '1.2-2' }} €</p>
+        </article>
+
+        <article class="stats-card small">
+          <p class="stats-card-label">Épargne réelle</p>
+          <p class="stats-card-value">{{ savingRealTotal | number: '1.2-2' }} €</p>
+        </article>
+
+        <article class="stats-card small">
+          <p class="stats-card-label">Écart</p>
+          <p class="stats-card-value">{{ (savingRealTotal - savingPlannedTotal) | number: '1.2-2' }} €</p>
+        </article>
+      </div>
+
+      <div class="savings-chart-wrap">
+        <canvas #savingsColumnCanvas aria-label="Histogramme épargne par type"></canvas>
+      </div>
+    </section>
+
+    <section class="stats-section category-section">
+      <h2 class="category-chart-title">Dépenses par catégorie</h2>
+      <div class="category-grid">
+        @for (cat of categoryExpenseStats; track cat.id) {
+          <article class="category-card">
+          <div class="category-card-header">{{ cat.name }}</div>
+          <div class="category-card-row">
+            <span class="label">Planifié / Réel</span>
+
+            <span class="value">{{ cat.planned | number: '1.2-2' }} € / {{ cat.real| number: '1.2-2' }} €</span>
+            <span class="value">
+              {{ totalExpensePlannedYear > 0 ? ((cat.planned / totalExpensePlannedYear * 100) | number: '1.0-1') : '0' }}%
+              /
+              {{ totalExpenseRealYear > 0 ? ((cat.real / totalExpenseRealYear * 100) | number: '1.0-1') : '0' }}%
+            </span>
+
+          </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    <!-- <section class="stats-section annual-chart">
+      <h2>Comparaison annuelle réel vs planifié</h2>
+      <div class="annual-chart-wrap">
+        <div class="annual-ring" [style.background]="getAnnualRingBackground()">
+          <div class="annual-ring-content">
+            <p>{{ annualRealVsPlannedPercent | number: '1.0-0' }}%</p>
+            <span>du planifié</span>
+          </div>
+        </div>
+        <div class="annual-legend">
+          <p><span class="legend-dot planned"></span>Planifié: {{ totalExpensePlannedYear | number: '1.2-2' }} €</p>
+          <p><span class="legend-dot real"></span>Réel: {{ totalExpenseRealYear | number: '1.2-2' }} €</p>
+        </div>
+      </div>
+    </section> -->
+  }
+</section>

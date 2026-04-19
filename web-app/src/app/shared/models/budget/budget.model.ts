@@ -26,7 +26,10 @@ export interface Period {
 export interface IncomeItem {
     id: string;
     name: string; // Salaire, dividende, etc.
-    type: TypeOfIncome; // income type id...
+    // store the reference to the income type by id
+    typeId: string; // refers to a `TypeOfIncome.id`
+    // optional resolved object for convenience at runtime
+    type?: TypeOfIncome;
     plannedAmount: number;
     plannedDate?: string; // optional planned date (ISO/local format)
     realAmount: number; // default to 0, updated as transactions are added.

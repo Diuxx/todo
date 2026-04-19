@@ -152,7 +152,7 @@ export class BudgetComponent implements OnInit {
     this.budgetService
       .upsertIncome(this.activeMonthKey, {
         name: 'Nouveau revenu',
-        type: defaultIncomeType,
+        typeId: defaultIncomeType.id,
         plannedAmount: 0,
         realAmount: 0,
         accountId,
@@ -299,20 +299,19 @@ export class BudgetComponent implements OnInit {
 
     for (const period of this.budget.periods.filter((entry) => entry.date.startsWith(yearPrefix))) {
       for (const income of period.incomes) {
-        if (!income.type?.saving) {
-          continue;
-        }
+        const incomeType = this.budget!.incomeTypes.find((t) => t.id === income.typeId);
+        if (!incomeType || !incomeType.saving) continue;
 
-        const current = totalsByType.get(income.type.id) ?? {
-          typeId: income.type.id,
-          typeName: income.type.name,
+        const current = totalsByType.get(incomeType.id) ?? {
+          typeId: incomeType.id,
+          typeName: incomeType.name,
           planned: 0,
           real: 0,
         };
 
         current.planned += income.plannedAmount;
         current.real += income.realAmount;
-        totalsByType.set(income.type.id, current);
+        totalsByType.set(incomeType.id, current);
       }
     }
 
@@ -344,7 +343,7 @@ export class BudgetComponent implements OnInit {
 
     this.editingIncomeId = income?.id ?? null;
     this.incomeDraftName = income?.name ?? '';
-    this.incomeDraftTypeId = income?.type?.id ?? this.budget.incomeTypes[0]?.id ?? '';
+    this.incomeDraftTypeId = income?.typeId ?? this.budget.incomeTypes[0]?.id ?? '';
     this.incomeDraftAccountId = income?.accountId || this.budget.accounts[0].id;
     this.incomeDraftPlannedAmount = (income?.plannedAmount ?? 0) + deductedPlanned;
     this.incomeDraftPlannedDate = income?.plannedDate ?? '';
@@ -420,7 +419,7 @@ export class BudgetComponent implements OnInit {
         const nextIncome: IncomeItem = {
           id: this.editingIncomeId || generateUUID(),
           name: nextIncomeName,
-          type: selectedIncomeType ?? existingIncome?.type ?? defaultIncomeType,
+          typeId: selectedIncomeType?.id ?? existingIncome?.typeId ?? defaultIncomeType.id,
           accountId: selectedAccount.id,
           plannedAmount: nextPlannedAmount,
           plannedDate: nextPlannedDate,
@@ -825,7 +824,9 @@ export class BudgetComponent implements OnInit {
   }
 
   public getIncomeTypeName(income: IncomeItem): string {
-    return income.type?.name || 'Sans type';
+    if (!this.budget) return 'Sans type';
+    const t = this.budget.incomeTypes.find((it) => it.id === income.typeId);
+    return t?.name || 'Sans type';
   }
 
   public getIncomeAccountIcon(accountId: string): string | undefined {

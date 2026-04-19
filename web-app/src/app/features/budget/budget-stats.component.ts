@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, CommonModule } from '@angular/common';
 import { Budget, Period } from '../../shared/models/budget/budget.model';
 import { BudgetService } from '../../shared/services/budget.service';
 import { Chart, registerables } from 'chart.js';
@@ -14,7 +14,6 @@ interface AggregateStat {
 }
 
 interface MonthlyExpenseStat {
-  monthKey: string;
   monthLabel: string;
   incomePlanned: number;
   incomeReal: number;
@@ -25,16 +24,15 @@ interface MonthlyExpenseStat {
 @Component({
   standalone: true,
   selector: 'todo-budget-stats',
-  templateUrl: './budgetstats.component.html',
-  styleUrls: ['./budgetstats.component.scss'],
-  imports: [DecimalPipe],
+  templateUrl: './budget-stats.component.html',
+  styleUrls: ['./budget-stats.component.scss'],
+  imports: [DecimalPipe, CommonModule],
 })
-export class BudgetStatsComponent implements OnInit {
+export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly budgetService = inject(BudgetService);
   private monthlyLineChart: Chart<'line'> | null = null;
-  private categoryStackedChart: Chart<'bar'> | null = null;
+  private savingsColumnChart: Chart | null = null;
   private monthlyLineChartCanvas?: HTMLCanvasElement;
-  private categoryStackedChartCanvas?: HTMLCanvasElement;
 
   @ViewChild('monthlyLineCanvas')
   private set monthlyLineCanvasRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
@@ -51,20 +49,22 @@ export class BudgetStatsComponent implements OnInit {
     this.refreshMonthlyLineChart();
   }
 
-  @ViewChild('categoryStackedCanvas')
-  private set categoryStackedCanvasRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
+  @ViewChild('savingsColumnCanvas')
+  private set savingsColumnCanvasRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
     const canvas = ref?.nativeElement;
 
     if (!canvas) {
-      this.categoryStackedChartCanvas = undefined;
-      this.categoryStackedChart?.destroy();
-      this.categoryStackedChart = null;
+      this.savingsColumnChartCanvas = undefined;
+      this.savingsColumnChart?.destroy();
+      this.savingsColumnChart = null;
       return;
     }
 
-    this.categoryStackedChartCanvas = canvas;
-    this.refreshCategoryStackedChart();
+    this.savingsColumnChartCanvas = canvas;
+    this.refreshSavingsColumnChart();
   }
+
+  private savingsColumnChartCanvas?: HTMLCanvasElement;
 
   public budget: Budget | null = null;
   public selectedYear = new Date().getFullYear();
@@ -76,26 +76,24 @@ export class BudgetStatsComponent implements OnInit {
 
   public ngAfterViewInit(): void {
     this.refreshMonthlyLineChart();
-    this.refreshCategoryStackedChart();
+    this.refreshSavingsColumnChart();
   }
 
   public ngOnDestroy(): void {
     this.monthlyLineChart?.destroy();
     this.monthlyLineChart = null;
-    this.categoryStackedChart?.destroy();
-    this.categoryStackedChart = null;
+    this.savingsColumnChart?.destroy();
+    this.savingsColumnChart = null;
   }
 
   public goToPreviousYear(): void {
     this.selectedYear -= 1;
     this.refreshMonthlyLineChart();
-    this.refreshCategoryStackedChart();
   }
 
   public goToNextYear(): void {
     this.selectedYear += 1;
     this.refreshMonthlyLineChart();
-    this.refreshCategoryStackedChart();
   }
 
   public get totalExpensePlannedYear(): number {
@@ -111,7 +109,6 @@ export class BudgetStatsComponent implements OnInit {
       0
     );
   }
-
   public get monthlyExpenseStats(): MonthlyExpenseStat[] {
     return Array.from({ length: 12 }, (_, index) => {
       const month = String(index + 1).padStart(2, '0');
@@ -237,6 +234,46 @@ export class BudgetStatsComponent implements OnInit {
     return Array.from(byAccount.values()).sort((a, b) => b.real - a.real);
   }
 
+  public get savingIncomeYearProgress(): AggregateStat[] {
+    if (!this.budget) return [];
+
+    const yearPrefix = `${this.selectedYear}-`;
+    const totals = new Map<string, AggregateStat>();
+
+    for (const period of this.budget.periods.filter((p) => p.date.startsWith(yearPrefix))) {
+      for (const income of period.incomes) {
+        // income.type may be undefined; prefer typeId
+        const typeId = (income as any).typeId ?? income.type?.id;
+        if (!typeId) continue;
+        const incomeType = this.budget.incomeTypes.find((t) => t.id === typeId);
+        if (!incomeType || !incomeType.saving) continue;
+
+        const current = totals.get(typeId) ?? { id: typeId, name: incomeType.name, planned: 0, real: 0 };
+        current.planned += income.plannedAmount;
+        current.real += income.realAmount;
+        totals.set(typeId, current);
+      }
+    }
+
+    return Array.from(totals.values()).filter((e) => e.planned > 0 || e.real > 0).sort((a, b) => b.real + b.planned - (a.real + a.planned));
+  }
+
+  public get hasSavingIncomeYearProgress(): boolean {
+    return this.savingIncomeYearProgress.length > 0;
+  }
+
+  public get savingIncomeYearMaxTotal(): number {
+    return this.savingIncomeYearProgress.reduce((max, entry) => Math.max(max, entry.planned + entry.real), 0);
+  }
+
+  public get savingPlannedTotal(): number {
+    return this.savingIncomeYearProgress.reduce((sum, s) => sum + s.planned, 0);
+  }
+
+  public get savingRealTotal(): number {
+    return this.savingIncomeYearProgress.reduce((sum, s) => sum + s.real, 0);
+  }
+
   public get hasAnyExpenseForYear(): boolean {
     return this.monthlyExpenseStats.some(
       (month) =>
@@ -264,7 +301,6 @@ export class BudgetStatsComponent implements OnInit {
         this.budget = budget;
         this.isLoading = false;
         this.refreshMonthlyLineChart();
-        this.refreshCategoryStackedChart();
       },
       error: () => {
         this.isLoading = false;
@@ -315,7 +351,9 @@ export class BudgetStatsComponent implements OnInit {
             pointHoverRadius: 5,
             fill: false,
             tension: 0.35,
-            borderWidth: 2,
+            borderWidth: 3,
+            borderDash: [6, 4],
+            pointStyle: 'triangle',
           },
           {
             label: 'Dépenses planifiées',
@@ -339,7 +377,9 @@ export class BudgetStatsComponent implements OnInit {
             pointHoverRadius: 5,
             fill: false,
             tension: 0.35,
-            borderWidth: 2,
+            borderWidth: 3,
+            borderDash: [6, 4],
+            pointStyle: 'triangle',
           },
         ],
       },
@@ -357,7 +397,7 @@ export class BudgetStatsComponent implements OnInit {
           },
           tooltip: {
             callbacks: {
-              label: (context) =>
+              label: (context: any) =>
                 `${context.dataset.label}: ${new Intl.NumberFormat('fr-FR', {
                   style: 'currency',
                   currency: 'EUR',
@@ -387,7 +427,7 @@ export class BudgetStatsComponent implements OnInit {
               text: 'Montants (€)',
             },
             ticks: {
-              callback: (value) => `${value}€`,
+              callback: (value: any) => `${value}€`,
             },
           },
         },
@@ -395,21 +435,19 @@ export class BudgetStatsComponent implements OnInit {
     });
   }
 
-  private refreshCategoryStackedChart(): void {
-    const canvas = this.categoryStackedChartCanvas;
+  private refreshSavingsColumnChart(): void {
+    const canvas = this.savingsColumnChartCanvas;
 
-    if (!canvas || !this.budget) {
-      return;
-    }
+    if (!canvas || !this.budget) return;
 
-    const labels = this.categoryExpenseStats.map((item) => item.name);
-    const plannedData = this.categoryExpenseStats.map((item) => item.planned);
-    const realData = this.categoryExpenseStats.map((item) => item.real);
+    const labels = this.savingIncomeYearProgress.map((s) => s.name);
+    const plannedData = this.savingIncomeYearProgress.map((s) => s.planned);
+    const realData = this.savingIncomeYearProgress.map((s) => s.real);
 
-    this.categoryStackedChart?.destroy();
-    this.categoryStackedChart = null;
+    this.savingsColumnChart?.destroy();
+    this.savingsColumnChart = null;
 
-    this.categoryStackedChart = new Chart(canvas, {
+    this.savingsColumnChart = new Chart(canvas, {
       type: 'bar',
       data: {
         labels,
@@ -417,18 +455,16 @@ export class BudgetStatsComponent implements OnInit {
           {
             label: 'Planifié',
             data: plannedData,
-            backgroundColor: '#93c5fd',
-            borderColor: '#60a5fa',
+            backgroundColor: '#60a5fa',
+            borderColor: '#3b82f6',
             borderWidth: 1,
-            stack: 'amounts',
           },
           {
             label: 'Réel',
             data: realData,
-            backgroundColor: '#fda4af',
-            borderColor: '#fb7185',
+            backgroundColor: '#fb7185',
+            borderColor: '#f43f5e',
             borderWidth: 1,
-            stack: 'amounts',
           },
         ],
       },
@@ -436,17 +472,10 @@ export class BudgetStatsComponent implements OnInit {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              boxWidth: 12,
-              usePointStyle: true,
-              pointStyle: 'rectRounded',
-            },
-          },
+          legend: { position: 'bottom' },
           tooltip: {
             callbacks: {
-              label: (context) =>
+              label: (context: any) =>
                 `${context.dataset.label}: ${new Intl.NumberFormat('fr-FR', {
                   style: 'currency',
                   currency: 'EUR',
@@ -454,35 +483,46 @@ export class BudgetStatsComponent implements OnInit {
                 }).format(context.parsed.y ?? 0)}`,
             },
           },
+          // custom plugin will draw exact values on top of each bar (added via `plugins` array)
         },
         scales: {
           x: {
-            stacked: true,
-            title: {
-              display: true,
-              text: 'Catégories',
-            },
-            ticks: {
-              maxRotation: 40,
-              minRotation: 0,
-            },
-            grid: {
-              display: false,
-            },
+            title: { display: true, text: 'Type de revenu' },
+            ticks: { autoSkip: false },
           },
           y: {
-            stacked: true,
             beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Montants (€)',
-            },
-            ticks: {
-              callback: (value) => `${value}€`,
-            },
+            title: { display: true, text: 'Montant (€)' },
+            ticks: { callback: (v: any) => `${v}€` },
           },
         },
       },
+      plugins: [
+        {
+          id: 'drawValues',
+          afterDatasetsDraw: (chart) => {
+            const ctx = chart.ctx;
+            const fontSize = 11;
+            ctx.save();
+            ctx.font = `${fontSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+
+            chart.data.datasets.forEach((dataset, dsIndex) => {
+              const meta = chart.getDatasetMeta(dsIndex);
+              meta.data.forEach((bar, index) => {
+                const value = (dataset.data as number[])[index] ?? 0;
+                const x = bar.x;
+                const y = bar.y - 6;
+                ctx.fillStyle = '#111';
+                ctx.fillText(new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value) + '€', x, y);
+              });
+            });
+
+            ctx.restore();
+          },
+        },
+      ],
     });
   }
 }

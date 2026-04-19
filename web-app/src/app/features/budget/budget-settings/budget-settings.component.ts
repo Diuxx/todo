@@ -529,7 +529,8 @@ export class BudgetSettingsComponent implements OnInit {
     const incomes = sourcePeriod.incomes.map((income) => ({
       ...income,
       id: incomeIdMap.get(income.id) ?? generateUUID(),
-      type: { ...income.type },
+      typeId: (income as any).typeId ?? undefined,
+      type: undefined,
       deductedFromIncomeId: income.deductedFromIncomeId
         ? incomeIdMap.get(income.deductedFromIncomeId) || undefined
         : undefined,

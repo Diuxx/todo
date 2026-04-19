@@ -1,99 +1,4179 @@
-import { Period } from './budget.model';
+import { Budget } from './budget.model';
 
 /**
- * Exemple de données de périodes sur 1 an pour tests/démo.
- * Chaque mois contient des revenus et dépenses factices.
+ * Mock budget dataset over 12 months.
+ * - Realistic recurring + exceptional incomes
+ * - Fixed, variable and savings expenses
+ * - Planned vs real amounts/dates
+ * - Several accounts to test filters, totals and dashboards
  */
-export const mockPeriods: Period[] = [
-  {
-    date: '2025-01',
-    incomes: [
-      {
-        id: 'inc-jan-sal',
-        name: 'Salaire',
-        type: { id: 'salary', name: 'Salaire', saving: false },
-        plannedAmount: 2500,
-        plannedDate: '2025-01-01',
-        realAmount: 2500,
-        realDate: '2025-01-01',
-        accountId: 'main',
-      }
-    ],
-    expenses: [
-      {
-        id: 'exp-jan-loyer',
-        name: 'Loyer',
-        type: 'fixed',
-        note: '',
-        plannedAmount: 900,
-        plannedDate: '2025-01-02',
-        realAmount: 900,
-        realDate: '2025-01-02',
-        categoryId: 'rent',
-        accountId: 'main',
-      },
-      {
-        id: 'exp-jan-food',
-        name: 'Courses',
-        type: 'variable',
-        note: '',
-        plannedAmount: 300,
-        plannedDate: '2025-01-10',
-        realAmount: 320,
-        realDate: '2025-01-12',
-        categoryId: 'groceries',
-        accountId: 'main',
-      }
-    ]
-  },
-  // ... 11 autres mois
-];
-
-// Génération automatique pour 12 mois (2025-01 à 2025-12)
-export function generateMockPeriods(): Period[] {
-  const months = [
-    '2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06',
-    '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12',
-  ];
-  return months.map((date, idx) => ({
-    date,
-    incomes: [
-      {
-        id: `inc-${date}-sal`,
-        name: 'Salaire',
-        type: { id: 'salary', name: 'Salaire', saving: false },
-        plannedAmount: 2500,
-        plannedDate: `${date}-01`,
-        realAmount: 2500,
-        realDate: `${date}-01`,
-        accountId: 'main',
-      }
-    ],
-    expenses: [
-      {
-        id: `exp-${date}-loyer`,
-        name: 'Loyer',
-        type: 'fixed',
-        note: '',
-        plannedAmount: 900,
-        plannedDate: `${date}-02`,
-        realAmount: 900,
-        realDate: `${date}-02`,
-        categoryId: 'rent',
-        accountId: 'main',
-      },
-      {
-        id: `exp-${date}-food`,
-        name: 'Courses',
-        type: 'variable',
-        note: '',
-        plannedAmount: 300,
-        plannedDate: `${date}-10`,
-        realAmount: 320,
-        realDate: `${date}-12`,
-        categoryId: 'groceries',
-        accountId: 'main',
-      }
-    ]
-  }));
-}
+export const mockBudgetOneYear: Budget = {
+  "id": "main",
+  "periods": [
+    {
+      "date": "2025-01",
+      "incomes": [
+        {
+          "id": "2025-01-income-salary",
+          "name": "Salaire CDI",
+          "typeId": "salary",
+          "plannedAmount": 3200,
+          "plannedDate": "2025-01-28",
+          "realAmount": 3200,
+          "realDate": "2025-01-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-income-meal",
+          "name": "Carte ticket restaurant",
+          "typeId": "other-income",
+          "plannedAmount": 180,
+          "plannedDate": "2025-01-02",
+          "realAmount": 180,
+          "realDate": "2025-01-02",
+          "accountId": "ticket-restaurant"
+        },
+        {
+          "id": "2025-01-income-freelance",
+          "name": "Mission freelance",
+          "typeId": "other-income",
+          "plannedAmount": 450,
+          "plannedDate": "2025-01-15",
+          "realAmount": 450,
+          "realDate": "2025-01-16",
+          "accountId": "business"
+        },
+        {
+          "id": "2025-01-income-rent",
+          "name": "Revenus locatifs",
+          "typeId": "rent-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-01-05",
+          "realAmount": 650,
+          "realDate": "2025-01-05",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-income-interest",
+          "name": "Intérêts livret",
+          "typeId": "interest",
+          "plannedAmount": 8,
+          "plannedDate": "2025-01-01",
+          "realAmount": 8,
+          "realDate": "2025-01-01",
+          "accountId": "savings"
+        },
+        {
+          "id": "2025-01-income-savings-transfer",
+          "name": "Virement vers épargne",
+          "typeId": "savings-transfer",
+          "plannedAmount": 450,
+          "plannedDate": "2025-01-29",
+          "realAmount": 450,
+          "realDate": "2025-01-29",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-01-income-salary"
+        },
+        {
+          "id": "2025-01-income-pea",
+          "name": "Versement PEA",
+          "typeId": "pea",
+          "plannedAmount": 150,
+          "plannedDate": "2025-01-03",
+          "realAmount": 150,
+          "realDate": "2025-01-03",
+          "accountId": "revolut",
+          "deductedFromIncomeId": "2025-01-income-salary"
+        },
+        {
+          "id": "2025-01-income-pel",
+          "name": "Versement PEL",
+          "typeId": "pel",
+          "plannedAmount": 120,
+          "plannedDate": "2025-01-04",
+          "realAmount": 120,
+          "realDate": "2025-01-04",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-01-income-salary"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "2025-01-expense-rent-5",
+          "name": "Loyer appartement",
+          "type": "fixed",
+          "note": "Paiement mensuel",
+          "plannedAmount": 980,
+          "plannedDate": "2025-01-05",
+          "realAmount": 980,
+          "realDate": "2025-01-05",
+          "categoryId": "rent",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-utilities-7",
+          "name": "Électricité & eau",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 107,
+          "plannedDate": "2025-01-07",
+          "realAmount": 107,
+          "realDate": "2025-01-07",
+          "categoryId": "utilities",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-internet-8",
+          "name": "Internet fibre",
+          "type": "fixed",
+          "note": "Box internet",
+          "plannedAmount": 30,
+          "plannedDate": "2025-01-08",
+          "realAmount": 30,
+          "realDate": "2025-01-08",
+          "categoryId": "internet",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-phone-9",
+          "name": "Forfait mobile",
+          "type": "fixed",
+          "note": "Abonnement téléphonique",
+          "plannedAmount": 16,
+          "plannedDate": "2025-01-09",
+          "realAmount": 16,
+          "realDate": "2025-01-09",
+          "categoryId": "phone",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-insurance-10",
+          "name": "Assurance habitation",
+          "type": "fixed",
+          "note": "Contrat annuel mensualisé",
+          "plannedAmount": 22,
+          "plannedDate": "2025-01-10",
+          "realAmount": 22,
+          "realDate": "2025-01-10",
+          "categoryId": "insurance",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-health-11",
+          "name": "Mutuelle santé",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 48,
+          "plannedDate": "2025-01-11",
+          "realAmount": 48,
+          "realDate": "2025-01-11",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-subscriptions-12",
+          "name": "Streaming & cloud",
+          "type": "fixed",
+          "note": "Netflix, Spotify, iCloud, etc.",
+          "plannedAmount": 42,
+          "plannedDate": "2025-01-12",
+          "realAmount": 42,
+          "realDate": "2025-01-12",
+          "categoryId": "subscriptions",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-sports-13",
+          "name": "Salle de sport",
+          "type": "fixed",
+          "note": "Abonnement sport",
+          "plannedAmount": 35,
+          "plannedDate": "2025-01-13",
+          "realAmount": 35,
+          "realDate": "2025-01-13",
+          "categoryId": "sports",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-fees-14",
+          "name": "Frais bancaires",
+          "type": "fixed",
+          "note": "Carte + tenue de compte",
+          "plannedAmount": 7,
+          "plannedDate": "2025-01-14",
+          "realAmount": 7,
+          "realDate": "2025-01-14",
+          "categoryId": "fees",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-groceries-6",
+          "name": "Courses",
+          "type": "variable",
+          "note": "Supermarché et vrac",
+          "plannedAmount": 420,
+          "plannedDate": "2025-01-06",
+          "realAmount": 420,
+          "realDate": "2025-01-06",
+          "categoryId": "groceries",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-restaurants-18",
+          "name": "Restaurants & cafés",
+          "type": "variable",
+          "note": "Sorties et livraison",
+          "plannedAmount": 110,
+          "plannedDate": "2025-01-18",
+          "realAmount": 110,
+          "realDate": "2025-01-18",
+          "categoryId": "restaurants",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-transport-15",
+          "name": "Transport urbain",
+          "type": "variable",
+          "note": "Navigo / métro / VTC",
+          "plannedAmount": 75,
+          "plannedDate": "2025-01-15",
+          "realAmount": 75,
+          "realDate": "2025-01-15",
+          "categoryId": "transport",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-entertainment-21",
+          "name": "Loisirs",
+          "type": "variable",
+          "note": "Jeux, ciné, sorties",
+          "plannedAmount": 60,
+          "plannedDate": "2025-01-21",
+          "realAmount": 60,
+          "realDate": "2025-01-21",
+          "categoryId": "entertainment",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-01-expense-shopping-22",
+          "name": "Shopping maison & divers",
+          "type": "variable",
+          "note": "Achats ponctuels",
+          "plannedAmount": 70,
+          "plannedDate": "2025-01-22",
+          "realAmount": 70,
+          "realDate": "2025-01-22",
+          "categoryId": "shopping",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-01-expense-health-25",
+          "name": "Santé",
+          "type": "variable",
+          "note": "Pharmacie / consultation",
+          "plannedAmount": 20,
+          "plannedDate": "2025-01-25",
+          "realAmount": 20,
+          "realDate": "2025-01-25",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-savings-29",
+          "name": "Épargne de précaution",
+          "type": "savings",
+          "note": "Versement mensuel vers livret",
+          "plannedAmount": 450,
+          "plannedDate": "2025-01-29",
+          "realAmount": 450,
+          "realDate": "2025-01-29",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-investment-3",
+          "name": "Investissement PEA",
+          "type": "savings",
+          "note": "ETF world / DCA mensuel",
+          "plannedAmount": 150,
+          "plannedDate": "2025-01-03",
+          "realAmount": 150,
+          "realDate": "2025-01-03",
+          "categoryId": "investment",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-savings-4",
+          "name": "Épargne PEL",
+          "type": "savings",
+          "note": "Versement programmé PEL",
+          "plannedAmount": 120,
+          "plannedDate": "2025-01-04",
+          "realAmount": 120,
+          "realDate": "2025-01-04",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-01-expense-insurance-yearly",
+          "name": "Assurance auto annuelle",
+          "type": "fixed",
+          "note": "Paiement annuel",
+          "plannedAmount": 280,
+          "plannedDate": "2025-01-19",
+          "realAmount": 280,
+          "realDate": "2025-01-19",
+          "categoryId": "insurance",
+          "accountId": "main"
+        }
+      ]
+    },
+    {
+      "date": "2025-02",
+      "incomes": [
+        {
+          "id": "2025-02-income-salary",
+          "name": "Salaire CDI",
+          "typeId": "salary",
+          "plannedAmount": 3200,
+          "plannedDate": "2025-02-28",
+          "realAmount": 3185,
+          "realDate": "2025-02-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-income-meal",
+          "name": "Carte ticket restaurant",
+          "typeId": "other-income",
+          "plannedAmount": 180,
+          "plannedDate": "2025-02-02",
+          "realAmount": 180,
+          "realDate": "2025-02-02",
+          "accountId": "ticket-restaurant"
+        },
+        {
+          "id": "2025-02-income-rent",
+          "name": "Revenus locatifs",
+          "typeId": "rent-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-02-05",
+          "realAmount": 650,
+          "realDate": "2025-02-05",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-income-interest",
+          "name": "Intérêts livret",
+          "typeId": "interest",
+          "plannedAmount": 8,
+          "plannedDate": "2025-02-01",
+          "realAmount": 8,
+          "realDate": "2025-02-01",
+          "accountId": "savings"
+        },
+        {
+          "id": "2025-02-income-savings-transfer",
+          "name": "Virement vers épargne",
+          "typeId": "savings-transfer",
+          "plannedAmount": 450,
+          "plannedDate": "2025-02-29",
+          "realAmount": 450,
+          "realDate": "2025-02-29",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-02-income-salary"
+        },
+        {
+          "id": "2025-02-income-pea",
+          "name": "Versement PEA",
+          "typeId": "pea",
+          "plannedAmount": 150,
+          "plannedDate": "2025-02-03",
+          "realAmount": 150,
+          "realDate": "2025-02-03",
+          "accountId": "revolut",
+          "deductedFromIncomeId": "2025-02-income-salary"
+        },
+        {
+          "id": "2025-02-income-pel",
+          "name": "Versement PEL",
+          "typeId": "pel",
+          "plannedAmount": 120,
+          "plannedDate": "2025-02-04",
+          "realAmount": 120,
+          "realDate": "2025-02-04",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-02-income-salary"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "2025-02-expense-rent-5",
+          "name": "Loyer appartement",
+          "type": "fixed",
+          "note": "Paiement mensuel",
+          "plannedAmount": 980,
+          "plannedDate": "2025-02-05",
+          "realAmount": 980,
+          "realDate": "2025-02-05",
+          "categoryId": "rent",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-utilities-7",
+          "name": "Électricité & eau",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 107,
+          "plannedDate": "2025-02-07",
+          "realAmount": 107,
+          "realDate": "2025-02-07",
+          "categoryId": "utilities",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-internet-8",
+          "name": "Internet fibre",
+          "type": "fixed",
+          "note": "Box internet",
+          "plannedAmount": 30,
+          "plannedDate": "2025-02-08",
+          "realAmount": 30,
+          "realDate": "2025-02-08",
+          "categoryId": "internet",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-phone-9",
+          "name": "Forfait mobile",
+          "type": "fixed",
+          "note": "Abonnement téléphonique",
+          "plannedAmount": 16,
+          "plannedDate": "2025-02-09",
+          "realAmount": 16,
+          "realDate": "2025-02-09",
+          "categoryId": "phone",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-insurance-10",
+          "name": "Assurance habitation",
+          "type": "fixed",
+          "note": "Contrat annuel mensualisé",
+          "plannedAmount": 22,
+          "plannedDate": "2025-02-10",
+          "realAmount": 22,
+          "realDate": "2025-02-10",
+          "categoryId": "insurance",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-health-11",
+          "name": "Mutuelle santé",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 48,
+          "plannedDate": "2025-02-11",
+          "realAmount": 48,
+          "realDate": "2025-02-11",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-subscriptions-12",
+          "name": "Streaming & cloud",
+          "type": "fixed",
+          "note": "Netflix, Spotify, iCloud, etc.",
+          "plannedAmount": 42,
+          "plannedDate": "2025-02-12",
+          "realAmount": 42,
+          "realDate": "2025-02-12",
+          "categoryId": "subscriptions",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-sports-13",
+          "name": "Salle de sport",
+          "type": "fixed",
+          "note": "Abonnement sport",
+          "plannedAmount": 35,
+          "plannedDate": "2025-02-13",
+          "realAmount": 35,
+          "realDate": "2025-02-13",
+          "categoryId": "sports",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-fees-14",
+          "name": "Frais bancaires",
+          "type": "fixed",
+          "note": "Carte + tenue de compte",
+          "plannedAmount": 7,
+          "plannedDate": "2025-02-14",
+          "realAmount": 7,
+          "realDate": "2025-02-14",
+          "categoryId": "fees",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-groceries-6",
+          "name": "Courses",
+          "type": "variable",
+          "note": "Supermarché et vrac",
+          "plannedAmount": 430,
+          "plannedDate": "2025-02-06",
+          "realAmount": 430,
+          "realDate": "2025-02-06",
+          "categoryId": "groceries",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-restaurants-18",
+          "name": "Restaurants & cafés",
+          "type": "variable",
+          "note": "Sorties et livraison",
+          "plannedAmount": 95,
+          "plannedDate": "2025-02-18",
+          "realAmount": 95,
+          "realDate": "2025-02-18",
+          "categoryId": "restaurants",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-transport-15",
+          "name": "Transport urbain",
+          "type": "variable",
+          "note": "Navigo / métro / VTC",
+          "plannedAmount": 74,
+          "plannedDate": "2025-02-15",
+          "realAmount": 74,
+          "realDate": "2025-02-15",
+          "categoryId": "transport",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-entertainment-21",
+          "name": "Loisirs",
+          "type": "variable",
+          "note": "Jeux, ciné, sorties",
+          "plannedAmount": 55,
+          "plannedDate": "2025-02-21",
+          "realAmount": 55,
+          "realDate": "2025-02-21",
+          "categoryId": "entertainment",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-02-expense-shopping-22",
+          "name": "Shopping maison & divers",
+          "type": "variable",
+          "note": "Achats ponctuels",
+          "plannedAmount": 0,
+          "plannedDate": "2025-02-22",
+          "realAmount": 0,
+          "realDate": "2025-02-22",
+          "categoryId": "shopping",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-02-expense-education-26",
+          "name": "Formation / livres",
+          "type": "variable",
+          "note": "Apprentissage et veille",
+          "plannedAmount": 49,
+          "plannedDate": "2025-02-26",
+          "realAmount": 49,
+          "realDate": "2025-02-26",
+          "categoryId": "education",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-02-expense-savings-29",
+          "name": "Épargne de précaution",
+          "type": "savings",
+          "note": "Versement mensuel vers livret",
+          "plannedAmount": 450,
+          "plannedDate": "2025-02-29",
+          "realAmount": 450,
+          "realDate": "2025-02-29",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-investment-3",
+          "name": "Investissement PEA",
+          "type": "savings",
+          "note": "ETF world / DCA mensuel",
+          "plannedAmount": 150,
+          "plannedDate": "2025-02-03",
+          "realAmount": 150,
+          "realDate": "2025-02-03",
+          "categoryId": "investment",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-02-expense-savings-4",
+          "name": "Épargne PEL",
+          "type": "savings",
+          "note": "Versement programmé PEL",
+          "plannedAmount": 120,
+          "plannedDate": "2025-02-04",
+          "realAmount": 120,
+          "realDate": "2025-02-04",
+          "categoryId": "savings",
+          "accountId": "main"
+        }
+      ]
+    },
+    {
+      "date": "2025-03",
+      "incomes": [
+        {
+          "id": "2025-03-income-salary",
+          "name": "Salaire CDI",
+          "typeId": "salary",
+          "plannedAmount": 3200,
+          "plannedDate": "2025-03-28",
+          "realAmount": 3200,
+          "realDate": "2025-03-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-income-meal",
+          "name": "Carte ticket restaurant",
+          "typeId": "other-income",
+          "plannedAmount": 200,
+          "plannedDate": "2025-03-02",
+          "realAmount": 200,
+          "realDate": "2025-03-02",
+          "accountId": "ticket-restaurant"
+        },
+        {
+          "id": "2025-03-income-freelance",
+          "name": "Mission freelance",
+          "typeId": "other-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-03-15",
+          "realAmount": 650,
+          "realDate": "2025-03-16",
+          "accountId": "business"
+        },
+        {
+          "id": "2025-03-income-rent",
+          "name": "Revenus locatifs",
+          "typeId": "rent-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-03-05",
+          "realAmount": 650,
+          "realDate": "2025-03-05",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-income-dividend",
+          "name": "Dividendes ETF",
+          "typeId": "dividend",
+          "plannedAmount": 85,
+          "plannedDate": "2025-03-20",
+          "realAmount": 85,
+          "realDate": "2025-03-20",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-03-income-interest",
+          "name": "Intérêts livret",
+          "typeId": "interest",
+          "plannedAmount": 9,
+          "plannedDate": "2025-03-01",
+          "realAmount": 9,
+          "realDate": "2025-03-01",
+          "accountId": "savings"
+        },
+        {
+          "id": "2025-03-income-refund",
+          "name": "Remboursement",
+          "typeId": "refund",
+          "plannedAmount": 35,
+          "plannedDate": "2025-03-12",
+          "realAmount": 35,
+          "realDate": "2025-03-12",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-income-savings-transfer",
+          "name": "Virement vers épargne",
+          "typeId": "savings-transfer",
+          "plannedAmount": 450,
+          "plannedDate": "2025-03-29",
+          "realAmount": 450,
+          "realDate": "2025-03-29",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-03-income-salary"
+        },
+        {
+          "id": "2025-03-income-pea",
+          "name": "Versement PEA",
+          "typeId": "pea",
+          "plannedAmount": 150,
+          "plannedDate": "2025-03-03",
+          "realAmount": 150,
+          "realDate": "2025-03-03",
+          "accountId": "revolut",
+          "deductedFromIncomeId": "2025-03-income-salary"
+        },
+        {
+          "id": "2025-03-income-pel",
+          "name": "Versement PEL",
+          "typeId": "pel",
+          "plannedAmount": 120,
+          "plannedDate": "2025-03-04",
+          "realAmount": 120,
+          "realDate": "2025-03-04",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-03-income-salary"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "2025-03-expense-rent-5",
+          "name": "Loyer appartement",
+          "type": "fixed",
+          "note": "Paiement mensuel",
+          "plannedAmount": 980,
+          "plannedDate": "2025-03-05",
+          "realAmount": 980,
+          "realDate": "2025-03-05",
+          "categoryId": "rent",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-utilities-7",
+          "name": "Électricité & eau",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 92,
+          "plannedDate": "2025-03-07",
+          "realAmount": 92,
+          "realDate": "2025-03-07",
+          "categoryId": "utilities",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-internet-8",
+          "name": "Internet fibre",
+          "type": "fixed",
+          "note": "Box internet",
+          "plannedAmount": 30,
+          "plannedDate": "2025-03-08",
+          "realAmount": 30,
+          "realDate": "2025-03-08",
+          "categoryId": "internet",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-phone-9",
+          "name": "Forfait mobile",
+          "type": "fixed",
+          "note": "Abonnement téléphonique",
+          "plannedAmount": 16,
+          "plannedDate": "2025-03-09",
+          "realAmount": 16,
+          "realDate": "2025-03-09",
+          "categoryId": "phone",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-insurance-10",
+          "name": "Assurance habitation",
+          "type": "fixed",
+          "note": "Contrat annuel mensualisé",
+          "plannedAmount": 22,
+          "plannedDate": "2025-03-10",
+          "realAmount": 22,
+          "realDate": "2025-03-10",
+          "categoryId": "insurance",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-health-11",
+          "name": "Mutuelle santé",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 48,
+          "plannedDate": "2025-03-11",
+          "realAmount": 48,
+          "realDate": "2025-03-11",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-subscriptions-12",
+          "name": "Streaming & cloud",
+          "type": "fixed",
+          "note": "Netflix, Spotify, iCloud, etc.",
+          "plannedAmount": 42,
+          "plannedDate": "2025-03-12",
+          "realAmount": 42,
+          "realDate": "2025-03-12",
+          "categoryId": "subscriptions",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-sports-13",
+          "name": "Salle de sport",
+          "type": "fixed",
+          "note": "Abonnement sport",
+          "plannedAmount": 35,
+          "plannedDate": "2025-03-13",
+          "realAmount": 35,
+          "realDate": "2025-03-13",
+          "categoryId": "sports",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-fees-14",
+          "name": "Frais bancaires",
+          "type": "fixed",
+          "note": "Carte + tenue de compte",
+          "plannedAmount": 7,
+          "plannedDate": "2025-03-14",
+          "realAmount": 7,
+          "realDate": "2025-03-14",
+          "categoryId": "fees",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-groceries-6",
+          "name": "Courses",
+          "type": "variable",
+          "note": "Supermarché et vrac",
+          "plannedAmount": 410,
+          "plannedDate": "2025-03-06",
+          "realAmount": 402,
+          "realDate": "2025-03-06",
+          "categoryId": "groceries",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-restaurants-18",
+          "name": "Restaurants & cafés",
+          "type": "variable",
+          "note": "Sorties et livraison",
+          "plannedAmount": 125,
+          "plannedDate": "2025-03-18",
+          "realAmount": 125,
+          "realDate": "2025-03-18",
+          "categoryId": "restaurants",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-transport-15",
+          "name": "Transport urbain",
+          "type": "variable",
+          "note": "Navigo / métro / VTC",
+          "plannedAmount": 76,
+          "plannedDate": "2025-03-15",
+          "realAmount": 76,
+          "realDate": "2025-03-15",
+          "categoryId": "transport",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-entertainment-21",
+          "name": "Loisirs",
+          "type": "variable",
+          "note": "Jeux, ciné, sorties",
+          "plannedAmount": 70,
+          "plannedDate": "2025-03-21",
+          "realAmount": 70,
+          "realDate": "2025-03-21",
+          "categoryId": "entertainment",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-03-expense-shopping-22",
+          "name": "Shopping maison & divers",
+          "type": "variable",
+          "note": "Achats ponctuels",
+          "plannedAmount": 85,
+          "plannedDate": "2025-03-22",
+          "realAmount": 85,
+          "realDate": "2025-03-22",
+          "categoryId": "shopping",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-03-expense-health-25",
+          "name": "Santé",
+          "type": "variable",
+          "note": "Pharmacie / consultation",
+          "plannedAmount": 35,
+          "plannedDate": "2025-03-25",
+          "realAmount": 35,
+          "realDate": "2025-03-25",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-savings-29",
+          "name": "Épargne de précaution",
+          "type": "savings",
+          "note": "Versement mensuel vers livret",
+          "plannedAmount": 450,
+          "plannedDate": "2025-03-29",
+          "realAmount": 450,
+          "realDate": "2025-03-29",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-investment-3",
+          "name": "Investissement PEA",
+          "type": "savings",
+          "note": "ETF world / DCA mensuel",
+          "plannedAmount": 150,
+          "plannedDate": "2025-03-03",
+          "realAmount": 150,
+          "realDate": "2025-03-03",
+          "categoryId": "investment",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-savings-4",
+          "name": "Épargne PEL",
+          "type": "savings",
+          "note": "Versement programmé PEL",
+          "plannedAmount": 120,
+          "plannedDate": "2025-03-04",
+          "realAmount": 120,
+          "realDate": "2025-03-04",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-03-expense-emergency-27",
+          "name": "Fonds d’urgence",
+          "type": "savings",
+          "note": "Renforcement de la réserve",
+          "plannedAmount": 80,
+          "plannedDate": "2025-03-27",
+          "realAmount": 80,
+          "realDate": "2025-03-27",
+          "categoryId": "emergency",
+          "accountId": "main"
+        }
+      ]
+    },
+    {
+      "date": "2025-04",
+      "incomes": [
+        {
+          "id": "2025-04-income-salary",
+          "name": "Salaire CDI",
+          "typeId": "salary",
+          "plannedAmount": 3200,
+          "plannedDate": "2025-04-28",
+          "realAmount": 3200,
+          "realDate": "2025-04-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-income-meal",
+          "name": "Carte ticket restaurant",
+          "typeId": "other-income",
+          "plannedAmount": 180,
+          "plannedDate": "2025-04-02",
+          "realAmount": 180,
+          "realDate": "2025-04-02",
+          "accountId": "ticket-restaurant"
+        },
+        {
+          "id": "2025-04-income-freelance",
+          "name": "Mission freelance",
+          "typeId": "other-income",
+          "plannedAmount": 300,
+          "plannedDate": "2025-04-15",
+          "realAmount": 250,
+          "realDate": "2025-04-16",
+          "accountId": "business"
+        },
+        {
+          "id": "2025-04-income-rent",
+          "name": "Revenus locatifs",
+          "typeId": "rent-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-04-05",
+          "realAmount": 650,
+          "realDate": "2025-04-05",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-income-interest",
+          "name": "Intérêts livret",
+          "typeId": "interest",
+          "plannedAmount": 9,
+          "plannedDate": "2025-04-01",
+          "realAmount": 9,
+          "realDate": "2025-04-01",
+          "accountId": "savings"
+        },
+        {
+          "id": "2025-04-income-bonus",
+          "name": "Prime",
+          "typeId": "bonus",
+          "plannedAmount": 700,
+          "plannedDate": "2025-04-28",
+          "realAmount": 700,
+          "realDate": "2025-04-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-income-savings-transfer",
+          "name": "Virement vers épargne",
+          "typeId": "savings-transfer",
+          "plannedAmount": 700,
+          "plannedDate": "2025-04-29",
+          "realAmount": 700,
+          "realDate": "2025-04-29",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-04-income-salary"
+        },
+        {
+          "id": "2025-04-income-pea",
+          "name": "Versement PEA",
+          "typeId": "pea",
+          "plannedAmount": 150,
+          "plannedDate": "2025-04-03",
+          "realAmount": 150,
+          "realDate": "2025-04-03",
+          "accountId": "revolut",
+          "deductedFromIncomeId": "2025-04-income-salary"
+        },
+        {
+          "id": "2025-04-income-pel",
+          "name": "Versement PEL",
+          "typeId": "pel",
+          "plannedAmount": 120,
+          "plannedDate": "2025-04-04",
+          "realAmount": 120,
+          "realDate": "2025-04-04",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-04-income-salary"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "2025-04-expense-rent-5",
+          "name": "Loyer appartement",
+          "type": "fixed",
+          "note": "Paiement mensuel",
+          "plannedAmount": 980,
+          "plannedDate": "2025-04-05",
+          "realAmount": 980,
+          "realDate": "2025-04-05",
+          "categoryId": "rent",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-utilities-7",
+          "name": "Électricité & eau",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 92,
+          "plannedDate": "2025-04-07",
+          "realAmount": 92,
+          "realDate": "2025-04-07",
+          "categoryId": "utilities",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-internet-8",
+          "name": "Internet fibre",
+          "type": "fixed",
+          "note": "Box internet",
+          "plannedAmount": 30,
+          "plannedDate": "2025-04-08",
+          "realAmount": 30,
+          "realDate": "2025-04-08",
+          "categoryId": "internet",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-phone-9",
+          "name": "Forfait mobile",
+          "type": "fixed",
+          "note": "Abonnement téléphonique",
+          "plannedAmount": 16,
+          "plannedDate": "2025-04-09",
+          "realAmount": 16,
+          "realDate": "2025-04-09",
+          "categoryId": "phone",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-insurance-10",
+          "name": "Assurance habitation",
+          "type": "fixed",
+          "note": "Contrat annuel mensualisé",
+          "plannedAmount": 22,
+          "plannedDate": "2025-04-10",
+          "realAmount": 22,
+          "realDate": "2025-04-10",
+          "categoryId": "insurance",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-health-11",
+          "name": "Mutuelle santé",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 48,
+          "plannedDate": "2025-04-11",
+          "realAmount": 48,
+          "realDate": "2025-04-11",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-subscriptions-12",
+          "name": "Streaming & cloud",
+          "type": "fixed",
+          "note": "Netflix, Spotify, iCloud, etc.",
+          "plannedAmount": 42,
+          "plannedDate": "2025-04-12",
+          "realAmount": 42,
+          "realDate": "2025-04-12",
+          "categoryId": "subscriptions",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-sports-13",
+          "name": "Salle de sport",
+          "type": "fixed",
+          "note": "Abonnement sport",
+          "plannedAmount": 35,
+          "plannedDate": "2025-04-13",
+          "realAmount": 35,
+          "realDate": "2025-04-13",
+          "categoryId": "sports",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-fees-14",
+          "name": "Frais bancaires",
+          "type": "fixed",
+          "note": "Carte + tenue de compte",
+          "plannedAmount": 7,
+          "plannedDate": "2025-04-14",
+          "realAmount": 7,
+          "realDate": "2025-04-14",
+          "categoryId": "fees",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-groceries-6",
+          "name": "Courses",
+          "type": "variable",
+          "note": "Supermarché et vrac",
+          "plannedAmount": 445,
+          "plannedDate": "2025-04-06",
+          "realAmount": 445,
+          "realDate": "2025-04-06",
+          "categoryId": "groceries",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-restaurants-18",
+          "name": "Restaurants & cafés",
+          "type": "variable",
+          "note": "Sorties et livraison",
+          "plannedAmount": 140,
+          "plannedDate": "2025-04-18",
+          "realAmount": 140,
+          "realDate": "2025-04-18",
+          "categoryId": "restaurants",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-transport-15",
+          "name": "Transport urbain",
+          "type": "variable",
+          "note": "Navigo / métro / VTC",
+          "plannedAmount": 78,
+          "plannedDate": "2025-04-15",
+          "realAmount": 78,
+          "realDate": "2025-04-15",
+          "categoryId": "transport",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-entertainment-21",
+          "name": "Loisirs",
+          "type": "variable",
+          "note": "Jeux, ciné, sorties",
+          "plannedAmount": 95,
+          "plannedDate": "2025-04-21",
+          "realAmount": 95,
+          "realDate": "2025-04-21",
+          "categoryId": "entertainment",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-04-expense-shopping-22",
+          "name": "Shopping maison & divers",
+          "type": "variable",
+          "note": "Achats ponctuels",
+          "plannedAmount": 60,
+          "plannedDate": "2025-04-22",
+          "realAmount": 60,
+          "realDate": "2025-04-22",
+          "categoryId": "shopping",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-04-expense-clothing-24",
+          "name": "Vêtements",
+          "type": "variable",
+          "note": "Renouvellement dressing",
+          "plannedAmount": 75,
+          "plannedDate": "2025-04-24",
+          "realAmount": 75,
+          "realDate": "2025-04-24",
+          "categoryId": "clothing",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-04-expense-savings-29",
+          "name": "Épargne de précaution",
+          "type": "savings",
+          "note": "Versement mensuel vers livret",
+          "plannedAmount": 700,
+          "plannedDate": "2025-04-29",
+          "realAmount": 700,
+          "realDate": "2025-04-29",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-investment-3",
+          "name": "Investissement PEA",
+          "type": "savings",
+          "note": "ETF world / DCA mensuel",
+          "plannedAmount": 150,
+          "plannedDate": "2025-04-03",
+          "realAmount": 150,
+          "realDate": "2025-04-03",
+          "categoryId": "investment",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-savings-4",
+          "name": "Épargne PEL",
+          "type": "savings",
+          "note": "Versement programmé PEL",
+          "plannedAmount": 120,
+          "plannedDate": "2025-04-04",
+          "realAmount": 120,
+          "realDate": "2025-04-04",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-04-expense-taxes",
+          "name": "Acompte impôt",
+          "type": "fixed",
+          "note": "Premier acompte",
+          "plannedAmount": 220,
+          "plannedDate": "2025-04-25",
+          "realAmount": 220,
+          "realDate": "2025-04-25",
+          "categoryId": "taxes",
+          "accountId": "main"
+        }
+      ]
+    },
+    {
+      "date": "2025-05",
+      "incomes": [
+        {
+          "id": "2025-05-income-salary",
+          "name": "Salaire CDI",
+          "typeId": "salary",
+          "plannedAmount": 3250,
+          "plannedDate": "2025-05-28",
+          "realAmount": 3270,
+          "realDate": "2025-05-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-income-meal",
+          "name": "Carte ticket restaurant",
+          "typeId": "other-income",
+          "plannedAmount": 180,
+          "plannedDate": "2025-05-02",
+          "realAmount": 180,
+          "realDate": "2025-05-02",
+          "accountId": "ticket-restaurant"
+        },
+        {
+          "id": "2025-05-income-freelance",
+          "name": "Mission freelance",
+          "typeId": "other-income",
+          "plannedAmount": 900,
+          "plannedDate": "2025-05-15",
+          "realAmount": 900,
+          "realDate": "2025-05-16",
+          "accountId": "business"
+        },
+        {
+          "id": "2025-05-income-rent",
+          "name": "Revenus locatifs",
+          "typeId": "rent-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-05-05",
+          "realAmount": 650,
+          "realDate": "2025-05-05",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-income-interest",
+          "name": "Intérêts livret",
+          "typeId": "interest",
+          "plannedAmount": 9,
+          "plannedDate": "2025-05-01",
+          "realAmount": 9,
+          "realDate": "2025-05-01",
+          "accountId": "savings"
+        },
+        {
+          "id": "2025-05-income-other",
+          "name": "Vente / autre revenu",
+          "typeId": "other-income",
+          "plannedAmount": 150,
+          "plannedDate": "2025-05-22",
+          "realAmount": 150,
+          "realDate": "2025-05-22",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-05-income-savings-transfer",
+          "name": "Virement vers épargne",
+          "typeId": "savings-transfer",
+          "plannedAmount": 450,
+          "plannedDate": "2025-05-29",
+          "realAmount": 450,
+          "realDate": "2025-05-29",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-05-income-salary"
+        },
+        {
+          "id": "2025-05-income-pea",
+          "name": "Versement PEA",
+          "typeId": "pea",
+          "plannedAmount": 150,
+          "plannedDate": "2025-05-03",
+          "realAmount": 150,
+          "realDate": "2025-05-03",
+          "accountId": "revolut",
+          "deductedFromIncomeId": "2025-05-income-salary"
+        },
+        {
+          "id": "2025-05-income-pel",
+          "name": "Versement PEL",
+          "typeId": "pel",
+          "plannedAmount": 120,
+          "plannedDate": "2025-05-04",
+          "realAmount": 120,
+          "realDate": "2025-05-04",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-05-income-salary"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "2025-05-expense-rent-5",
+          "name": "Loyer appartement",
+          "type": "fixed",
+          "note": "Paiement mensuel",
+          "plannedAmount": 980,
+          "plannedDate": "2025-05-05",
+          "realAmount": 980,
+          "realDate": "2025-05-05",
+          "categoryId": "rent",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-utilities-7",
+          "name": "Électricité & eau",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 92,
+          "plannedDate": "2025-05-07",
+          "realAmount": 92,
+          "realDate": "2025-05-07",
+          "categoryId": "utilities",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-internet-8",
+          "name": "Internet fibre",
+          "type": "fixed",
+          "note": "Box internet",
+          "plannedAmount": 30,
+          "plannedDate": "2025-05-08",
+          "realAmount": 30,
+          "realDate": "2025-05-08",
+          "categoryId": "internet",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-phone-9",
+          "name": "Forfait mobile",
+          "type": "fixed",
+          "note": "Abonnement téléphonique",
+          "plannedAmount": 16,
+          "plannedDate": "2025-05-09",
+          "realAmount": 16,
+          "realDate": "2025-05-09",
+          "categoryId": "phone",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-insurance-10",
+          "name": "Assurance habitation",
+          "type": "fixed",
+          "note": "Contrat annuel mensualisé",
+          "plannedAmount": 22,
+          "plannedDate": "2025-05-10",
+          "realAmount": 22,
+          "realDate": "2025-05-10",
+          "categoryId": "insurance",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-health-11",
+          "name": "Mutuelle santé",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 48,
+          "plannedDate": "2025-05-11",
+          "realAmount": 48,
+          "realDate": "2025-05-11",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-subscriptions-12",
+          "name": "Streaming & cloud",
+          "type": "fixed",
+          "note": "Netflix, Spotify, iCloud, etc.",
+          "plannedAmount": 42,
+          "plannedDate": "2025-05-12",
+          "realAmount": 42,
+          "realDate": "2025-05-12",
+          "categoryId": "subscriptions",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-sports-13",
+          "name": "Salle de sport",
+          "type": "fixed",
+          "note": "Abonnement sport",
+          "plannedAmount": 35,
+          "plannedDate": "2025-05-13",
+          "realAmount": 35,
+          "realDate": "2025-05-13",
+          "categoryId": "sports",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-fees-14",
+          "name": "Frais bancaires",
+          "type": "fixed",
+          "note": "Carte + tenue de compte",
+          "plannedAmount": 7,
+          "plannedDate": "2025-05-14",
+          "realAmount": 7,
+          "realDate": "2025-05-14",
+          "categoryId": "fees",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-groceries-6",
+          "name": "Courses",
+          "type": "variable",
+          "note": "Supermarché et vrac",
+          "plannedAmount": 435,
+          "plannedDate": "2025-05-06",
+          "realAmount": 435,
+          "realDate": "2025-05-06",
+          "categoryId": "groceries",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-restaurants-18",
+          "name": "Restaurants & cafés",
+          "type": "variable",
+          "note": "Sorties et livraison",
+          "plannedAmount": 135,
+          "plannedDate": "2025-05-18",
+          "realAmount": 135,
+          "realDate": "2025-05-18",
+          "categoryId": "restaurants",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-transport-15",
+          "name": "Transport urbain",
+          "type": "variable",
+          "note": "Navigo / métro / VTC",
+          "plannedAmount": 80,
+          "plannedDate": "2025-05-15",
+          "realAmount": 80,
+          "realDate": "2025-05-15",
+          "categoryId": "transport",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-entertainment-21",
+          "name": "Loisirs",
+          "type": "variable",
+          "note": "Jeux, ciné, sorties",
+          "plannedAmount": 85,
+          "plannedDate": "2025-05-21",
+          "realAmount": 85,
+          "realDate": "2025-05-21",
+          "categoryId": "entertainment",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-05-expense-shopping-22",
+          "name": "Shopping maison & divers",
+          "type": "variable",
+          "note": "Achats ponctuels",
+          "plannedAmount": 90,
+          "plannedDate": "2025-05-22",
+          "realAmount": 90,
+          "realDate": "2025-05-22",
+          "categoryId": "shopping",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-05-expense-health-25",
+          "name": "Santé",
+          "type": "variable",
+          "note": "Pharmacie / consultation",
+          "plannedAmount": 18,
+          "plannedDate": "2025-05-25",
+          "realAmount": 18,
+          "realDate": "2025-05-25",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-savings-29",
+          "name": "Épargne de précaution",
+          "type": "savings",
+          "note": "Versement mensuel vers livret",
+          "plannedAmount": 450,
+          "plannedDate": "2025-05-29",
+          "realAmount": 450,
+          "realDate": "2025-05-29",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-investment-3",
+          "name": "Investissement PEA",
+          "type": "savings",
+          "note": "ETF world / DCA mensuel",
+          "plannedAmount": 150,
+          "plannedDate": "2025-05-03",
+          "realAmount": 150,
+          "realDate": "2025-05-03",
+          "categoryId": "investment",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-05-expense-savings-4",
+          "name": "Épargne PEL",
+          "type": "savings",
+          "note": "Versement programmé PEL",
+          "plannedAmount": 120,
+          "plannedDate": "2025-05-04",
+          "realAmount": 120,
+          "realDate": "2025-05-04",
+          "categoryId": "savings",
+          "accountId": "main"
+        }
+      ]
+    },
+    {
+      "date": "2025-06",
+      "incomes": [
+        {
+          "id": "2025-06-income-salary",
+          "name": "Salaire CDI",
+          "typeId": "salary",
+          "plannedAmount": 3250,
+          "plannedDate": "2025-06-28",
+          "realAmount": 3250,
+          "realDate": "2025-06-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-income-meal",
+          "name": "Carte ticket restaurant",
+          "typeId": "other-income",
+          "plannedAmount": 200,
+          "plannedDate": "2025-06-02",
+          "realAmount": 200,
+          "realDate": "2025-06-02",
+          "accountId": "ticket-restaurant"
+        },
+        {
+          "id": "2025-06-income-rent",
+          "name": "Revenus locatifs",
+          "typeId": "rent-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-06-05",
+          "realAmount": 650,
+          "realDate": "2025-06-05",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-income-dividend",
+          "name": "Dividendes ETF",
+          "typeId": "dividend",
+          "plannedAmount": 120,
+          "plannedDate": "2025-06-20",
+          "realAmount": 123,
+          "realDate": "2025-06-20",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-06-income-interest",
+          "name": "Intérêts livret",
+          "typeId": "interest",
+          "plannedAmount": 10,
+          "plannedDate": "2025-06-01",
+          "realAmount": 10,
+          "realDate": "2025-06-01",
+          "accountId": "savings"
+        },
+        {
+          "id": "2025-06-income-savings-transfer",
+          "name": "Virement vers épargne",
+          "typeId": "savings-transfer",
+          "plannedAmount": 450,
+          "plannedDate": "2025-06-29",
+          "realAmount": 450,
+          "realDate": "2025-06-29",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-06-income-salary"
+        },
+        {
+          "id": "2025-06-income-pea",
+          "name": "Versement PEA",
+          "typeId": "pea",
+          "plannedAmount": 150,
+          "plannedDate": "2025-06-03",
+          "realAmount": 150,
+          "realDate": "2025-06-03",
+          "accountId": "revolut",
+          "deductedFromIncomeId": "2025-06-income-salary"
+        },
+        {
+          "id": "2025-06-income-pel",
+          "name": "Versement PEL",
+          "typeId": "pel",
+          "plannedAmount": 120,
+          "plannedDate": "2025-06-04",
+          "realAmount": 120,
+          "realDate": "2025-06-04",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-06-income-salary"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "2025-06-expense-rent-5",
+          "name": "Loyer appartement",
+          "type": "fixed",
+          "note": "Paiement mensuel",
+          "plannedAmount": 980,
+          "plannedDate": "2025-06-05",
+          "realAmount": 980,
+          "realDate": "2025-06-05",
+          "categoryId": "rent",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-utilities-7",
+          "name": "Électricité & eau",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 92,
+          "plannedDate": "2025-06-07",
+          "realAmount": 92,
+          "realDate": "2025-06-07",
+          "categoryId": "utilities",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-internet-8",
+          "name": "Internet fibre",
+          "type": "fixed",
+          "note": "Box internet",
+          "plannedAmount": 30,
+          "plannedDate": "2025-06-08",
+          "realAmount": 30,
+          "realDate": "2025-06-08",
+          "categoryId": "internet",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-phone-9",
+          "name": "Forfait mobile",
+          "type": "fixed",
+          "note": "Abonnement téléphonique",
+          "plannedAmount": 16,
+          "plannedDate": "2025-06-09",
+          "realAmount": 16,
+          "realDate": "2025-06-09",
+          "categoryId": "phone",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-insurance-10",
+          "name": "Assurance habitation",
+          "type": "fixed",
+          "note": "Contrat annuel mensualisé",
+          "plannedAmount": 22,
+          "plannedDate": "2025-06-10",
+          "realAmount": 22,
+          "realDate": "2025-06-10",
+          "categoryId": "insurance",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-health-11",
+          "name": "Mutuelle santé",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 48,
+          "plannedDate": "2025-06-11",
+          "realAmount": 48,
+          "realDate": "2025-06-11",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-subscriptions-12",
+          "name": "Streaming & cloud",
+          "type": "fixed",
+          "note": "Netflix, Spotify, iCloud, etc.",
+          "plannedAmount": 42,
+          "plannedDate": "2025-06-12",
+          "realAmount": 42,
+          "realDate": "2025-06-12",
+          "categoryId": "subscriptions",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-sports-13",
+          "name": "Salle de sport",
+          "type": "fixed",
+          "note": "Abonnement sport",
+          "plannedAmount": 35,
+          "plannedDate": "2025-06-13",
+          "realAmount": 35,
+          "realDate": "2025-06-13",
+          "categoryId": "sports",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-fees-14",
+          "name": "Frais bancaires",
+          "type": "fixed",
+          "note": "Carte + tenue de compte",
+          "plannedAmount": 7,
+          "plannedDate": "2025-06-14",
+          "realAmount": 7,
+          "realDate": "2025-06-14",
+          "categoryId": "fees",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-groceries-6",
+          "name": "Courses",
+          "type": "variable",
+          "note": "Supermarché et vrac",
+          "plannedAmount": 460,
+          "plannedDate": "2025-06-06",
+          "realAmount": 460,
+          "realDate": "2025-06-06",
+          "categoryId": "groceries",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-restaurants-18",
+          "name": "Restaurants & cafés",
+          "type": "variable",
+          "note": "Sorties et livraison",
+          "plannedAmount": 180,
+          "plannedDate": "2025-06-18",
+          "realAmount": 192,
+          "realDate": "2025-06-18",
+          "categoryId": "restaurants",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-transport-15",
+          "name": "Transport urbain",
+          "type": "variable",
+          "note": "Navigo / métro / VTC",
+          "plannedAmount": 82,
+          "plannedDate": "2025-06-15",
+          "realAmount": 82,
+          "realDate": "2025-06-15",
+          "categoryId": "transport",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-entertainment-21",
+          "name": "Loisirs",
+          "type": "variable",
+          "note": "Jeux, ciné, sorties",
+          "plannedAmount": 120,
+          "plannedDate": "2025-06-21",
+          "realAmount": 120,
+          "realDate": "2025-06-21",
+          "categoryId": "entertainment",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-06-expense-shopping-22",
+          "name": "Shopping maison & divers",
+          "type": "variable",
+          "note": "Achats ponctuels",
+          "plannedAmount": 120,
+          "plannedDate": "2025-06-22",
+          "realAmount": 120,
+          "realDate": "2025-06-22",
+          "categoryId": "shopping",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-06-expense-fuel-17",
+          "name": "Essence",
+          "type": "variable",
+          "note": "Déplacements voiture / location",
+          "plannedAmount": 45,
+          "plannedDate": "2025-06-17",
+          "realAmount": 45,
+          "realDate": "2025-06-17",
+          "categoryId": "fuel",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-06-expense-clothing-24",
+          "name": "Vêtements",
+          "type": "variable",
+          "note": "Renouvellement dressing",
+          "plannedAmount": 60,
+          "plannedDate": "2025-06-24",
+          "realAmount": 60,
+          "realDate": "2025-06-24",
+          "categoryId": "clothing",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-06-expense-education-26",
+          "name": "Formation / livres",
+          "type": "variable",
+          "note": "Apprentissage et veille",
+          "plannedAmount": 89,
+          "plannedDate": "2025-06-26",
+          "realAmount": 89,
+          "realDate": "2025-06-26",
+          "categoryId": "education",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-06-expense-savings-29",
+          "name": "Épargne de précaution",
+          "type": "savings",
+          "note": "Versement mensuel vers livret",
+          "plannedAmount": 450,
+          "plannedDate": "2025-06-29",
+          "realAmount": 450,
+          "realDate": "2025-06-29",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-investment-3",
+          "name": "Investissement PEA",
+          "type": "savings",
+          "note": "ETF world / DCA mensuel",
+          "plannedAmount": 150,
+          "plannedDate": "2025-06-03",
+          "realAmount": 150,
+          "realDate": "2025-06-03",
+          "categoryId": "investment",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-savings-4",
+          "name": "Épargne PEL",
+          "type": "savings",
+          "note": "Versement programmé PEL",
+          "plannedAmount": 120,
+          "plannedDate": "2025-06-04",
+          "realAmount": 120,
+          "realDate": "2025-06-04",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-emergency-27",
+          "name": "Fonds d’urgence",
+          "type": "savings",
+          "note": "Renforcement de la réserve",
+          "plannedAmount": 80,
+          "plannedDate": "2025-06-27",
+          "realAmount": 80,
+          "realDate": "2025-06-27",
+          "categoryId": "emergency",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-06-expense-travel-summer-booking",
+          "name": "Réservation vacances été",
+          "type": "variable",
+          "note": "Vol + hébergement",
+          "plannedAmount": 640,
+          "plannedDate": "2025-06-23",
+          "realAmount": 640,
+          "realDate": "2025-06-23",
+          "categoryId": "travel",
+          "accountId": "travel"
+        }
+      ]
+    },
+    {
+      "date": "2025-07",
+      "incomes": [
+        {
+          "id": "2025-07-income-salary",
+          "name": "Salaire CDI",
+          "typeId": "salary",
+          "plannedAmount": 3250,
+          "plannedDate": "2025-07-28",
+          "realAmount": 3250,
+          "realDate": "2025-07-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-income-meal",
+          "name": "Carte ticket restaurant",
+          "typeId": "other-income",
+          "plannedAmount": 180,
+          "plannedDate": "2025-07-02",
+          "realAmount": 180,
+          "realDate": "2025-07-02",
+          "accountId": "ticket-restaurant"
+        },
+        {
+          "id": "2025-07-income-freelance",
+          "name": "Mission freelance",
+          "typeId": "other-income",
+          "plannedAmount": 1200,
+          "plannedDate": "2025-07-15",
+          "realAmount": 1200,
+          "realDate": "2025-07-16",
+          "accountId": "business"
+        },
+        {
+          "id": "2025-07-income-rent",
+          "name": "Revenus locatifs",
+          "typeId": "rent-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-07-05",
+          "realAmount": 650,
+          "realDate": "2025-07-05",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-income-interest",
+          "name": "Intérêts livret",
+          "typeId": "interest",
+          "plannedAmount": 10,
+          "plannedDate": "2025-07-01",
+          "realAmount": 10,
+          "realDate": "2025-07-01",
+          "accountId": "savings"
+        },
+        {
+          "id": "2025-07-income-savings-transfer",
+          "name": "Virement vers épargne",
+          "typeId": "savings-transfer",
+          "plannedAmount": 450,
+          "plannedDate": "2025-07-29",
+          "realAmount": 450,
+          "realDate": "2025-07-29",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-07-income-salary"
+        },
+        {
+          "id": "2025-07-income-pea",
+          "name": "Versement PEA",
+          "typeId": "pea",
+          "plannedAmount": 250,
+          "plannedDate": "2025-07-03",
+          "realAmount": 250,
+          "realDate": "2025-07-03",
+          "accountId": "revolut",
+          "deductedFromIncomeId": "2025-07-income-salary"
+        },
+        {
+          "id": "2025-07-income-pel",
+          "name": "Versement PEL",
+          "typeId": "pel",
+          "plannedAmount": 120,
+          "plannedDate": "2025-07-04",
+          "realAmount": 120,
+          "realDate": "2025-07-04",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-07-income-salary"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "2025-07-expense-rent-5",
+          "name": "Loyer appartement",
+          "type": "fixed",
+          "note": "Paiement mensuel",
+          "plannedAmount": 980,
+          "plannedDate": "2025-07-05",
+          "realAmount": 980,
+          "realDate": "2025-07-05",
+          "categoryId": "rent",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-utilities-7",
+          "name": "Électricité & eau",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 92,
+          "plannedDate": "2025-07-07",
+          "realAmount": 92,
+          "realDate": "2025-07-07",
+          "categoryId": "utilities",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-internet-8",
+          "name": "Internet fibre",
+          "type": "fixed",
+          "note": "Box internet",
+          "plannedAmount": 30,
+          "plannedDate": "2025-07-08",
+          "realAmount": 30,
+          "realDate": "2025-07-08",
+          "categoryId": "internet",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-phone-9",
+          "name": "Forfait mobile",
+          "type": "fixed",
+          "note": "Abonnement téléphonique",
+          "plannedAmount": 16,
+          "plannedDate": "2025-07-09",
+          "realAmount": 16,
+          "realDate": "2025-07-09",
+          "categoryId": "phone",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-insurance-10",
+          "name": "Assurance habitation",
+          "type": "fixed",
+          "note": "Contrat annuel mensualisé",
+          "plannedAmount": 22,
+          "plannedDate": "2025-07-10",
+          "realAmount": 22,
+          "realDate": "2025-07-10",
+          "categoryId": "insurance",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-health-11",
+          "name": "Mutuelle santé",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 48,
+          "plannedDate": "2025-07-11",
+          "realAmount": 48,
+          "realDate": "2025-07-11",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-subscriptions-12",
+          "name": "Streaming & cloud",
+          "type": "fixed",
+          "note": "Netflix, Spotify, iCloud, etc.",
+          "plannedAmount": 42,
+          "plannedDate": "2025-07-12",
+          "realAmount": 42,
+          "realDate": "2025-07-12",
+          "categoryId": "subscriptions",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-sports-13",
+          "name": "Salle de sport",
+          "type": "fixed",
+          "note": "Abonnement sport",
+          "plannedAmount": 35,
+          "plannedDate": "2025-07-13",
+          "realAmount": 35,
+          "realDate": "2025-07-13",
+          "categoryId": "sports",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-fees-14",
+          "name": "Frais bancaires",
+          "type": "fixed",
+          "note": "Carte + tenue de compte",
+          "plannedAmount": 7,
+          "plannedDate": "2025-07-14",
+          "realAmount": 7,
+          "realDate": "2025-07-14",
+          "categoryId": "fees",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-groceries-6",
+          "name": "Courses",
+          "type": "variable",
+          "note": "Supermarché et vrac",
+          "plannedAmount": 470,
+          "plannedDate": "2025-07-06",
+          "realAmount": 470,
+          "realDate": "2025-07-06",
+          "categoryId": "groceries",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-restaurants-18",
+          "name": "Restaurants & cafés",
+          "type": "variable",
+          "note": "Sorties et livraison",
+          "plannedAmount": 210,
+          "plannedDate": "2025-07-18",
+          "realAmount": 222,
+          "realDate": "2025-07-18",
+          "categoryId": "restaurants",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-transport-15",
+          "name": "Transport urbain",
+          "type": "variable",
+          "note": "Navigo / métro / VTC",
+          "plannedAmount": 65,
+          "plannedDate": "2025-07-15",
+          "realAmount": 65,
+          "realDate": "2025-07-15",
+          "categoryId": "transport",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-entertainment-21",
+          "name": "Loisirs",
+          "type": "variable",
+          "note": "Jeux, ciné, sorties",
+          "plannedAmount": 160,
+          "plannedDate": "2025-07-21",
+          "realAmount": 160,
+          "realDate": "2025-07-21",
+          "categoryId": "entertainment",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-07-expense-shopping-22",
+          "name": "Shopping maison & divers",
+          "type": "variable",
+          "note": "Achats ponctuels",
+          "plannedAmount": 45,
+          "plannedDate": "2025-07-22",
+          "realAmount": 45,
+          "realDate": "2025-07-22",
+          "categoryId": "shopping",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-07-expense-fuel-17",
+          "name": "Essence",
+          "type": "variable",
+          "note": "Déplacements voiture / location",
+          "plannedAmount": 60,
+          "plannedDate": "2025-07-17",
+          "realAmount": 60,
+          "realDate": "2025-07-17",
+          "categoryId": "fuel",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-07-expense-health-25",
+          "name": "Santé",
+          "type": "variable",
+          "note": "Pharmacie / consultation",
+          "plannedAmount": 45,
+          "plannedDate": "2025-07-25",
+          "realAmount": 45,
+          "realDate": "2025-07-25",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-savings-29",
+          "name": "Épargne de précaution",
+          "type": "savings",
+          "note": "Versement mensuel vers livret",
+          "plannedAmount": 450,
+          "plannedDate": "2025-07-29",
+          "realAmount": 450,
+          "realDate": "2025-07-29",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-investment-3",
+          "name": "Investissement PEA",
+          "type": "savings",
+          "note": "ETF world / DCA mensuel",
+          "plannedAmount": 250,
+          "plannedDate": "2025-07-03",
+          "realAmount": 250,
+          "realDate": "2025-07-03",
+          "categoryId": "investment",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-savings-4",
+          "name": "Épargne PEL",
+          "type": "savings",
+          "note": "Versement programmé PEL",
+          "plannedAmount": 120,
+          "plannedDate": "2025-07-04",
+          "realAmount": 120,
+          "realDate": "2025-07-04",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-07-expense-travel-summer",
+          "name": "Dépenses vacances",
+          "type": "variable",
+          "note": "Activités et restauration",
+          "plannedAmount": 420,
+          "plannedDate": "2025-07-20",
+          "realAmount": 468,
+          "realDate": "2025-07-20",
+          "categoryId": "travel",
+          "accountId": "revolut"
+        }
+      ]
+    },
+    {
+      "date": "2025-08",
+      "incomes": [
+        {
+          "id": "2025-08-income-salary",
+          "name": "Salaire CDI",
+          "typeId": "salary",
+          "plannedAmount": 3250,
+          "plannedDate": "2025-08-28",
+          "realAmount": 3250,
+          "realDate": "2025-08-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-income-meal",
+          "name": "Carte ticket restaurant",
+          "typeId": "other-income",
+          "plannedAmount": 180,
+          "plannedDate": "2025-08-02",
+          "realAmount": 180,
+          "realDate": "2025-08-02",
+          "accountId": "ticket-restaurant"
+        },
+        {
+          "id": "2025-08-income-freelance",
+          "name": "Mission freelance",
+          "typeId": "other-income",
+          "plannedAmount": 400,
+          "plannedDate": "2025-08-15",
+          "realAmount": 350,
+          "realDate": "2025-08-16",
+          "accountId": "business"
+        },
+        {
+          "id": "2025-08-income-rent",
+          "name": "Revenus locatifs",
+          "typeId": "rent-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-08-05",
+          "realAmount": 650,
+          "realDate": "2025-08-05",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-income-interest",
+          "name": "Intérêts livret",
+          "typeId": "interest",
+          "plannedAmount": 10,
+          "plannedDate": "2025-08-01",
+          "realAmount": 10,
+          "realDate": "2025-08-01",
+          "accountId": "savings"
+        },
+        {
+          "id": "2025-08-income-refund",
+          "name": "Remboursement",
+          "typeId": "refund",
+          "plannedAmount": 64,
+          "plannedDate": "2025-08-12",
+          "realAmount": 64,
+          "realDate": "2025-08-12",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-income-savings-transfer",
+          "name": "Virement vers épargne",
+          "typeId": "savings-transfer",
+          "plannedAmount": 450,
+          "plannedDate": "2025-08-29",
+          "realAmount": 450,
+          "realDate": "2025-08-29",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-08-income-salary"
+        },
+        {
+          "id": "2025-08-income-pea",
+          "name": "Versement PEA",
+          "typeId": "pea",
+          "plannedAmount": 250,
+          "plannedDate": "2025-08-03",
+          "realAmount": 250,
+          "realDate": "2025-08-03",
+          "accountId": "revolut",
+          "deductedFromIncomeId": "2025-08-income-salary"
+        },
+        {
+          "id": "2025-08-income-pel",
+          "name": "Versement PEL",
+          "typeId": "pel",
+          "plannedAmount": 120,
+          "plannedDate": "2025-08-04",
+          "realAmount": 120,
+          "realDate": "2025-08-04",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-08-income-salary"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "2025-08-expense-rent-5",
+          "name": "Loyer appartement",
+          "type": "fixed",
+          "note": "Paiement mensuel",
+          "plannedAmount": 980,
+          "plannedDate": "2025-08-05",
+          "realAmount": 980,
+          "realDate": "2025-08-05",
+          "categoryId": "rent",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-utilities-7",
+          "name": "Électricité & eau",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 92,
+          "plannedDate": "2025-08-07",
+          "realAmount": 94,
+          "realDate": "2025-08-07",
+          "categoryId": "utilities",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-internet-8",
+          "name": "Internet fibre",
+          "type": "fixed",
+          "note": "Box internet",
+          "plannedAmount": 30,
+          "plannedDate": "2025-08-08",
+          "realAmount": 30,
+          "realDate": "2025-08-08",
+          "categoryId": "internet",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-phone-9",
+          "name": "Forfait mobile",
+          "type": "fixed",
+          "note": "Abonnement téléphonique",
+          "plannedAmount": 16,
+          "plannedDate": "2025-08-09",
+          "realAmount": 16,
+          "realDate": "2025-08-09",
+          "categoryId": "phone",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-insurance-10",
+          "name": "Assurance habitation",
+          "type": "fixed",
+          "note": "Contrat annuel mensualisé",
+          "plannedAmount": 22,
+          "plannedDate": "2025-08-10",
+          "realAmount": 22,
+          "realDate": "2025-08-10",
+          "categoryId": "insurance",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-health-11",
+          "name": "Mutuelle santé",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 48,
+          "plannedDate": "2025-08-11",
+          "realAmount": 48,
+          "realDate": "2025-08-11",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-subscriptions-12",
+          "name": "Streaming & cloud",
+          "type": "fixed",
+          "note": "Netflix, Spotify, iCloud, etc.",
+          "plannedAmount": 42,
+          "plannedDate": "2025-08-12",
+          "realAmount": 42,
+          "realDate": "2025-08-12",
+          "categoryId": "subscriptions",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-sports-13",
+          "name": "Salle de sport",
+          "type": "fixed",
+          "note": "Abonnement sport",
+          "plannedAmount": 35,
+          "plannedDate": "2025-08-13",
+          "realAmount": 35,
+          "realDate": "2025-08-13",
+          "categoryId": "sports",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-fees-14",
+          "name": "Frais bancaires",
+          "type": "fixed",
+          "note": "Carte + tenue de compte",
+          "plannedAmount": 7,
+          "plannedDate": "2025-08-14",
+          "realAmount": 7,
+          "realDate": "2025-08-14",
+          "categoryId": "fees",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-groceries-6",
+          "name": "Courses",
+          "type": "variable",
+          "note": "Supermarché et vrac",
+          "plannedAmount": 455,
+          "plannedDate": "2025-08-06",
+          "realAmount": 455,
+          "realDate": "2025-08-06",
+          "categoryId": "groceries",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-restaurants-18",
+          "name": "Restaurants & cafés",
+          "type": "variable",
+          "note": "Sorties et livraison",
+          "plannedAmount": 190,
+          "plannedDate": "2025-08-18",
+          "realAmount": 190,
+          "realDate": "2025-08-18",
+          "categoryId": "restaurants",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-transport-15",
+          "name": "Transport urbain",
+          "type": "variable",
+          "note": "Navigo / métro / VTC",
+          "plannedAmount": 68,
+          "plannedDate": "2025-08-15",
+          "realAmount": 68,
+          "realDate": "2025-08-15",
+          "categoryId": "transport",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-entertainment-21",
+          "name": "Loisirs",
+          "type": "variable",
+          "note": "Jeux, ciné, sorties",
+          "plannedAmount": 130,
+          "plannedDate": "2025-08-21",
+          "realAmount": 130,
+          "realDate": "2025-08-21",
+          "categoryId": "entertainment",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-08-expense-shopping-22",
+          "name": "Shopping maison & divers",
+          "type": "variable",
+          "note": "Achats ponctuels",
+          "plannedAmount": 80,
+          "plannedDate": "2025-08-22",
+          "realAmount": 80,
+          "realDate": "2025-08-22",
+          "categoryId": "shopping",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-08-expense-fuel-17",
+          "name": "Essence",
+          "type": "variable",
+          "note": "Déplacements voiture / location",
+          "plannedAmount": 55,
+          "plannedDate": "2025-08-17",
+          "realAmount": 55,
+          "realDate": "2025-08-17",
+          "categoryId": "fuel",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-08-expense-savings-29",
+          "name": "Épargne de précaution",
+          "type": "savings",
+          "note": "Versement mensuel vers livret",
+          "plannedAmount": 450,
+          "plannedDate": "2025-08-29",
+          "realAmount": 450,
+          "realDate": "2025-08-29",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-investment-3",
+          "name": "Investissement PEA",
+          "type": "savings",
+          "note": "ETF world / DCA mensuel",
+          "plannedAmount": 250,
+          "plannedDate": "2025-08-03",
+          "realAmount": 250,
+          "realDate": "2025-08-03",
+          "categoryId": "investment",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-08-expense-savings-4",
+          "name": "Épargne PEL",
+          "type": "savings",
+          "note": "Versement programmé PEL",
+          "plannedAmount": 120,
+          "plannedDate": "2025-08-04",
+          "realAmount": 120,
+          "realDate": "2025-08-04",
+          "categoryId": "savings",
+          "accountId": "main"
+        }
+      ]
+    },
+    {
+      "date": "2025-09",
+      "incomes": [
+        {
+          "id": "2025-09-income-salary",
+          "name": "Salaire CDI",
+          "typeId": "salary",
+          "plannedAmount": 3300,
+          "plannedDate": "2025-09-28",
+          "realAmount": 3320,
+          "realDate": "2025-09-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-income-meal",
+          "name": "Carte ticket restaurant",
+          "typeId": "other-income",
+          "plannedAmount": 200,
+          "plannedDate": "2025-09-02",
+          "realAmount": 200,
+          "realDate": "2025-09-02",
+          "accountId": "ticket-restaurant"
+        },
+        {
+          "id": "2025-09-income-freelance",
+          "name": "Mission freelance",
+          "typeId": "other-income",
+          "plannedAmount": 800,
+          "plannedDate": "2025-09-15",
+          "realAmount": 800,
+          "realDate": "2025-09-16",
+          "accountId": "business"
+        },
+        {
+          "id": "2025-09-income-rent",
+          "name": "Revenus locatifs",
+          "typeId": "rent-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-09-05",
+          "realAmount": 650,
+          "realDate": "2025-09-05",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-income-dividend",
+          "name": "Dividendes ETF",
+          "typeId": "dividend",
+          "plannedAmount": 95,
+          "plannedDate": "2025-09-20",
+          "realAmount": 95,
+          "realDate": "2025-09-20",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-09-income-interest",
+          "name": "Intérêts livret",
+          "typeId": "interest",
+          "plannedAmount": 11,
+          "plannedDate": "2025-09-01",
+          "realAmount": 11,
+          "realDate": "2025-09-01",
+          "accountId": "savings"
+        },
+        {
+          "id": "2025-09-income-savings-transfer",
+          "name": "Virement vers épargne",
+          "typeId": "savings-transfer",
+          "plannedAmount": 450,
+          "plannedDate": "2025-09-29",
+          "realAmount": 450,
+          "realDate": "2025-09-29",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-09-income-salary"
+        },
+        {
+          "id": "2025-09-income-pea",
+          "name": "Versement PEA",
+          "typeId": "pea",
+          "plannedAmount": 150,
+          "plannedDate": "2025-09-03",
+          "realAmount": 150,
+          "realDate": "2025-09-03",
+          "accountId": "revolut",
+          "deductedFromIncomeId": "2025-09-income-salary"
+        },
+        {
+          "id": "2025-09-income-pel",
+          "name": "Versement PEL",
+          "typeId": "pel",
+          "plannedAmount": 120,
+          "plannedDate": "2025-09-04",
+          "realAmount": 120,
+          "realDate": "2025-09-04",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-09-income-salary"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "2025-09-expense-rent-5",
+          "name": "Loyer appartement",
+          "type": "fixed",
+          "note": "Paiement mensuel",
+          "plannedAmount": 980,
+          "plannedDate": "2025-09-05",
+          "realAmount": 980,
+          "realDate": "2025-09-05",
+          "categoryId": "rent",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-utilities-7",
+          "name": "Électricité & eau",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 92,
+          "plannedDate": "2025-09-07",
+          "realAmount": 92,
+          "realDate": "2025-09-07",
+          "categoryId": "utilities",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-internet-8",
+          "name": "Internet fibre",
+          "type": "fixed",
+          "note": "Box internet",
+          "plannedAmount": 30,
+          "plannedDate": "2025-09-08",
+          "realAmount": 30,
+          "realDate": "2025-09-08",
+          "categoryId": "internet",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-phone-9",
+          "name": "Forfait mobile",
+          "type": "fixed",
+          "note": "Abonnement téléphonique",
+          "plannedAmount": 16,
+          "plannedDate": "2025-09-09",
+          "realAmount": 16,
+          "realDate": "2025-09-09",
+          "categoryId": "phone",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-insurance-10",
+          "name": "Assurance habitation",
+          "type": "fixed",
+          "note": "Contrat annuel mensualisé",
+          "plannedAmount": 22,
+          "plannedDate": "2025-09-10",
+          "realAmount": 22,
+          "realDate": "2025-09-10",
+          "categoryId": "insurance",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-health-11",
+          "name": "Mutuelle santé",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 48,
+          "plannedDate": "2025-09-11",
+          "realAmount": 48,
+          "realDate": "2025-09-11",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-subscriptions-12",
+          "name": "Streaming & cloud",
+          "type": "fixed",
+          "note": "Netflix, Spotify, iCloud, etc.",
+          "plannedAmount": 42,
+          "plannedDate": "2025-09-12",
+          "realAmount": 42,
+          "realDate": "2025-09-12",
+          "categoryId": "subscriptions",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-sports-13",
+          "name": "Salle de sport",
+          "type": "fixed",
+          "note": "Abonnement sport",
+          "plannedAmount": 35,
+          "plannedDate": "2025-09-13",
+          "realAmount": 35,
+          "realDate": "2025-09-13",
+          "categoryId": "sports",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-fees-14",
+          "name": "Frais bancaires",
+          "type": "fixed",
+          "note": "Carte + tenue de compte",
+          "plannedAmount": 7,
+          "plannedDate": "2025-09-14",
+          "realAmount": 7,
+          "realDate": "2025-09-14",
+          "categoryId": "fees",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-groceries-6",
+          "name": "Courses",
+          "type": "variable",
+          "note": "Supermarché et vrac",
+          "plannedAmount": 440,
+          "plannedDate": "2025-09-06",
+          "realAmount": 440,
+          "realDate": "2025-09-06",
+          "categoryId": "groceries",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-restaurants-18",
+          "name": "Restaurants & cafés",
+          "type": "variable",
+          "note": "Sorties et livraison",
+          "plannedAmount": 145,
+          "plannedDate": "2025-09-18",
+          "realAmount": 145,
+          "realDate": "2025-09-18",
+          "categoryId": "restaurants",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-transport-15",
+          "name": "Transport urbain",
+          "type": "variable",
+          "note": "Navigo / métro / VTC",
+          "plannedAmount": 77,
+          "plannedDate": "2025-09-15",
+          "realAmount": 77,
+          "realDate": "2025-09-15",
+          "categoryId": "transport",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-entertainment-21",
+          "name": "Loisirs",
+          "type": "variable",
+          "note": "Jeux, ciné, sorties",
+          "plannedAmount": 90,
+          "plannedDate": "2025-09-21",
+          "realAmount": 90,
+          "realDate": "2025-09-21",
+          "categoryId": "entertainment",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-09-expense-shopping-22",
+          "name": "Shopping maison & divers",
+          "type": "variable",
+          "note": "Achats ponctuels",
+          "plannedAmount": 110,
+          "plannedDate": "2025-09-22",
+          "realAmount": 110,
+          "realDate": "2025-09-22",
+          "categoryId": "shopping",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-09-expense-clothing-24",
+          "name": "Vêtements",
+          "type": "variable",
+          "note": "Renouvellement dressing",
+          "plannedAmount": 90,
+          "plannedDate": "2025-09-24",
+          "realAmount": 90,
+          "realDate": "2025-09-24",
+          "categoryId": "clothing",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-09-expense-education-26",
+          "name": "Formation / livres",
+          "type": "variable",
+          "note": "Apprentissage et veille",
+          "plannedAmount": 59,
+          "plannedDate": "2025-09-26",
+          "realAmount": 59,
+          "realDate": "2025-09-26",
+          "categoryId": "education",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-09-expense-savings-29",
+          "name": "Épargne de précaution",
+          "type": "savings",
+          "note": "Versement mensuel vers livret",
+          "plannedAmount": 450,
+          "plannedDate": "2025-09-29",
+          "realAmount": 450,
+          "realDate": "2025-09-29",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-investment-3",
+          "name": "Investissement PEA",
+          "type": "savings",
+          "note": "ETF world / DCA mensuel",
+          "plannedAmount": 150,
+          "plannedDate": "2025-09-03",
+          "realAmount": 150,
+          "realDate": "2025-09-03",
+          "categoryId": "investment",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-savings-4",
+          "name": "Épargne PEL",
+          "type": "savings",
+          "note": "Versement programmé PEL",
+          "plannedAmount": 120,
+          "plannedDate": "2025-09-04",
+          "realAmount": 120,
+          "realDate": "2025-09-04",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-emergency-27",
+          "name": "Fonds d’urgence",
+          "type": "savings",
+          "note": "Renforcement de la réserve",
+          "plannedAmount": 80,
+          "plannedDate": "2025-09-27",
+          "realAmount": 80,
+          "realDate": "2025-09-27",
+          "categoryId": "emergency",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-09-expense-taxes-regularization",
+          "name": "Régularisation impôt",
+          "type": "fixed",
+          "note": "Solde annuel",
+          "plannedAmount": 310,
+          "plannedDate": "2025-09-26",
+          "realAmount": 310,
+          "realDate": "2025-09-26",
+          "categoryId": "taxes",
+          "accountId": "main"
+        }
+      ]
+    },
+    {
+      "date": "2025-10",
+      "incomes": [
+        {
+          "id": "2025-10-income-salary",
+          "name": "Salaire CDI",
+          "typeId": "salary",
+          "plannedAmount": 3300,
+          "plannedDate": "2025-10-28",
+          "realAmount": 3300,
+          "realDate": "2025-10-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-income-meal",
+          "name": "Carte ticket restaurant",
+          "typeId": "other-income",
+          "plannedAmount": 180,
+          "plannedDate": "2025-10-02",
+          "realAmount": 180,
+          "realDate": "2025-10-02",
+          "accountId": "ticket-restaurant"
+        },
+        {
+          "id": "2025-10-income-rent",
+          "name": "Revenus locatifs",
+          "typeId": "rent-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-10-05",
+          "realAmount": 650,
+          "realDate": "2025-10-05",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-income-interest",
+          "name": "Intérêts livret",
+          "typeId": "interest",
+          "plannedAmount": 11,
+          "plannedDate": "2025-10-01",
+          "realAmount": 11,
+          "realDate": "2025-10-01",
+          "accountId": "savings"
+        },
+        {
+          "id": "2025-10-income-bonus",
+          "name": "Prime",
+          "typeId": "bonus",
+          "plannedAmount": 900,
+          "plannedDate": "2025-10-28",
+          "realAmount": 900,
+          "realDate": "2025-10-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-income-savings-transfer",
+          "name": "Virement vers épargne",
+          "typeId": "savings-transfer",
+          "plannedAmount": 700,
+          "plannedDate": "2025-10-29",
+          "realAmount": 700,
+          "realDate": "2025-10-29",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-10-income-salary"
+        },
+        {
+          "id": "2025-10-income-pea",
+          "name": "Versement PEA",
+          "typeId": "pea",
+          "plannedAmount": 150,
+          "plannedDate": "2025-10-03",
+          "realAmount": 150,
+          "realDate": "2025-10-03",
+          "accountId": "revolut",
+          "deductedFromIncomeId": "2025-10-income-salary"
+        },
+        {
+          "id": "2025-10-income-pel",
+          "name": "Versement PEL",
+          "typeId": "pel",
+          "plannedAmount": 120,
+          "plannedDate": "2025-10-04",
+          "realAmount": 120,
+          "realDate": "2025-10-04",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-10-income-salary"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "2025-10-expense-rent-5",
+          "name": "Loyer appartement",
+          "type": "fixed",
+          "note": "Paiement mensuel",
+          "plannedAmount": 980,
+          "plannedDate": "2025-10-05",
+          "realAmount": 980,
+          "realDate": "2025-10-05",
+          "categoryId": "rent",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-utilities-7",
+          "name": "Électricité & eau",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 92,
+          "plannedDate": "2025-10-07",
+          "realAmount": 92,
+          "realDate": "2025-10-07",
+          "categoryId": "utilities",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-internet-8",
+          "name": "Internet fibre",
+          "type": "fixed",
+          "note": "Box internet",
+          "plannedAmount": 30,
+          "plannedDate": "2025-10-08",
+          "realAmount": 30,
+          "realDate": "2025-10-08",
+          "categoryId": "internet",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-phone-9",
+          "name": "Forfait mobile",
+          "type": "fixed",
+          "note": "Abonnement téléphonique",
+          "plannedAmount": 16,
+          "plannedDate": "2025-10-09",
+          "realAmount": 16,
+          "realDate": "2025-10-09",
+          "categoryId": "phone",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-insurance-10",
+          "name": "Assurance habitation",
+          "type": "fixed",
+          "note": "Contrat annuel mensualisé",
+          "plannedAmount": 22,
+          "plannedDate": "2025-10-10",
+          "realAmount": 22,
+          "realDate": "2025-10-10",
+          "categoryId": "insurance",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-health-11",
+          "name": "Mutuelle santé",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 48,
+          "plannedDate": "2025-10-11",
+          "realAmount": 48,
+          "realDate": "2025-10-11",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-subscriptions-12",
+          "name": "Streaming & cloud",
+          "type": "fixed",
+          "note": "Netflix, Spotify, iCloud, etc.",
+          "plannedAmount": 42,
+          "plannedDate": "2025-10-12",
+          "realAmount": 42,
+          "realDate": "2025-10-12",
+          "categoryId": "subscriptions",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-sports-13",
+          "name": "Salle de sport",
+          "type": "fixed",
+          "note": "Abonnement sport",
+          "plannedAmount": 35,
+          "plannedDate": "2025-10-13",
+          "realAmount": 35,
+          "realDate": "2025-10-13",
+          "categoryId": "sports",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-fees-14",
+          "name": "Frais bancaires",
+          "type": "fixed",
+          "note": "Carte + tenue de compte",
+          "plannedAmount": 7,
+          "plannedDate": "2025-10-14",
+          "realAmount": 7,
+          "realDate": "2025-10-14",
+          "categoryId": "fees",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-groceries-6",
+          "name": "Courses",
+          "type": "variable",
+          "note": "Supermarché et vrac",
+          "plannedAmount": 450,
+          "plannedDate": "2025-10-06",
+          "realAmount": 450,
+          "realDate": "2025-10-06",
+          "categoryId": "groceries",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-restaurants-18",
+          "name": "Restaurants & cafés",
+          "type": "variable",
+          "note": "Sorties et livraison",
+          "plannedAmount": 160,
+          "plannedDate": "2025-10-18",
+          "realAmount": 160,
+          "realDate": "2025-10-18",
+          "categoryId": "restaurants",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-transport-15",
+          "name": "Transport urbain",
+          "type": "variable",
+          "note": "Navigo / métro / VTC",
+          "plannedAmount": 79,
+          "plannedDate": "2025-10-15",
+          "realAmount": 79,
+          "realDate": "2025-10-15",
+          "categoryId": "transport",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-entertainment-21",
+          "name": "Loisirs",
+          "type": "variable",
+          "note": "Jeux, ciné, sorties",
+          "plannedAmount": 100,
+          "plannedDate": "2025-10-21",
+          "realAmount": 100,
+          "realDate": "2025-10-21",
+          "categoryId": "entertainment",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-10-expense-shopping-22",
+          "name": "Shopping maison & divers",
+          "type": "variable",
+          "note": "Achats ponctuels",
+          "plannedAmount": 70,
+          "plannedDate": "2025-10-22",
+          "realAmount": 70,
+          "realDate": "2025-10-22",
+          "categoryId": "shopping",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-10-expense-health-25",
+          "name": "Santé",
+          "type": "variable",
+          "note": "Pharmacie / consultation",
+          "plannedAmount": 20,
+          "plannedDate": "2025-10-25",
+          "realAmount": 20,
+          "realDate": "2025-10-25",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-savings-29",
+          "name": "Épargne de précaution",
+          "type": "savings",
+          "note": "Versement mensuel vers livret",
+          "plannedAmount": 700,
+          "plannedDate": "2025-10-29",
+          "realAmount": 700,
+          "realDate": "2025-10-29",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-investment-3",
+          "name": "Investissement PEA",
+          "type": "savings",
+          "note": "ETF world / DCA mensuel",
+          "plannedAmount": 150,
+          "plannedDate": "2025-10-03",
+          "realAmount": 150,
+          "realDate": "2025-10-03",
+          "categoryId": "investment",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-savings-4",
+          "name": "Épargne PEL",
+          "type": "savings",
+          "note": "Versement programmé PEL",
+          "plannedAmount": 120,
+          "plannedDate": "2025-10-04",
+          "realAmount": 120,
+          "realDate": "2025-10-04",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-10-expense-gifts-birthday",
+          "name": "Anniversaire proche",
+          "type": "variable",
+          "note": "Cadeaux et dîner",
+          "plannedAmount": 145,
+          "plannedDate": "2025-10-12",
+          "realAmount": 162,
+          "realDate": "2025-10-12",
+          "categoryId": "gifts",
+          "accountId": "revolut"
+        }
+      ]
+    },
+    {
+      "date": "2025-11",
+      "incomes": [
+        {
+          "id": "2025-11-income-salary",
+          "name": "Salaire CDI",
+          "typeId": "salary",
+          "plannedAmount": 3300,
+          "plannedDate": "2025-11-28",
+          "realAmount": 3300,
+          "realDate": "2025-11-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-income-meal",
+          "name": "Carte ticket restaurant",
+          "typeId": "other-income",
+          "plannedAmount": 180,
+          "plannedDate": "2025-11-02",
+          "realAmount": 180,
+          "realDate": "2025-11-02",
+          "accountId": "ticket-restaurant"
+        },
+        {
+          "id": "2025-11-income-freelance",
+          "name": "Mission freelance",
+          "typeId": "other-income",
+          "plannedAmount": 1500,
+          "plannedDate": "2025-11-15",
+          "realAmount": 1580,
+          "realDate": "2025-11-16",
+          "accountId": "business"
+        },
+        {
+          "id": "2025-11-income-rent",
+          "name": "Revenus locatifs",
+          "typeId": "rent-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-11-05",
+          "realAmount": 650,
+          "realDate": "2025-11-05",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-income-interest",
+          "name": "Intérêts livret",
+          "typeId": "interest",
+          "plannedAmount": 12,
+          "plannedDate": "2025-11-01",
+          "realAmount": 12,
+          "realDate": "2025-11-01",
+          "accountId": "savings"
+        },
+        {
+          "id": "2025-11-income-savings-transfer",
+          "name": "Virement vers épargne",
+          "typeId": "savings-transfer",
+          "plannedAmount": 450,
+          "plannedDate": "2025-11-29",
+          "realAmount": 450,
+          "realDate": "2025-11-29",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-11-income-salary"
+        },
+        {
+          "id": "2025-11-income-pea",
+          "name": "Versement PEA",
+          "typeId": "pea",
+          "plannedAmount": 150,
+          "plannedDate": "2025-11-03",
+          "realAmount": 150,
+          "realDate": "2025-11-03",
+          "accountId": "revolut",
+          "deductedFromIncomeId": "2025-11-income-salary"
+        },
+        {
+          "id": "2025-11-income-pel",
+          "name": "Versement PEL",
+          "typeId": "pel",
+          "plannedAmount": 120,
+          "plannedDate": "2025-11-04",
+          "realAmount": 120,
+          "realDate": "2025-11-04",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-11-income-salary"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "2025-11-expense-rent-5",
+          "name": "Loyer appartement",
+          "type": "fixed",
+          "note": "Paiement mensuel",
+          "plannedAmount": 980,
+          "plannedDate": "2025-11-05",
+          "realAmount": 980,
+          "realDate": "2025-11-05",
+          "categoryId": "rent",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-utilities-7",
+          "name": "Électricité & eau",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 92,
+          "plannedDate": "2025-11-07",
+          "realAmount": 92,
+          "realDate": "2025-11-07",
+          "categoryId": "utilities",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-internet-8",
+          "name": "Internet fibre",
+          "type": "fixed",
+          "note": "Box internet",
+          "plannedAmount": 30,
+          "plannedDate": "2025-11-08",
+          "realAmount": 30,
+          "realDate": "2025-11-08",
+          "categoryId": "internet",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-phone-9",
+          "name": "Forfait mobile",
+          "type": "fixed",
+          "note": "Abonnement téléphonique",
+          "plannedAmount": 16,
+          "plannedDate": "2025-11-09",
+          "realAmount": 16,
+          "realDate": "2025-11-09",
+          "categoryId": "phone",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-insurance-10",
+          "name": "Assurance habitation",
+          "type": "fixed",
+          "note": "Contrat annuel mensualisé",
+          "plannedAmount": 22,
+          "plannedDate": "2025-11-10",
+          "realAmount": 22,
+          "realDate": "2025-11-10",
+          "categoryId": "insurance",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-health-11",
+          "name": "Mutuelle santé",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 48,
+          "plannedDate": "2025-11-11",
+          "realAmount": 48,
+          "realDate": "2025-11-11",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-subscriptions-12",
+          "name": "Streaming & cloud",
+          "type": "fixed",
+          "note": "Netflix, Spotify, iCloud, etc.",
+          "plannedAmount": 42,
+          "plannedDate": "2025-11-12",
+          "realAmount": 42,
+          "realDate": "2025-11-12",
+          "categoryId": "subscriptions",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-sports-13",
+          "name": "Salle de sport",
+          "type": "fixed",
+          "note": "Abonnement sport",
+          "plannedAmount": 35,
+          "plannedDate": "2025-11-13",
+          "realAmount": 35,
+          "realDate": "2025-11-13",
+          "categoryId": "sports",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-fees-14",
+          "name": "Frais bancaires",
+          "type": "fixed",
+          "note": "Carte + tenue de compte",
+          "plannedAmount": 7,
+          "plannedDate": "2025-11-14",
+          "realAmount": 7,
+          "realDate": "2025-11-14",
+          "categoryId": "fees",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-groceries-6",
+          "name": "Courses",
+          "type": "variable",
+          "note": "Supermarché et vrac",
+          "plannedAmount": 465,
+          "plannedDate": "2025-11-06",
+          "realAmount": 465,
+          "realDate": "2025-11-06",
+          "categoryId": "groceries",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-restaurants-18",
+          "name": "Restaurants & cafés",
+          "type": "variable",
+          "note": "Sorties et livraison",
+          "plannedAmount": 175,
+          "plannedDate": "2025-11-18",
+          "realAmount": 175,
+          "realDate": "2025-11-18",
+          "categoryId": "restaurants",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-transport-15",
+          "name": "Transport urbain",
+          "type": "variable",
+          "note": "Navigo / métro / VTC",
+          "plannedAmount": 80,
+          "plannedDate": "2025-11-15",
+          "realAmount": 80,
+          "realDate": "2025-11-15",
+          "categoryId": "transport",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-entertainment-21",
+          "name": "Loisirs",
+          "type": "variable",
+          "note": "Jeux, ciné, sorties",
+          "plannedAmount": 110,
+          "plannedDate": "2025-11-21",
+          "realAmount": 110,
+          "realDate": "2025-11-21",
+          "categoryId": "entertainment",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-11-expense-shopping-22",
+          "name": "Shopping maison & divers",
+          "type": "variable",
+          "note": "Achats ponctuels",
+          "plannedAmount": 95,
+          "plannedDate": "2025-11-22",
+          "realAmount": 95,
+          "realDate": "2025-11-22",
+          "categoryId": "shopping",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-11-expense-savings-29",
+          "name": "Épargne de précaution",
+          "type": "savings",
+          "note": "Versement mensuel vers livret",
+          "plannedAmount": 450,
+          "plannedDate": "2025-11-29",
+          "realAmount": 450,
+          "realDate": "2025-11-29",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-investment-3",
+          "name": "Investissement PEA",
+          "type": "savings",
+          "note": "ETF world / DCA mensuel",
+          "plannedAmount": 150,
+          "plannedDate": "2025-11-03",
+          "realAmount": 150,
+          "realDate": "2025-11-03",
+          "categoryId": "investment",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-savings-4",
+          "name": "Épargne PEL",
+          "type": "savings",
+          "note": "Versement programmé PEL",
+          "plannedAmount": 120,
+          "plannedDate": "2025-11-04",
+          "realAmount": 120,
+          "realDate": "2025-11-04",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-11-expense-health-dental",
+          "name": "Soins dentaires",
+          "type": "variable",
+          "note": "Reste à charge",
+          "plannedAmount": 180,
+          "plannedDate": "2025-11-08",
+          "realAmount": 180,
+          "realDate": "2025-11-08",
+          "categoryId": "health",
+          "accountId": "main"
+        }
+      ]
+    },
+    {
+      "date": "2025-12",
+      "incomes": [
+        {
+          "id": "2025-12-income-salary",
+          "name": "Salaire CDI",
+          "typeId": "salary",
+          "plannedAmount": 3300,
+          "plannedDate": "2025-12-28",
+          "realAmount": 3300,
+          "realDate": "2025-12-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-income-meal",
+          "name": "Carte ticket restaurant",
+          "typeId": "other-income",
+          "plannedAmount": 200,
+          "plannedDate": "2025-12-02",
+          "realAmount": 200,
+          "realDate": "2025-12-02",
+          "accountId": "ticket-restaurant"
+        },
+        {
+          "id": "2025-12-income-freelance",
+          "name": "Mission freelance",
+          "typeId": "other-income",
+          "plannedAmount": 500,
+          "plannedDate": "2025-12-15",
+          "realAmount": 500,
+          "realDate": "2025-12-16",
+          "accountId": "business"
+        },
+        {
+          "id": "2025-12-income-rent",
+          "name": "Revenus locatifs",
+          "typeId": "rent-income",
+          "plannedAmount": 650,
+          "plannedDate": "2025-12-05",
+          "realAmount": 650,
+          "realDate": "2025-12-05",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-income-dividend",
+          "name": "Dividendes ETF",
+          "typeId": "dividend",
+          "plannedAmount": 140,
+          "plannedDate": "2025-12-20",
+          "realAmount": 140,
+          "realDate": "2025-12-20",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-12-income-interest",
+          "name": "Intérêts livret",
+          "typeId": "interest",
+          "plannedAmount": 12,
+          "plannedDate": "2025-12-01",
+          "realAmount": 12,
+          "realDate": "2025-12-01",
+          "accountId": "savings"
+        },
+        {
+          "id": "2025-12-income-bonus",
+          "name": "Prime",
+          "typeId": "bonus",
+          "plannedAmount": 1300,
+          "plannedDate": "2025-12-28",
+          "realAmount": 1300,
+          "realDate": "2025-12-28",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-income-refund",
+          "name": "Remboursement",
+          "typeId": "refund",
+          "plannedAmount": 120,
+          "plannedDate": "2025-12-12",
+          "realAmount": 120,
+          "realDate": "2025-12-12",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-income-other",
+          "name": "Vente / autre revenu",
+          "typeId": "other-income",
+          "plannedAmount": 200,
+          "plannedDate": "2025-12-22",
+          "realAmount": 200,
+          "realDate": "2025-12-22",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-12-income-savings-transfer",
+          "name": "Virement vers épargne",
+          "typeId": "savings-transfer",
+          "plannedAmount": 700,
+          "plannedDate": "2025-12-29",
+          "realAmount": 700,
+          "realDate": "2025-12-29",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-12-income-salary"
+        },
+        {
+          "id": "2025-12-income-pea",
+          "name": "Versement PEA",
+          "typeId": "pea",
+          "plannedAmount": 250,
+          "plannedDate": "2025-12-03",
+          "realAmount": 250,
+          "realDate": "2025-12-03",
+          "accountId": "revolut",
+          "deductedFromIncomeId": "2025-12-income-salary"
+        },
+        {
+          "id": "2025-12-income-pel",
+          "name": "Versement PEL",
+          "typeId": "pel",
+          "plannedAmount": 120,
+          "plannedDate": "2025-12-04",
+          "realAmount": 120,
+          "realDate": "2025-12-04",
+          "accountId": "savings",
+          "deductedFromIncomeId": "2025-12-income-salary"
+        }
+      ],
+      "expenses": [
+        {
+          "id": "2025-12-expense-rent-5",
+          "name": "Loyer appartement",
+          "type": "fixed",
+          "note": "Paiement mensuel",
+          "plannedAmount": 980,
+          "plannedDate": "2025-12-05",
+          "realAmount": 980,
+          "realDate": "2025-12-05",
+          "categoryId": "rent",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-utilities-7",
+          "name": "Électricité & eau",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 107,
+          "plannedDate": "2025-12-07",
+          "realAmount": 107,
+          "realDate": "2025-12-07",
+          "categoryId": "utilities",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-internet-8",
+          "name": "Internet fibre",
+          "type": "fixed",
+          "note": "Box internet",
+          "plannedAmount": 30,
+          "plannedDate": "2025-12-08",
+          "realAmount": 30,
+          "realDate": "2025-12-08",
+          "categoryId": "internet",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-phone-9",
+          "name": "Forfait mobile",
+          "type": "fixed",
+          "note": "Abonnement téléphonique",
+          "plannedAmount": 16,
+          "plannedDate": "2025-12-09",
+          "realAmount": 16,
+          "realDate": "2025-12-09",
+          "categoryId": "phone",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-insurance-10",
+          "name": "Assurance habitation",
+          "type": "fixed",
+          "note": "Contrat annuel mensualisé",
+          "plannedAmount": 22,
+          "plannedDate": "2025-12-10",
+          "realAmount": 22,
+          "realDate": "2025-12-10",
+          "categoryId": "insurance",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-health-11",
+          "name": "Mutuelle santé",
+          "type": "fixed",
+          "note": "Prélèvement mensuel",
+          "plannedAmount": 48,
+          "plannedDate": "2025-12-11",
+          "realAmount": 48,
+          "realDate": "2025-12-11",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-subscriptions-12",
+          "name": "Streaming & cloud",
+          "type": "fixed",
+          "note": "Netflix, Spotify, iCloud, etc.",
+          "plannedAmount": 42,
+          "plannedDate": "2025-12-12",
+          "realAmount": 42,
+          "realDate": "2025-12-12",
+          "categoryId": "subscriptions",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-sports-13",
+          "name": "Salle de sport",
+          "type": "fixed",
+          "note": "Abonnement sport",
+          "plannedAmount": 35,
+          "plannedDate": "2025-12-13",
+          "realAmount": 35,
+          "realDate": "2025-12-13",
+          "categoryId": "sports",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-fees-14",
+          "name": "Frais bancaires",
+          "type": "fixed",
+          "note": "Carte + tenue de compte",
+          "plannedAmount": 7,
+          "plannedDate": "2025-12-14",
+          "realAmount": 7,
+          "realDate": "2025-12-14",
+          "categoryId": "fees",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-groceries-6",
+          "name": "Courses",
+          "type": "variable",
+          "note": "Supermarché et vrac",
+          "plannedAmount": 520,
+          "plannedDate": "2025-12-06",
+          "realAmount": 520,
+          "realDate": "2025-12-06",
+          "categoryId": "groceries",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-restaurants-18",
+          "name": "Restaurants & cafés",
+          "type": "variable",
+          "note": "Sorties et livraison",
+          "plannedAmount": 230,
+          "plannedDate": "2025-12-18",
+          "realAmount": 242,
+          "realDate": "2025-12-18",
+          "categoryId": "restaurants",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-transport-15",
+          "name": "Transport urbain",
+          "type": "variable",
+          "note": "Navigo / métro / VTC",
+          "plannedAmount": 72,
+          "plannedDate": "2025-12-15",
+          "realAmount": 72,
+          "realDate": "2025-12-15",
+          "categoryId": "transport",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-entertainment-21",
+          "name": "Loisirs",
+          "type": "variable",
+          "note": "Jeux, ciné, sorties",
+          "plannedAmount": 150,
+          "plannedDate": "2025-12-21",
+          "realAmount": 150,
+          "realDate": "2025-12-21",
+          "categoryId": "entertainment",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-12-expense-shopping-22",
+          "name": "Shopping maison & divers",
+          "type": "variable",
+          "note": "Achats ponctuels",
+          "plannedAmount": 160,
+          "plannedDate": "2025-12-22",
+          "realAmount": 160,
+          "realDate": "2025-12-22",
+          "categoryId": "shopping",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-12-expense-clothing-24",
+          "name": "Vêtements",
+          "type": "variable",
+          "note": "Renouvellement dressing",
+          "plannedAmount": 140,
+          "plannedDate": "2025-12-24",
+          "realAmount": 140,
+          "realDate": "2025-12-24",
+          "categoryId": "clothing",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-12-expense-health-25",
+          "name": "Santé",
+          "type": "variable",
+          "note": "Pharmacie / consultation",
+          "plannedAmount": 30,
+          "plannedDate": "2025-12-25",
+          "realAmount": 30,
+          "realDate": "2025-12-25",
+          "categoryId": "health",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-savings-29",
+          "name": "Épargne de précaution",
+          "type": "savings",
+          "note": "Versement mensuel vers livret",
+          "plannedAmount": 700,
+          "plannedDate": "2025-12-29",
+          "realAmount": 700,
+          "realDate": "2025-12-29",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-investment-3",
+          "name": "Investissement PEA",
+          "type": "savings",
+          "note": "ETF world / DCA mensuel",
+          "plannedAmount": 250,
+          "plannedDate": "2025-12-03",
+          "realAmount": 250,
+          "realDate": "2025-12-03",
+          "categoryId": "investment",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-savings-4",
+          "name": "Épargne PEL",
+          "type": "savings",
+          "note": "Versement programmé PEL",
+          "plannedAmount": 120,
+          "plannedDate": "2025-12-04",
+          "realAmount": 120,
+          "realDate": "2025-12-04",
+          "categoryId": "savings",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-emergency-27",
+          "name": "Fonds d’urgence",
+          "type": "savings",
+          "note": "Renforcement de la réserve",
+          "plannedAmount": 150,
+          "plannedDate": "2025-12-27",
+          "realAmount": 150,
+          "realDate": "2025-12-27",
+          "categoryId": "emergency",
+          "accountId": "main"
+        },
+        {
+          "id": "2025-12-expense-gifts-xmas",
+          "name": "Cadeaux de Noël",
+          "type": "variable",
+          "note": "Famille et amis",
+          "plannedAmount": 320,
+          "plannedDate": "2025-12-10",
+          "realAmount": 355,
+          "realDate": "2025-12-10",
+          "categoryId": "gifts",
+          "accountId": "revolut"
+        },
+        {
+          "id": "2025-12-expense-travel-citybreak",
+          "name": "City break hiver",
+          "type": "variable",
+          "note": "Week-end de fin d'année",
+          "plannedAmount": 390,
+          "plannedDate": "2025-12-27",
+          "realAmount": 418,
+          "realDate": "2025-12-27",
+          "categoryId": "travel",
+          "accountId": "travel"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "id": "main",
+      "name": "Compte principal"
+    },
+    {
+      "id": "savings",
+      "name": "Épargne"
+    },
+    {
+      "id": "revolut",
+      "name": "Revolut"
+    },
+    {
+      "id": "business",
+      "name": "Compte pro"
+    },
+    {
+      "id": "ticket-restaurant",
+      "name": "Ticket Restaurant"
+    },
+    {
+      "id": "travel",
+      "name": "Voyage"
+    },
+    {
+      "id": "emergency",
+      "name": "Urgence"
+    }
+  ],
+  "expenseCategories": [
+    {
+      "id": "rent",
+      "name": "Loyer",
+      "icon": "🏠"
+    },
+    {
+      "id": "utilities",
+      "name": "Charges",
+      "icon": "💡"
+    },
+    {
+      "id": "internet",
+      "name": "Internet",
+      "icon": "🌐"
+    },
+    {
+      "id": "phone",
+      "name": "Téléphone",
+      "icon": "📱"
+    },
+    {
+      "id": "insurance",
+      "name": "Assurances",
+      "icon": "🛡️"
+    },
+    {
+      "id": "groceries",
+      "name": "Alimentation",
+      "icon": "🛒"
+    },
+    {
+      "id": "transport",
+      "name": "Transport",
+      "icon": "🚗"
+    },
+    {
+      "id": "fuel",
+      "name": "Essence",
+      "icon": "⛽"
+    },
+    {
+      "id": "health",
+      "name": "Santé",
+      "icon": "💊"
+    },
+    {
+      "id": "entertainment",
+      "name": "Loisirs",
+      "icon": "🎮"
+    },
+    {
+      "id": "restaurants",
+      "name": "Restaurants",
+      "icon": "🍽️"
+    },
+    {
+      "id": "subscriptions",
+      "name": "Abonnements",
+      "icon": "📺"
+    },
+    {
+      "id": "taxes",
+      "name": "Impôts",
+      "icon": "💸"
+    },
+    {
+      "id": "fees",
+      "name": "Frais bancaires",
+      "icon": "🏦"
+    },
+    {
+      "id": "savings",
+      "name": "Épargne",
+      "icon": "💰"
+    },
+    {
+      "id": "investment",
+      "name": "Investissement",
+      "icon": "📈"
+    },
+    {
+      "id": "emergency",
+      "name": "Fonds d’urgence",
+      "icon": "🚨"
+    },
+    {
+      "id": "shopping",
+      "name": "Shopping",
+      "icon": "🛍️"
+    },
+    {
+      "id": "clothing",
+      "name": "Vêtements",
+      "icon": "👕"
+    },
+    {
+      "id": "sports",
+      "name": "Sport",
+      "icon": "🏋️"
+    },
+    {
+      "id": "travel",
+      "name": "Voyage",
+      "icon": "✈️"
+    },
+    {
+      "id": "gifts",
+      "name": "Cadeaux",
+      "icon": "🎁"
+    },
+    {
+      "id": "education",
+      "name": "Éducation",
+      "icon": "📚"
+    }
+  ],
+  "incomeTypes": [
+    {
+      "id": "salary",
+      "name": "Salaire",
+      "saving": false
+    },
+    {
+      "id": "bonus",
+      "name": "Prime",
+      "saving": false
+    },
+    {
+      "id": "dividend",
+      "name": "Dividendes",
+      "saving": false
+    },
+    {
+      "id": "interest",
+      "name": "Interets",
+      "saving": false
+    },
+    {
+      "id": "pea",
+      "name": "PEA",
+      "saving": true
+    },
+    {
+      "id": "pel",
+      "name": "PEL",
+      "saving": true
+    },
+    {
+      "id": "savings-transfer",
+      "name": "Virement epargne",
+      "saving": true
+    },
+    {
+      "id": "rent-income",
+      "name": "Revenus locatifs",
+      "saving": false
+    },
+    {
+      "id": "refund",
+      "name": "Remboursement",
+      "saving": false
+    },
+    {
+      "id": "other-income",
+      "name": "Autre revenu",
+      "saving": false
+    }
+  ]
+};

@@ -126,7 +126,9 @@ export class BudgetService {
           periods: budget.periods.map((period) => ({
             ...period,
             incomes: period.incomes.map((income) =>
-              income.type.id === incomeTypeId ? { ...income, type: { ...fallbackIncomeType } } : income
+              income.typeId === incomeTypeId
+                ? { ...income, typeId: fallbackIncomeType.id, type: { ...fallbackIncomeType } }
+                : income
             ),
           })),
         };
@@ -158,14 +160,16 @@ export class BudgetService {
 
   public upsertIncome(
     periodDate: string,
-    income: Omit<IncomeItem, 'id' | 'type'> & { id?: string; type?: TypeOfIncome }
+    income: Omit<IncomeItem, 'id' | 'typeId'> & { id?: string; type?: TypeOfIncome; typeId?: string }
   ): Observable<Budget> {
     return from(
       this.mutateBudget((budget) => {
+        const resolved = this.resolveIncomeType(income.type, budget.incomeTypes);
         const nextIncome: IncomeItem = {
           ...income,
           id: income.id || generateUUID(),
-          type: this.resolveIncomeType(income.type, budget.incomeTypes),
+          typeId: income.type?.id ?? (income as any).typeId ?? resolved.id,
+          type: resolved,
         };
 
         return {
@@ -287,13 +291,20 @@ export class BudgetService {
   private normalizePeriod(period: Period, incomeTypes: TypeOfIncome[]): Period {
     return {
       date: period.date,
-      incomes: (period.incomes ?? []).map((income) => ({
-        ...income,
-        type: this.resolveIncomeType(income.type, incomeTypes),
-        plannedDate: income.plannedDate || undefined,
-        realDate: income.realDate || undefined,
-        deductedFromIncomeId: income.deductedFromIncomeId || undefined,
-      })),
+      incomes: (period.incomes ?? []).map((income) => {
+        const candidate = income.typeId ? ({ id: income.typeId } as TypeOfIncome) : income.type;
+        const resolved = this.resolveIncomeType(candidate, incomeTypes);
+        const typeId = (income as any).typeId ?? resolved.id;
+
+        return {
+          ...income,
+          typeId,
+          type: resolved,
+          plannedDate: income.plannedDate || undefined,
+          realDate: income.realDate || undefined,
+          deductedFromIncomeId: income.deductedFromIncomeId || undefined,
+        };
+      }),
       expenses: (period.expenses ?? []).map((expense) => ({
         ...expense,
         note: expense.note ?? '',
