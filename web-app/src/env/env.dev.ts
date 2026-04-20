@@ -3,5 +3,5 @@ export const environment = {
   apiUrl: 'http://localhost:3000/api',
   dbName: 'todo-db-dev',
   dbVersion: 5,
-  appVersion: '1.1.1',
+  appVersion: '1.2.0',
 };
