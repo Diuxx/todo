@@ -539,6 +539,7 @@ export class BudgetSettingsComponent implements OnInit {
     const expenses = sourcePeriod.expenses.map((expense) => ({
       ...expense,
       id: generateUUID(),
+      incomeId: expense.incomeId ? incomeIdMap.get(expense.incomeId) : undefined,
     }));
 
     return {

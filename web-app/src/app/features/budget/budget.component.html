@@ -196,13 +196,13 @@
 							<span>Filtrer banque</span>
 							<select [(ngModel)]="expenseBankFilter">
 								<option value="all">Toutes</option>
-								@for (account of expenseFilterAccounts; track account.id) {
-									<option [value]="account.id">{{ account.name }}</option>
+								@for (option of expenseFilterOptions; track option.value) {
+									<option [value]="option.value">{{ option.label }}</option>
 								}
 							</select>
 						</label>
 					}
-					<button type="button" (click)="openExpenseModal()">Ajouter</button>
+					<button type="button" (click)="openExpenseModal()" [disabled]="!currentPeriod.incomes.length">Ajouter</button>
 				</div>
 			</header>
 
@@ -407,10 +407,10 @@
 			</label>
 
 			<label>
-				<span>Compte</span>
-				<select [(ngModel)]="expenseDraftAccountId">
-					@for (account of expenseModalAccounts; track account.id) {
-						<option [value]="account.id">{{ account.name }}</option>
+				<span>Revenu associé</span>
+				<select [(ngModel)]="expenseDraftIncomeId" (ngModelChange)="onExpenseDraftIncomeChange($event)">
+					@for (income of expenseModalAccounts; track income.id) {
+						<option [value]="income.id">{{ getExpenseModalIncomeLabel(income) }}</option>
 					}
 				</select>
 			</label>

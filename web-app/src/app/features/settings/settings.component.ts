@@ -9,7 +9,12 @@ import { SettingsService } from '../../shared/services/settings.service';
 import { AppSettings } from '../../shared/models/app-settings.model';
 import { db } from '../../db.config';
 import { AppData } from '../../shared/models/app-data.model';
-import { createDefaultBudget } from '../../shared/models/budget/budget.model';
+import {
+  createDefaultBudget,
+  IncomeItem,
+  Period,
+  resolveExpenseIncomeId,
+} from '../../shared/models/budget/budget.model';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 import { DatabaseService } from '../../shared/services/database.service';
 import { LocalNotificationService } from '../../shared/services/local-notification.service';
@@ -563,7 +568,28 @@ export class SettingsComponent implements OnInit, OnDestroy {
     return {
       ...payload,
       budget: {
-        periods: Array.isArray(budgetCandidate.periods) ? budgetCandidate.periods : [],
+        periods: Array.isArray(budgetCandidate.periods)
+          ? budgetCandidate.periods.map((period) => {
+              const candidatePeriod = period as Partial<Period> & {
+                expenses?: Array<{ accountId: string; incomeId?: string }>;
+              };
+              const candidateIncomes = Array.isArray(candidatePeriod.incomes)
+                ? (candidatePeriod.incomes as IncomeItem[])
+                : [];
+
+              return {
+                ...candidatePeriod,
+                date: typeof candidatePeriod.date === 'string' ? candidatePeriod.date : '',
+                incomes: candidateIncomes,
+                expenses: Array.isArray(candidatePeriod.expenses)
+                  ? candidatePeriod.expenses.map((expense) => ({
+                      ...expense,
+                      incomeId: resolveExpenseIncomeId(expense, candidateIncomes),
+                    }))
+                  : [],
+              };
+            })
+          : [],
         accounts: Array.isArray(budgetCandidate.accounts)
           ? budgetCandidate.accounts
           : createDefaultBudget().accounts,

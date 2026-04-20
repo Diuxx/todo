@@ -6,7 +6,7 @@ import { CitationMeta } from './shared/models/citation-meta.model';
 import { ImageMeta } from './shared/models/image-meta.model';
 import { AppSettings } from './shared/models/app-settings.model';
 import { AppData } from './shared/models/app-data.model';
-import { Budget, createDefaultBudget } from './shared/models/budget/budget.model';
+import { Budget, createDefaultBudget, resolveExpenseIncomeId } from './shared/models/budget/budget.model';
 import {
   normalizeTodoCriticality,
   normalizeTodoDueDate,
@@ -105,7 +105,30 @@ export class AppDb extends Dexie {
       });
     });
 
-    if (dbVersion > 4) {
+    this.version(5).stores({
+      items: 'id, type, createdAt, updatedAt, date, fromCalendar',
+      todoHistory:
+        'id, todoItemId, status, completedAt, createdAt, [todoItemId+completedAt], [todoItemId+createdAt]',
+      citationsMeta: 'id, itemId, author',
+      imagesMeta: 'id, itemId',
+      budgets: 'id',
+      settings: 'id',
+    }).upgrade(async (transaction) => {
+      await transaction
+        .table<Budget, string>('budgets')
+        .toCollection()
+        .modify((budget) => {
+          budget.periods = (budget.periods ?? []).map((period) => ({
+            ...period,
+            expenses: (period.expenses ?? []).map((expense) => ({
+              ...expense,
+              incomeId: resolveExpenseIncomeId(expense, period.incomes ?? []),
+            })),
+          }));
+        });
+    });
+
+    if (dbVersion > 5) {
       this.version(dbVersion).stores({
         items: 'id, type, createdAt, updatedAt, date, fromCalendar',
         todoHistory:

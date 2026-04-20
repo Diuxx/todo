@@ -54,6 +54,7 @@ export interface ExpenseItem {
     realDate?: string; // optional real date (ISO/local format)
     categoryId: string; // e.g., 'Food', 'Transport', 'Entertainment', etc.
     accountId: string; // reference to the associated account (bank)
+    incomeId?: string; // optional link to the income used to fund the expense
 }
 
 export interface TypeOfIncome {
@@ -141,4 +142,15 @@ export function createDefaultBudget(): Budget {
         expenseCategories: defaultExpenseCategories.map((category) => ({ ...category })),
         incomeTypes: defaultIncomeTypes.map((incomeType) => ({ ...incomeType })),
     };
+}
+
+export function resolveExpenseIncomeId(
+  expense: Pick<ExpenseItem, 'accountId' | 'incomeId'>,
+  incomes: Array<Pick<IncomeItem, 'id' | 'accountId'>>
+): string | undefined {
+  if (expense.incomeId && incomes.some((income) => income.id === expense.incomeId)) {
+    return expense.incomeId;
+  }
+
+  return incomes.find((income) => income.accountId === expense.accountId)?.id;
 }

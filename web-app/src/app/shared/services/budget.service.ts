@@ -12,6 +12,7 @@ import {
   IncomeItem,
   Period,
   createDefaultBudget,
+  resolveExpenseIncomeId,
 } from '../models/budget/budget.model';
 import { generateUUID } from '../utils';
 
@@ -310,6 +311,7 @@ export class BudgetService {
         note: expense.note ?? '',
         plannedDate: expense.plannedDate || undefined,
         realDate: expense.realDate || undefined,
+        incomeId: resolveExpenseIncomeId(expense, period.incomes ?? []),
       })),
     };
   }

@@ -11,6 +11,7 @@ import {
   IncomeItem,
   Period,
   TypeOfIncome,
+  resolveExpenseIncomeId,
 } from '../../shared/models/budget/budget.model';
 import { BudgetService } from '../../shared/services/budget.service';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
@@ -51,12 +52,58 @@ export class BudgetComponent implements OnInit {
   public expenseDraftType: ExpenseType = 'variable';
   public expenseDraftNote = '';
   public expenseDraftCategoryId = '';
+  public expenseDraftIncomeId = '';
   public expenseDraftAccountId = '';
   public expenseDraftPlannedAmount = 0;
   public expenseDraftPlannedDate = '';
   public expenseDraftRealAmount = 0;
   public expenseDraftRealDate = '';
   public expenseBankFilter = 'all';
+
+  public get expenseFilterOptions(): Array<{ value: string; label: string }> {
+    if (!this.currentPeriod) {
+      return [];
+    }
+
+    const options: Array<{ value: string; label: string }> = [];
+    const addedValues = new Set<string>();
+
+    for (const account of this.expenseFilterAccounts) {
+      const value = this.getExpenseAccountFilterValue(account.id);
+
+      if (!addedValues.has(value)) {
+        options.push({
+          value,
+          label: account.name,
+        });
+        addedValues.add(value);
+      }
+
+      const relatedIncomes = this.currentPeriod.incomes
+        .filter((income) => income.accountId === account.id)
+        .sort((a, b) =>
+          this.getExpenseModalIncomeLabel(a).localeCompare(this.getExpenseModalIncomeLabel(b), 'fr-FR', {
+            sensitivity: 'base',
+          })
+        );
+
+      for (const income of relatedIncomes) {
+        const incomeValue = this.getExpenseIncomeFilterValue(income.id);
+
+        if (addedValues.has(incomeValue)) {
+          continue;
+        }
+
+        options.push({
+          value: incomeValue,
+          label: `- ${this.getExpenseModalIncomeLabel(income)}`,
+        });
+        addedValues.add(incomeValue);
+      }
+    }
+
+    return options;
+  }
 
   public ngOnInit(): void {
     const monthParam = this.route.snapshot.queryParamMap.get('month');
@@ -238,24 +285,24 @@ export class BudgetComponent implements OnInit {
     return this.computePercentage(this.totalExpenseReal, this.totalIncomeReal);
   }
 
-  public get expenseModalAccounts(): Account[] {
-    if (!this.budget) {
+  public get expenseModalAccounts(): IncomeItem[] {
+    if (!this.currentPeriod) {
       return [];
     }
 
-    const monthlyAccounts = this.periodAccounts;
+    const monthlyIncomes = [...this.currentPeriod.incomes];
 
-    if (!this.expenseDraftAccountId) {
-      return [...monthlyAccounts].sort((a, b) => a.name.localeCompare(b.name, 'fr-FR', { sensitivity: 'base' }));
+    if (!this.expenseDraftIncomeId) {
+      return this.sortExpenseModalIncomes(monthlyIncomes);
     }
 
-    if (monthlyAccounts.some((account) => account.id === this.expenseDraftAccountId)) {
-      return [...monthlyAccounts].sort((a, b) => a.name.localeCompare(b.name, 'fr-FR', { sensitivity: 'base' }));
+    if (monthlyIncomes.some((income) => income.id === this.expenseDraftIncomeId)) {
+      return this.sortExpenseModalIncomes(monthlyIncomes);
     }
 
-    const selectedAccount = this.budget.accounts.find((account) => account.id === this.expenseDraftAccountId);
-    const merged = selectedAccount ? [...monthlyAccounts, selectedAccount] : monthlyAccounts;
-    return merged.sort((a, b) => a.name.localeCompare(b.name, 'fr-FR', { sensitivity: 'base' }));
+    const selectedIncome = this.findIncomeById(this.expenseDraftIncomeId);
+    const merged = selectedIncome ? [...monthlyIncomes, selectedIncome] : monthlyIncomes;
+    return this.sortExpenseModalIncomes(merged);
   }
 
   public get sortedBudgetAccounts(): Account[] {
@@ -585,15 +632,15 @@ export class BudgetComponent implements OnInit {
   public getIncomeWithAllDeductionsPlanned(income: IncomeItem): number {
     const gross = this.getIncomeGrossPlanned(income);
     const incomeDeductions = this.getIncomeDeductedPlanned(income.id);
-    const accountExpenses = this.getExpensePlannedByAccount(income.accountId);
-    return Math.max(0, gross - incomeDeductions - accountExpenses);
+    const linkedExpenses = this.getExpensePlannedByIncome(income.id);
+    return Math.max(0, gross - incomeDeductions - linkedExpenses);
   }
 
   public getIncomeWithAllDeductionsReal(income: IncomeItem): number {
     const gross = this.getIncomeGrossReal(income);
     const incomeDeductions = this.getIncomeDeductedReal(income.id);
-    const accountExpenses = this.getExpenseRealByAccount(income.accountId);
-    return Math.max(0, gross - incomeDeductions - accountExpenses);
+    const linkedExpenses = this.getExpenseRealByIncome(income.id);
+    return Math.max(0, gross - incomeDeductions - linkedExpenses);
   }
 
   public hasIncomeDeductions(income: IncomeItem): boolean {
@@ -642,14 +689,17 @@ export class BudgetComponent implements OnInit {
   }
 
   public openExpenseModal(expense?: ExpenseItem): void {
-    if (!this.currentPeriod || !this.budget?.expenseCategories.length) {
+    if (!this.currentPeriod || !this.budget?.expenseCategories.length || !this.currentPeriod.incomes.length) {
       return;
     }
 
-    const defaultAccountId = this.periodAccounts[0]?.id ?? this.budget.accounts[0]?.id ?? '';
     const defaultCategoryId = this.budget.expenseCategories[0].id;
+    const defaultIncomeId = resolveExpenseIncomeId(expense ?? { accountId: '', incomeId: undefined }, this.currentPeriod.incomes) ??
+      this.expenseModalAccounts[0]?.id ??
+      '';
+    const selectedIncome = this.findIncomeById(defaultIncomeId);
 
-    if (!expense && !defaultAccountId) {
+    if (!expense && !defaultIncomeId) {
       return;
     }
 
@@ -658,7 +708,8 @@ export class BudgetComponent implements OnInit {
     this.expenseDraftType = expense?.type ?? 'variable';
     this.expenseDraftNote = expense?.note ?? '';
     this.expenseDraftCategoryId = expense?.categoryId ?? defaultCategoryId;
-    this.expenseDraftAccountId = expense?.accountId ?? defaultAccountId;
+    this.expenseDraftIncomeId = defaultIncomeId;
+    this.expenseDraftAccountId = selectedIncome?.accountId ?? expense?.accountId ?? '';
     this.expenseDraftPlannedAmount = expense?.plannedAmount ?? 0;
     this.expenseDraftPlannedDate = expense?.plannedDate ?? '';
     this.expenseDraftRealAmount = expense?.realAmount ?? 0;
@@ -672,9 +723,15 @@ export class BudgetComponent implements OnInit {
     }
 
     this.editingExpenseId = null;
+    this.expenseDraftIncomeId = '';
     this.expenseDraftPlannedDate = '';
     this.expenseDraftRealDate = '';
     this.isExpenseModalVisible = false;
+  }
+
+  public onExpenseDraftIncomeChange(incomeId: string): void {
+    this.expenseDraftIncomeId = incomeId;
+    this.expenseDraftAccountId = this.findIncomeById(incomeId)?.accountId ?? '';
   }
 
   public saveExpenseEntry(): void {
@@ -683,8 +740,14 @@ export class BudgetComponent implements OnInit {
       !this.currentPeriod ||
       !this.expenseDraftName.trim() ||
       !this.expenseDraftCategoryId ||
-      !this.expenseDraftAccountId
+      !this.expenseDraftIncomeId
     ) {
+      return;
+    }
+
+    const selectedIncome = this.findIncomeById(this.expenseDraftIncomeId);
+
+    if (!selectedIncome) {
       return;
     }
 
@@ -697,7 +760,8 @@ export class BudgetComponent implements OnInit {
         type: this.expenseDraftType,
         note: this.expenseDraftNote.trim(),
         categoryId: this.expenseDraftCategoryId,
-        accountId: this.expenseDraftAccountId,
+        accountId: selectedIncome.accountId,
+        incomeId: selectedIncome.id,
         plannedAmount: Number(this.expenseDraftPlannedAmount) || 0,
         plannedDate: this.expenseDraftPlannedDate || undefined,
         realAmount: Number(this.expenseDraftRealAmount) || 0,
@@ -709,6 +773,7 @@ export class BudgetComponent implements OnInit {
           this.currentPeriod = this.findPeriodForActiveMonth(budget);
           this.isSaving = false;
           this.editingExpenseId = null;
+          this.expenseDraftIncomeId = '';
           this.expenseDraftPlannedDate = '';
           this.expenseDraftRealDate = '';
           this.isExpenseModalVisible = false;
@@ -783,7 +848,7 @@ export class BudgetComponent implements OnInit {
       return this.currentPeriod.expenses;
     }
 
-    return this.currentPeriod.expenses.filter((expense) => expense.accountId === this.expenseBankFilter);
+    return this.currentPeriod.expenses.filter((expense) => this.matchesExpenseFilter(expense, this.expenseBankFilter));
   }
 
   public get groupedExpensesByBank(): Array<{ accountId: string; accountName: string; expenses: ExpenseItem[] }> {
@@ -854,6 +919,10 @@ export class BudgetComponent implements OnInit {
     return income.realAmount > 0 ? income.realAmount : income.plannedAmount;
   }
 
+  public getExpenseModalIncomeLabel(income: IncomeItem): string {
+    return `${this.getIncomeAccountName(income.accountId)} - [${this.getIncomeTypeName(income)}] ${income.name}`;
+  }
+
   public isImageIcon(icon?: string): boolean {
     if (!icon) {
       return false;
@@ -912,15 +981,25 @@ export class BudgetComponent implements OnInit {
 
   private createPeriodWithCopiedExpenses(previousExpenses: ExpenseItem[]): void {
     const previousPeriod = this.previousPeriod;
+    const sourceIncomes = previousPeriod?.incomes ?? [];
+    const incomeIdMap = new Map<string, string>();
+
+    // Copier aussi les revenus du mois précédent
+    const copiedIncomes = sourceIncomes.map((income) => ({
+      ...income,
+      id: incomeIdMap.get(income.id) ?? generateUUID(),
+    }));
+
+    for (let index = 0; index < sourceIncomes.length; index += 1) {
+      const sourceIncome = sourceIncomes[index];
+      const copiedIncome = copiedIncomes[index];
+      incomeIdMap.set(sourceIncome.id, copiedIncome.id);
+    }
+
     const copiedExpenses = previousExpenses.map((expense) => ({
       ...expense,
       id: generateUUID(),
-    }));
-
-    // Copier aussi les revenus du mois précédent
-    const copiedIncomes = (previousPeriod?.incomes ?? []).map((income) => ({
-      ...income,
-      id: generateUUID(),
+      incomeId: expense.incomeId ? incomeIdMap.get(expense.incomeId) : undefined,
     }));
 
     this.isSaving = true;
@@ -947,6 +1026,30 @@ export class BudgetComponent implements OnInit {
     return this.budget?.accounts.find((account) => account.id === accountId);
   }
 
+  private findIncomeById(incomeId: string): IncomeItem | undefined {
+    return this.currentPeriod?.incomes.find((income) => income.id === incomeId);
+  }
+
+  private matchesExpenseFilter(expense: ExpenseItem, filterValue: string): boolean {
+    if (filterValue.startsWith('income:')) {
+      return expense.incomeId === filterValue.slice('income:'.length);
+    }
+
+    if (filterValue.startsWith('account:')) {
+      return expense.accountId === filterValue.slice('account:'.length);
+    }
+
+    return expense.accountId === filterValue;
+  }
+
+  private getExpenseAccountFilterValue(accountId: string): string {
+    return `account:${accountId}`;
+  }
+
+  private getExpenseIncomeFilterValue(incomeId: string): string {
+    return `income:${incomeId}`;
+  }
+
   private findCategoryById(categoryId: string): ExpenseCategory | undefined {
     return this.budget?.expenseCategories.find((category) => category.id === categoryId);
   }
@@ -971,6 +1074,26 @@ export class BudgetComponent implements OnInit {
       .reduce((sum, expense) => sum + expense.realAmount, 0);
   }
 
+  private getExpensePlannedByIncome(incomeId: string): number {
+    if (!this.currentPeriod) {
+      return 0;
+    }
+
+    return this.currentPeriod.expenses
+      .filter((expense) => expense.incomeId === incomeId)
+      .reduce((sum, expense) => sum + expense.plannedAmount, 0);
+  }
+
+  private getExpenseRealByIncome(incomeId: string): number {
+    if (!this.currentPeriod) {
+      return 0;
+    }
+
+    return this.currentPeriod.expenses
+      .filter((expense) => expense.incomeId === incomeId)
+      .reduce((sum, expense) => sum + expense.realAmount, 0);
+  }
+
   private upsertIncomeInCollection(incomes: IncomeItem[], nextIncome: IncomeItem): IncomeItem[] {
     const index = incomes.findIndex((income) => income.id === nextIncome.id);
 
@@ -979,6 +1102,14 @@ export class BudgetComponent implements OnInit {
     }
 
     return incomes.map((income, currentIndex) => (currentIndex === index ? nextIncome : income));
+  }
+
+  private sortExpenseModalIncomes(incomes: IncomeItem[]): IncomeItem[] {
+    return [...incomes].sort((a, b) =>
+      this.getExpenseModalIncomeLabel(a).localeCompare(this.getExpenseModalIncomeLabel(b), 'fr-FR', {
+        sensitivity: 'base',
+      })
+    );
   }
 
   private computePercentage(value: number, total: number): number {
