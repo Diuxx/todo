@@ -129,21 +129,23 @@
 								<div class="income-amounts-wrap">
 									<div class="income-amounts">
 										<p class="income-amount income-amount-planned">
-											P: {{ getIncomeGrossPlanned(income) | number: '1.2-2' }} €
+											P: {{ getIncomeGrossPlanned(income) | number: '1.2-2' }}
+                                            <i class="income-deduction-line">/ {{ getIncomeWithAllDeductionsPlanned(income) | number: '1.2-2' }}</i> €
 										</p>
 										<p
 											class="income-amount income-amount-real"
 											[class.is-below-planned]="getIncomeGrossReal(income) < getIncomeGrossPlanned(income)"
 										>
-											R: {{ getIncomeGrossReal(income) | number: '1.2-2' }} €
+											R: {{ getIncomeGrossReal(income) | number: '1.2-2' }}
+                                            <i class="income-deduction-line">/ {{ getIncomeWithAllDeductionsReal(income) | number: '1.2-2' }}</i> €
 										</p>
 									</div>
-									@if (hasIncomeDeductions(income) || hasAccountExpenseDeductions(income.accountId)) {
+									<!-- @if (hasIncomeDeductions(income) || hasAccountExpenseDeductions(income.accountId)) {
 										<p class="income-deduction-line">
 											Avec déductions: P {{ getIncomeWithAllDeductionsPlanned(income) | number: '1.2-2' }} €
 											• R {{ getIncomeWithAllDeductionsReal(income) | number: '1.2-2' }} €
 										</p>
-									}
+									} -->
 								</div>
 								<i class="bi bi-chevron-right" aria-hidden="true"></i>
 							</div>
@@ -316,7 +318,7 @@
 
 				<div class="modal-row-two">
 					<label>
-						<span>Banque</span>
+						<span>Compte</span>
 						<select [(ngModel)]="incomeDraftAccountId">
 							@for (account of sortedBudgetAccounts; track account.id) {
 								<option [value]="account.id">{{ account.name }}</option>
@@ -330,7 +332,7 @@
 							<option value="">Aucun</option>
 							@for (incomeOption of incomeDeductionOptions; track incomeOption.id) {
 								<option [value]="incomeOption.id">
-									{{ getIncomeAccountName(incomeOption.accountId) }} - {{ incomeOption.realAmount | number: '1.2-2' }} €
+									{{ incomeOption.name}} - {{ incomeOption.realAmount | number: '1.2-2' }} €
 								</option>
 							}
 						</select>
@@ -405,7 +407,7 @@
 			</label>
 
 			<label>
-				<span>Banque</span>
+				<span>Compte</span>
 				<select [(ngModel)]="expenseDraftAccountId">
 					@for (account of expenseModalAccounts; track account.id) {
 						<option [value]="account.id">{{ account.name }}</option>

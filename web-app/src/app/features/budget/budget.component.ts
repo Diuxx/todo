@@ -263,7 +263,9 @@ export class BudgetComponent implements OnInit {
       return [];
     }
 
-    return [...this.budget.accounts].sort((a, b) => a.name.localeCompare(b.name, 'fr-FR', { sensitivity: 'base' }));
+    return [...this.budget.accounts]
+        // .filter(a => this.currentPeriod?.incomes.some(i => i.accountId === a.id))
+        .sort((a, b) => a.name.localeCompare(b.name, 'fr-FR', { sensitivity: 'base' }));
   }
 
   public get sortedExpenseCategories(): ExpenseCategory[] {
@@ -577,6 +579,9 @@ export class BudgetComponent implements OnInit {
     return income.realAmount + this.getIncomeDeductedReal(income.id);
   }
 
+  /**
+   * Calculate the income amount after deductions, ensuring it doesn't go below zero
+   */
   public getIncomeWithAllDeductionsPlanned(income: IncomeItem): number {
     const gross = this.getIncomeGrossPlanned(income);
     const incomeDeductions = this.getIncomeDeductedPlanned(income.id);
