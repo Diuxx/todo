@@ -35,10 +35,18 @@
     </div>
     <div
       class="footer-board"
-      [ngClass]="{ 'todo-progress-mode': !!todoProgress }"
+      [ngClass]="{ 'todo-progress-mode': !!todoProgress || isBudgetRoute }"
       (click)="onBoardClick()"
     >
-      @if (todoProgress) {
+      @if (isBudgetRoute) {
+        <canvas
+          #budgetProgressChart
+          class="board-chart"
+          width="90"
+          height="90"
+          aria-label="Synthèse budget de la période"
+        ></canvas>
+      } @else if (todoProgress) {
         <canvas
           #todoProgressChart
           class="board-chart"

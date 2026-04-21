@@ -612,9 +612,15 @@
   gap: 0.6rem;
 }
 
-.expense-sort-control {
+.expense-sort-select {
   display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
+}
+
+.expense-sort-control {
+  display: inline-flex;
+  flex-direction: column;
   gap: 0.35rem;
 
   span {

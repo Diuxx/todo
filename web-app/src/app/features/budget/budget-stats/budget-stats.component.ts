@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { DecimalPipe, CommonModule } from '@angular/common';
-import { Budget, Period } from '../../../shared/models/budget/budget.model';
+import { Budget, ExpenseItem, IncomeItem, Period, resolveExpenseIncomeId } from '../../../shared/models/budget/budget.model';
 import { BudgetService } from '../../../shared/services/budget.service';
 import { Chart, registerables } from 'chart.js';
 
@@ -14,6 +14,7 @@ interface AggregateStat {
 }
 
 interface MonthlyExpenseStat {
+  monthKey: string;
   monthLabel: string;
   incomePlanned: number;
   incomeReal: number;
@@ -89,11 +90,13 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
   public goToPreviousYear(): void {
     this.selectedYear -= 1;
     this.refreshMonthlyLineChart();
+    this.refreshSavingsColumnChart();
   }
 
   public goToNextYear(): void {
     this.selectedYear += 1;
     this.refreshMonthlyLineChart();
+    this.refreshSavingsColumnChart();
   }
 
   public get totalExpensePlannedYear(): number {
@@ -218,16 +221,17 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     for (const period of this.yearPeriods) {
       for (const expense of period.expenses) {
-        const current = byAccount.get(expense.accountId) ?? {
-          id: expense.accountId,
-          name: this.budget.accounts.find((account) => account.id === expense.accountId)?.name ?? 'Compte inconnu',
+        const aggregateId = this.getExpenseAggregateId(period, expense);
+        const current = byAccount.get(aggregateId) ?? {
+          id: aggregateId,
+          name: this.getExpenseAggregateName(period, expense),
           planned: 0,
           real: 0,
         };
 
         current.planned += expense.plannedAmount;
         current.real += expense.realAmount;
-        byAccount.set(expense.accountId, current);
+        byAccount.set(aggregateId, current);
       }
     }
 
@@ -299,6 +303,8 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (budget) => {
         this.budget = budget;
         this.isLoading = false;
+        this.refreshMonthlyLineChart();
+        this.refreshSavingsColumnChart();
       },
       error: () => {
         this.isLoading = false;
@@ -307,10 +313,192 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private refreshMonthlyLineChart(): void {
-    // ...existing code for chart rendering...
+    if (!this.monthlyLineChartCanvas) {
+      return;
+    }
+
+    this.monthlyLineChart?.destroy();
+    this.monthlyLineChart = null;
+
+    const labels = this.monthlyExpenseStats.map((month) => month.monthLabel);
+    const plannedIncomeData = this.monthlyExpenseStats.map((month) => month.incomePlanned);
+    const realIncomeData = this.monthlyExpenseStats.map((month) => month.incomeReal);
+    const plannedExpenseData = this.monthlyExpenseStats.map((month) => month.expensePlanned);
+    const realExpenseData = this.monthlyExpenseStats.map((month) => month.expenseReal);
+
+    this.monthlyLineChart = new Chart(this.monthlyLineChartCanvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Revenus planifies',
+            data: plannedIncomeData,
+            borderColor: '#5a8dee',
+            backgroundColor: 'rgba(90, 141, 238, 0.18)',
+            pointBackgroundColor: '#5a8dee',
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            borderWidth: 2,
+            tension: 0.3,
+          },
+          {
+            label: 'Revenus reels',
+            data: realIncomeData,
+            borderColor: '#2f6fe4',
+            backgroundColor: 'rgba(47, 111, 228, 0.12)',
+            pointBackgroundColor: '#2f6fe4',
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            borderWidth: 2,
+            tension: 0.3,
+          },
+          {
+            label: 'Depenses planifiees',
+            data: plannedExpenseData,
+            borderColor: '#ef8f6b',
+            backgroundColor: 'rgba(239, 143, 107, 0.18)',
+            pointBackgroundColor: '#ef8f6b',
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            borderWidth: 2,
+            tension: 0.3,
+          },
+          {
+            label: 'Depenses reelles',
+            data: realExpenseData,
+            borderColor: '#d6577f',
+            backgroundColor: 'rgba(214, 87, 127, 0.12)',
+            pointBackgroundColor: '#d6577f',
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            borderWidth: 2,
+            tension: 0.3,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              boxWidth: 10,
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => `${value} EUR`,
+            },
+          },
+        },
+      },
+    });
   }
 
   private refreshSavingsColumnChart(): void {
-    // ...existing code for chart rendering...
+    if (!this.savingsColumnChartCanvas) {
+      return;
+    }
+
+    this.savingsColumnChart?.destroy();
+    this.savingsColumnChart = null;
+
+    const labels = this.savingIncomeYearProgress.map((entry) => entry.name);
+    const plannedData = this.savingIncomeYearProgress.map((entry) => entry.planned);
+    const realData = this.savingIncomeYearProgress.map((entry) => entry.real);
+
+    this.savingsColumnChart = new Chart(this.savingsColumnChartCanvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Planifie',
+            data: plannedData,
+            backgroundColor: 'rgba(106, 176, 118, 0.7)',
+            borderColor: '#6ab076',
+            borderWidth: 1,
+            borderRadius: 8,
+          },
+          {
+            label: 'Reel',
+            data: realData,
+            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+            borderColor: '#36a2eb',
+            borderWidth: 1,
+            borderRadius: 8,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              boxWidth: 10,
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 0,
+              minRotation: 0,
+            },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => `${value} EUR`,
+            },
+          },
+        },
+      },
+    });
+  }
+
+  private getExpenseAggregateId(period: Period, expense: ExpenseItem): string {
+    const linkedIncomeId = resolveExpenseIncomeId(expense, period.incomes);
+
+    if (linkedIncomeId) {
+      return `income:${linkedIncomeId}`;
+    }
+
+    return `account:${expense.accountId}`;
+  }
+
+  private getExpenseAggregateName(period: Period, expense: ExpenseItem): string {
+    const linkedIncome = this.getExpenseLinkedIncome(period, expense);
+    const accountName =
+      this.budget?.accounts.find((account) => account.id === expense.accountId)?.name ?? 'Compte inconnu';
+
+    if (!linkedIncome) {
+      return accountName;
+    }
+
+    return `${linkedIncome.name} (${accountName})`;
+  }
+
+  private getExpenseLinkedIncome(period: Period, expense: ExpenseItem): IncomeItem | undefined {
+    const linkedIncomeId = resolveExpenseIncomeId(expense, period.incomes);
+
+    if (!linkedIncomeId) {
+      return undefined;
+    }
+
+    return period.incomes.find((income) => income.id === linkedIncomeId);
   }
 }

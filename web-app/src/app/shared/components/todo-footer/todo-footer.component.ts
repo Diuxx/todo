@@ -8,6 +8,8 @@ import { SelectItemTypeModalComponent } from '../select-item-type-modal/select-i
 import { ItemsService } from '../../services/items.service';
 import { AppItem, TodoInformation } from '../../models/app-item.model';
 import { isTodoOccurrenceOverdue, normalizeTodoDueDate } from '../../utils/todo-config.utils';
+import { BudgetService } from '../../services/budget.service';
+import { Budget, Period } from '../../models/budget/budget.model';
 
 Chart.register(...registerables);
 
@@ -21,16 +23,22 @@ export class TodoFooterComponent implements OnDestroy {
   @Input() visible: boolean = true;
   public showSaveIcon: boolean = false;
   public isDashboardRoute: boolean = true;
+  public isBudgetRoute: boolean = false;
   public isSelectTypeModalVisible: boolean = false;
   public todoProgress: TodoProgress | null = null;
   public overdueCalendarCount: number = 0;
+  public budgetSummary: BudgetFooterSummary | null = null;
 
   private readonly destroy$ = new Subject<void>();
   private readonly staticRoutes = new Set(['settings', 'recap']);
 
   private progressCanvas?: HTMLCanvasElement;
   private todoProgressCanvas?: HTMLCanvasElement;
+  private budgetProgressCanvas?: HTMLCanvasElement;
   private todoProgressChart?: Chart;
+  private budgetProgressChart?: Chart;
+  private budget: Budget | null = null;
+  private budgetMonthKey = this.getCurrentMonthKey();
   private progressStats = {
     dayDone: 0,
     dayTotal: 0,
@@ -43,10 +51,12 @@ export class TodoFooterComponent implements OnDestroy {
   constructor(
     private readonly router: Router,
     private readonly saveActionService: SaveActionService,
-    private readonly itemsService: ItemsService
+    private readonly itemsService: ItemsService,
+    private readonly budgetService: BudgetService
   ) {
     this.updateCenterActionFromUrl(this.router.url);
     this.loadProgressStats();
+    this.loadBudgetSummary();
 
     this.router.events
       .pipe(
@@ -56,6 +66,7 @@ export class TodoFooterComponent implements OnDestroy {
       .subscribe((event) => {
         this.updateCenterActionFromUrl(event.urlAfterRedirects);
         this.loadProgressStats();
+        this.loadBudgetSummary();
       });
 
     this.saveActionService.save$
@@ -69,6 +80,11 @@ export class TodoFooterComponent implements OnDestroy {
       } else if (!progress) {
         this.destroyTodoChart();
       }
+    });
+
+    this.budgetService.budget$.pipe(takeUntil(this.destroy$)).subscribe((budget) => {
+      this.budget = budget;
+      this.refreshBudgetSummary();
     });
   }
 
@@ -158,6 +174,20 @@ export class TodoFooterComponent implements OnDestroy {
     this.renderTodoProgressChart();
   }
 
+  @ViewChild('budgetProgressChart')
+  private set budgetProgressChartRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
+    const canvas = ref?.nativeElement;
+
+    if (!canvas) {
+      this.destroyBudgetChart();
+      this.budgetProgressCanvas = undefined;
+      return;
+    }
+
+    this.budgetProgressCanvas = canvas;
+    this.renderBudgetProgressChart();
+  }
+
   @ViewChild('progressChart')
   private set progressChartRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
     const canvas = ref?.nativeElement;
@@ -181,6 +211,7 @@ export class TodoFooterComponent implements OnDestroy {
   public ngOnDestroy(): void {
     this.destroyChart();
     this.destroyTodoChart();
+    this.destroyBudgetChart();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -414,8 +445,11 @@ export class TodoFooterComponent implements OnDestroy {
       options: {
         responsive: true,
         cutout: '55%',
-        plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        animation: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false }
+        },
+        animation: true,
         events: [],
       },
       plugins: [centerPlugin],
@@ -427,6 +461,158 @@ export class TodoFooterComponent implements OnDestroy {
   private destroyTodoChart(): void {
     this.todoProgressChart?.destroy();
     this.todoProgressChart = undefined;
+  }
+
+  private loadBudgetSummary(): void {
+    if (!this.isBudgetRoute) {
+      this.budgetSummary = null;
+      this.destroyBudgetChart();
+      return;
+    }
+
+    this.budgetService.get().subscribe();
+  }
+
+  private refreshBudgetSummary(): void {
+    if (!this.isBudgetRoute || !this.budget) {
+      this.budgetSummary = null;
+      this.destroyBudgetChart();
+      return;
+    }
+
+    const currentPeriod = this.resolveBudgetPeriod(this.budget, this.budgetMonthKey);
+    const savingIncomeTypeIds = new Set(
+      this.budget.incomeTypes.filter((incomeType) => incomeType.saving).map((incomeType) => incomeType.id)
+    );
+
+    const incomePlanned = currentPeriod?.incomes.reduce((sum, income) => sum + income.plannedAmount, 0) ?? 0;
+    const incomeReal = currentPeriod?.incomes.reduce((sum, income) => sum + income.realAmount, 0) ?? 0;
+    const expensePlanned = currentPeriod?.expenses.reduce((sum, expense) => sum + expense.plannedAmount, 0) ?? 0;
+    const expenseReal = currentPeriod?.expenses.reduce((sum, expense) => sum + expense.realAmount, 0) ?? 0;
+    const savingsPlanned =
+      currentPeriod?.incomes
+        .filter((income) => savingIncomeTypeIds.has(income.typeId))
+        .reduce((sum, income) => sum + income.plannedAmount, 0) ?? 0;
+    const savingsReal =
+      currentPeriod?.incomes
+        .filter((income) => savingIncomeTypeIds.has(income.typeId))
+        .reduce((sum, income) => sum + income.realAmount, 0) ?? 0;
+
+    this.budgetSummary = {
+      incomePlanned,
+      incomeReal,
+      expensePlanned,
+      expenseReal,
+      savingsPlanned,
+      savingsReal,
+      incomeDisplay: incomeReal > 0 ? incomeReal : incomePlanned,
+      expenseDisplay: expenseReal > 0 ? expenseReal : expensePlanned,
+      savingsDisplay: savingsReal > 0 ? savingsReal : savingsPlanned,
+    };
+
+    this.renderBudgetProgressChart();
+  }
+
+  private renderBudgetProgressChart(): void {
+    if (!this.budgetProgressCanvas || !this.budgetSummary) {
+      return;
+    }
+
+    this.destroyBudgetChart();
+
+    const safe = (done: number, total: number) =>
+      total === 0 ? [0, 1] : [done, Math.max(0, total - done)];
+
+    const centerItems = [
+      { label: 'Ent', value: this.formatBudgetCenterValue(this.budgetSummary.incomeDisplay), color: '#6378FF' },
+      { label: 'Dep', value: this.formatBudgetCenterValue(this.budgetSummary.expenseDisplay), color: '#FFB85C' },
+      { label: 'Epa', value: this.formatBudgetCenterValue(this.budgetSummary.savingsDisplay), color: '#32c493' },
+    ];
+
+    const centerPlugin: any = {
+      id: 'budgetCenterLegend',
+      afterDraw(chart: any) {
+        const { ctx, chartArea } = chart;
+        if (!chartArea) {
+          return;
+        }
+
+        const cx = (chartArea.left + chartArea.right) / 2 - 15;
+        const cy = (chartArea.top + chartArea.bottom) / 2;
+        const rowH = 14;
+        const totalH = (centerItems.length - 1) * rowH;
+        let y = cy - totalH / 2;
+
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+
+        for (const item of centerItems) {
+          ctx.beginPath();
+          ctx.arc(cx, y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = item.color;
+          ctx.fill();
+
+          ctx.fillStyle = '#666';
+          ctx.font = 'bold 8px sans-serif';
+          // ctx.fillText(item.label, cx + 7, y);
+
+          ctx.fillStyle = '#2f3441';
+          ctx.font = '700 9px sans-serif';
+          ctx.fillText(item.value, cx + 7, y);
+          // ctx.fillText(item.value, cx + 27, y);
+          y += rowH;
+        }
+
+        ctx.restore();
+      },
+    };
+
+    const config: ChartConfiguration<'doughnut'> = {
+      type: 'doughnut',
+      data: {
+        labels: ['Done', 'Remaining'],
+        datasets: [
+          {
+            label: 'Entrees',
+            data: safe(this.budgetSummary.incomeReal, this.budgetSummary.incomePlanned),
+            backgroundColor:
+              this.budgetSummary.incomePlanned === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#6378FF', '#E5E7EB'],
+            borderWidth: 0,
+          },
+          {
+            label: 'Depenses',
+            data: safe(this.budgetSummary.expenseReal, this.budgetSummary.expensePlanned),
+            backgroundColor:
+              this.budgetSummary.expensePlanned === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#FFB85C', '#E5E7EB'],
+            borderWidth: 0,
+          },
+          {
+            label: 'Epargne',
+            data: safe(this.budgetSummary.savingsReal, this.budgetSummary.savingsPlanned),
+            backgroundColor:
+              this.budgetSummary.savingsPlanned === 0 ? ['#E5E7EB', '#E5E7EB'] : ['#32c493', '#E5E7EB'],
+            borderWidth: 0,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        // radius: '100%',
+        cutout: '80%',
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        animation: true,
+        events: [],
+      },
+      plugins: [centerPlugin],
+    };
+
+    this.budgetProgressChart = new Chart(this.budgetProgressCanvas, config);
+  }
+
+  private destroyBudgetChart(): void {
+    this.budgetProgressChart?.destroy();
+    this.budgetProgressChart = undefined;
   }
 
   private isPastUncheckedTodo(subItem: TodoInformation, now: Date): boolean {
@@ -542,8 +728,11 @@ export class TodoFooterComponent implements OnDestroy {
   }
 
   private updateCenterActionFromUrl(url: string): void {
-    const normalizedPath = url.split('?')[0].replace(/^\//, '');
+    const [pathPart, queryPart] = url.split('?');
+    const normalizedPath = pathPart.replace(/^\//, '');
     this.isDashboardRoute = !normalizedPath || normalizedPath === 'dashboard';
+    this.isBudgetRoute = normalizedPath.startsWith('budget');
+    this.budgetMonthKey = this.resolveBudgetMonthKey(queryPart);
 
     if (!normalizedPath) {
       this.showSaveIcon = false;
@@ -553,4 +742,43 @@ export class TodoFooterComponent implements OnDestroy {
     const segments = normalizedPath.split('/').filter(Boolean);
     this.showSaveIcon = segments.length > 1 && segments[0] === 'item' && segments[1] != null;
   }
+
+  private resolveBudgetMonthKey(queryPart?: string): string {
+    const currentMonthKey = this.getCurrentMonthKey();
+
+    if (!queryPart) {
+      return currentMonthKey;
+    }
+
+    const params = new URLSearchParams(queryPart);
+    const month = params.get('month');
+
+    return month && /^\d{4}-\d{2}$/.test(month) ? month : currentMonthKey;
+  }
+
+  private resolveBudgetPeriod(budget: Budget, monthKey: string): Period | undefined {
+    return budget.periods.find((period) => period.date === monthKey);
+  }
+
+  private getCurrentMonthKey(): string {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${now.getFullYear()}-${month}`;
+  }
+
+  private formatBudgetCenterValue(value: number): string {
+    return `${Math.round(value)} €`;
+  }
+}
+
+interface BudgetFooterSummary {
+  incomePlanned: number;
+  incomeReal: number;
+  expensePlanned: number;
+  expenseReal: number;
+  savingsPlanned: number;
+  savingsReal: number;
+  incomeDisplay: number;
+  expenseDisplay: number;
+  savingsDisplay: number;
 }

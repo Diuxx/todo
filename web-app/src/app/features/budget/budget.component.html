@@ -194,12 +194,14 @@
 					@if (currentPeriod.expenses.length) {
 						<label class="expense-sort-control">
 							<span>Filtrer banque</span>
-							<select [(ngModel)]="expenseBankFilter">
-								<option value="all">Toutes</option>
-								@for (option of expenseFilterOptions; track option.value) {
-									<option [value]="option.value">{{ option.label }}</option>
-								}
-							</select>
+							<div class="expense-sort-select">
+								<select [(ngModel)]="expenseBankFilter">
+									<option value="all">Toutes</option>
+									@for (option of expenseFilterOptions; track option.value) {
+										<option [value]="option.value">{{ option.label }}</option>
+									}
+								</select>
+							</div>
 						</label>
 					}
 					<button type="button" (click)="openExpenseModal()" [disabled]="!currentPeriod.incomes.length">Ajouter</button>

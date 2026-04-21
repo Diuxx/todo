@@ -130,3 +130,231 @@
     display: block;
   }
 }
+
+.stacked-chart-wrap {
+  border: 1px solid #e7ebf3;
+  border-radius: 0.8rem;
+  background: #f9fbff;
+  padding: 0.8rem;
+  height: 20rem;
+
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+  }
+}
+
+
+.category-chart-title {
+  margin-bottom: 0.5rem !important;
+}
+
+
+.category-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  // repeat(auto-fit, minmax(80px, 120px));
+  gap: 0.5rem;
+}
+
+.category-card {
+  border: 1px solid #e2e2e5;
+  border-radius: 0.7rem;
+  background: #fff;
+  padding: 0.55rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  box-shadow: 0 1px 2px rgba(60, 60, 90, 0.02);
+  min-width: 0;
+}
+
+.category-card-header {
+  font-weight: 450;
+  font-size: 0.80rem;
+  color: #2e3542;
+  margin-bottom: 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.category-card-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.category-card-row .label {
+  color: #68707c;
+  font-size: 0.75em;
+}
+
+.category-card-row .value {
+  font-weight: 300;
+  color: #2e3542;
+  font-size: 0.70em;
+}
+
+.annual-ring {
+  width: 8.8rem;
+  height: 8.8rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0.62rem;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px #e8edf7;
+  }
+}
+
+.annual-ring-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+
+  p {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #30394a;
+  }
+
+  span {
+    font-size: 0.75rem;
+    color: #6a7483;
+    font-weight: 600;
+  }
+}
+
+.annual-legend {
+  display: grid;
+  gap: 0.35rem;
+
+  p {
+    margin: 0;
+    color: #576172;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+}
+
+.legend-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  display: inline-block;
+
+  &.planned {
+    background: #7ea0d7;
+  }
+
+  &.real {
+    background: #dd7ea8;
+  }
+}
+
+.bar-track {
+  height: 0.52rem;
+  border-radius: 999px;
+  background: #e8edf5;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: inherit;
+
+  &.planned {
+    background: linear-gradient(90deg, #84a8de, #7298d2);
+  }
+
+  &.real {
+    background: linear-gradient(90deg, #df86ae, #cc6f99);
+  }
+}
+
+.aggregate-track {
+  margin-top: 0.1rem;
+}
+
+.monthly-list,
+.aggregate-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.monthly-row,
+.aggregate-row {
+  border: 1px solid #e6e8ec;
+  border-radius: 0.7rem;
+  background: #f8f9fb;
+  padding: 0.5rem 0.65rem;
+  display: grid;
+  gap: 0.15rem;
+
+  p {
+    margin: 0;
+  }
+}
+
+.monthly-name {
+  font-weight: 700;
+  text-transform: capitalize;
+  color: #354051;
+}
+
+.aggregate-row p:first-child {
+  font-weight: 700;
+  color: #354051;
+}
+
+.aggregate-row p:last-child {
+  color: #646d7a;
+  font-size: 0.88rem;
+}
+
+.two-columns {
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 760px) {
+
+  .two-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .stats-card {
+    padding: 0.55rem;
+  }
+
+  .stats-card-label {
+    font-size: 0.72rem;
+  }
+
+  .stats-card-value {
+    font-size: 0.86rem;
+  }
+
+  .line-chart-wrap {
+    height: 18rem;
+  }
+
+  .stacked-chart-wrap {
+    height: 16rem;
+  }
+}
