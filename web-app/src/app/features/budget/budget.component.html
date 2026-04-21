@@ -1,4 +1,4 @@
-<section class="budget-page">
+﻿<section class="budget-page">
 	<header class="budget-month-nav" aria-label="Navigation des mois du budget">
 		<button
 			type="button"
@@ -68,23 +68,23 @@
 				</article>
 
 				<article class="period-stat-card">
-					<div class="period-stat-ring" [style.background]="getRingBackground(plannedExpenseVsIncomePercent, '#59b78f')">
+					<div class="period-stat-ring" [style.background]="getRingBackground(realExpenseVsIncomePercent, '#d97ca9')">
 						<div class="period-stat-content">
-							<p class="period-stat-title">Prévues</p>
-							<p class="period-stat-amount">{{ totalExpensePlanned | number: '1.0-0' }} €</p>
-							<!-- <p class="period-stat-sub">Vs entrées prévues</p> -->
-							<p class="period-stat-percent">{{ plannedExpenseVsIncomePercent | number: '1.0-0' }}%</p>
+                            <p class="period-stat-title">Dépenses</p>
+                            <p class="period-stat-amount">{{ totalExpenseReal | number: '1.0-0' }} €</p>
+                            <p class="period-stat-sub">Prévu {{ totalExpensePlanned | number: '1.0-0' }} €</p>
+                            <p class="period-stat-percent">{{ realExpenseVsIncomePercent | number: '1.0-0' }}%</p>
 						</div>
 					</div>
 				</article>
 
 				<article class="period-stat-card">
-					<div class="period-stat-ring" [style.background]="getRingBackground(realExpenseVsIncomePercent, '#d97ca9')">
+					<div class="period-stat-ring" [style.background]="getRingBackground(outflowRealVsIncomePercent, outflowRingColor)">
 						<div class="period-stat-content">
-							<p class="period-stat-title">Réelles</p>
-							<p class="period-stat-amount">{{ totalExpenseReal | number: '1.0-0' }} €</p>
-							<!-- <p class="period-stat-sub">Réelles / entrées réelles</p> -->
-							<p class="period-stat-percent">{{ realExpenseVsIncomePercent | number: '1.0-0' }}%</p>
+                            <p class="period-stat-title">Sorties</p>
+                            <p class="period-stat-amount">{{ outflowDisplayedAmount | number: '1.0-0' }} €</p>
+                            <p class="period-stat-sub">Prévu {{ totalOutflowPlanned | number: '1.0-0' }} €</p>
+                            <p class="period-stat-percent">{{ outflowRealVsIncomePercent | number: '1.0-0' }}%</p>
 						</div>
 					</div>
 				</article>

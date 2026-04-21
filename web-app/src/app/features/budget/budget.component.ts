@@ -285,6 +285,58 @@ export class BudgetComponent implements OnInit {
     return this.computePercentage(this.totalExpenseReal, this.totalIncomeReal);
   }
 
+  public get totalLeafDeductedIncomePlanned(): number {
+    if (!this.currentPeriod) {
+      return 0;
+    }
+
+    return this.currentPeriod.incomes
+      .filter((income) => this.isLeafDeductedIncome(income))
+      .reduce((sum, income) => sum + income.plannedAmount, 0);
+  }
+
+  public get totalLeafDeductedIncomeReal(): number {
+    if (!this.currentPeriod) {
+      return 0;
+    }
+
+    return this.currentPeriod.incomes
+      .filter((income) => this.isLeafDeductedIncome(income))
+      .reduce((sum, income) => sum + income.realAmount, 0);
+  }
+
+  public get totalOutflowPlanned(): number {
+    return this.totalExpensePlanned + this.totalLeafDeductedIncomePlanned;
+  }
+
+  public get totalOutflowReal(): number {
+    return this.totalExpenseReal + this.totalLeafDeductedIncomeReal;
+  }
+
+  public get outflowDisplayedAmount(): number {
+    return this.totalOutflowReal > 0 ? this.totalOutflowReal : this.totalOutflowPlanned;
+  }
+
+  public get outflowRealVsIncomePercent(): number {
+    return this.computePercentage(this.totalOutflowReal, this.totalIncomeReal);
+  }
+
+  public get outflowRingColor(): string {
+    if (this.outflowRealVsIncomePercent >= 100) {
+      return '#d9534f';
+    }
+
+    if (this.outflowRealVsIncomePercent > 90) {
+      return '#f08c3a';
+    }
+
+    if (this.outflowRealVsIncomePercent > 70) {
+      return '#f2c94c';
+    }
+
+    return '#59b78f';
+  }
+
   public get expenseModalAccounts(): IncomeItem[] {
     if (!this.currentPeriod) {
       return [];
@@ -1110,6 +1162,14 @@ export class BudgetComponent implements OnInit {
         sensitivity: 'base',
       })
     );
+  }
+
+  private isLeafDeductedIncome(income: IncomeItem): boolean {
+    if (!this.currentPeriod || !income.deductedFromIncomeId) {
+      return false;
+    }
+
+    return !this.currentPeriod.incomes.some((candidate) => candidate.deductedFromIncomeId === income.id);
   }
 
   private computePercentage(value: number, total: number): number {
