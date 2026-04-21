@@ -189,7 +189,10 @@
 
 		<section class="expense-block">
 			<header class="expense-block-head">
-				<h2>Dépenses</h2>
+				<div class="expense-block-head-main">
+					<h2>Dépenses</h2>
+					<button type="button" (click)="openExpenseModal()" [disabled]="!currentPeriod.incomes.length">Ajouter</button>
+				</div>
 				<div class="expense-block-actions">
 					@if (currentPeriod.expenses.length) {
 						<label class="expense-sort-control">
@@ -204,7 +207,6 @@
 							</div>
 						</label>
 					}
-					<button type="button" (click)="openExpenseModal()" [disabled]="!currentPeriod.incomes.length">Ajouter</button>
 				</div>
 			</header>
 

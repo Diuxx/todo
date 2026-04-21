@@ -701,6 +701,12 @@
     align-items: flex-start;
     flex-direction: column;
   }
+  .expense-block-head-main {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
   .expense-block-actions {
     width: 100%;
     justify-content: space-between;
