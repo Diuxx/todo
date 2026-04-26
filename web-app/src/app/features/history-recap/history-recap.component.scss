@@ -132,21 +132,20 @@
   color: var(--text-secondary-color);
 }
 
-.recap-period-select {
-  width: 100%;
-  max-width: 420px;
-  border: 1px solid var(--input-border-color);
-  border-radius: 0.65rem;
-  background: var(--app-bg-color);
-  color: var(--app-fg-color);
-  padding: 0.7rem 0.8rem;
-  font-size: 0.92rem;
-
-  &:focus {
-    outline: none;
-    border-color: #dc2626;
-  }
-}
+// .recap-period-select {
+//   width: 100%;
+//   max-width: 420px;
+//   border: 1px solid var(--input-border-color);
+//   border-radius: 0.65rem;
+//   background: var(--app-bg-color);
+//   color: var(--app-fg-color);
+//   padding: 0.7rem 0.8rem;
+//   font-size: 0.92rem;
+//   &:focus {
+//     outline: none;
+//     border-color: #dc2626;
+//   }
+// }
 
 .selected-week-layout {
   margin-top: 1rem;

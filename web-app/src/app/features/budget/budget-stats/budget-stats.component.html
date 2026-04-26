@@ -19,6 +19,18 @@
     <section class="stats-section">
       <h2>Revenus et dépenses mensuels</h2>
 
+      <div class="chart-toolbar">
+        <label for="monthly-line-mode-select">Type de graphique</label>
+        <select
+          id="monthly-line-mode-select"
+          [value]="monthlyLineMode"
+          (change)="setMonthlyLineMode($event)"
+        >
+          <option value="planned">Planifié</option>
+          <option value="real">Réel</option>
+        </select>
+      </div>
+
       <div class="stats-cards small">
         <article class="stats-card">
           <p class="stats-card-label">Planifiées</p>
@@ -43,6 +55,18 @@
 
     <section class="stats-section savings-section" *ngIf="hasSavingIncomeYearProgress">
       <h2>Épargne par type (annuel)</h2>
+
+      <div class="savings-toolbar">
+        <label class="savings-mode-label" for="savings-mode-select">Histogramme</label>
+        <select
+          id="savings-mode-select"
+          [value]="savingsHistogramMode"
+          (change)="setSavingsHistogramMode($event)"
+        >
+          <option value="planned">Planifié</option>
+          <option value="real">Réel</option>
+        </select>
+      </div>
 
       <div class="savings-summary-cards">
         <article class="stats-card small">

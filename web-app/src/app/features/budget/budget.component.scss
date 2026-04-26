@@ -311,18 +311,31 @@
   }
 }
 
+.income-block-head {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expense-block-head {
+  display: grid;
+  grid-template-rows: auto auto;
+  .expense-block-head-main {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
 .income-block-head,
 .expense-block-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
-
   h2 {
     margin: 0;
     font-size: 1.05rem;
   }
-
   button {
     border: 1px solid #cfcfd4;
     background: #f4f4f6;
@@ -534,17 +547,6 @@
     font-size: 0.92rem;
   }
 
-  select,
-  input,
-  textarea {
-    width: 100%;
-    border: 1px solid #d5d6dc;
-    border-radius: 0.6rem;
-    padding: 0.55rem 0.65rem;
-    font: inherit;
-    background: #fff;
-  }
-
   textarea {
     min-height: 4.8rem;
     resize: vertical;
@@ -622,6 +624,7 @@
   display: inline-flex;
   flex-direction: column;
   gap: 0.35rem;
+  width: 100%;
 
   span {
     font-size: 0.8rem;
@@ -629,15 +632,15 @@
     font-weight: 600;
   }
 
-  select {
-    border: 1px solid #d5d6dc;
-    border-radius: 0.55rem;
-    background: #ffffff;
-    color: #2b2f37;
-    padding: 0.32rem 0.5rem;
-    font: inherit;
-    font-size: 0.85rem;
-  }
+  // select {
+  //   border: 1px solid #d5d6dc;
+  //   border-radius: 0.55rem;
+  //   background: #ffffff;
+  //   color: #2b2f37;
+  //   padding: 0.32rem 0.5rem;
+  //   font: inherit;
+  //   font-size: 0.85rem;
+  // }
 }
 
 .expense-bank-group {
@@ -686,29 +689,29 @@
   }
 }
 
-@media (max-width: 720px) {
-  .period-stat-ring {
-    width: 7rem;
-    height: 7rem;
-  }
+// @media (max-width: 720px) {
+//   .period-stat-ring {
+//     width: 7rem;
+//     height: 7rem;
+//   }
 
-  .saving-year-meta {
-    display: grid;
-    gap: 0.12rem;
-  }
+//   .saving-year-meta {
+//     display: grid;
+//     gap: 0.12rem;
+//   }
 
-  .expense-block-head {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .expense-block-head-main {
-    display: inline-flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-  }
-  .expense-block-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-}
+//   .expense-block-head {
+//     align-items: flex-start;
+//     flex-direction: column;
+//   }
+//   .expense-block-head-main {
+//     display: inline-flex;
+//     align-items: center;
+//     justify-content: space-between;
+//     width: 100%;
+//   }
+//   .expense-block-actions {
+//     width: 100%;
+//     justify-content: space-between;
+//   }
+// }

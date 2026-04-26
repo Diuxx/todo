@@ -13,9 +13,8 @@
 }
 
 .budget-settings-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto auto;
   gap: 1rem;
 
   h1 {
@@ -346,15 +345,6 @@ details[open] .accordion-head::after {
 .row-actions {
   display: flex;
   gap: 0.45rem;
-}
-
-input,
-select {
-  border: 1px solid #d8dde8;
-  border-radius: 0.5rem;
-  padding: 0.45rem 0.55rem;
-  font: inherit;
-  background: #fff;
 }
 
 button {

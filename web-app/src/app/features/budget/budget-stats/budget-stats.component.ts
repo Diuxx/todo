@@ -20,6 +20,8 @@ interface MonthlyExpenseStat {
   incomeReal: number;
   expensePlanned: number;
   expenseReal: number;
+  savingPlanned: number;
+  savingReal: number;
 }
 
 @Component({
@@ -71,6 +73,9 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
   public selectedYear = new Date().getFullYear();
   public isLoading = true;
 
+  public savingsHistogramMode: 'planned' | 'real' = 'planned';
+  public monthlyLineMode: 'planned' | 'real' = 'planned';
+
   public ngOnInit(): void {
     this.loadBudget();
   }
@@ -99,6 +104,26 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.refreshSavingsColumnChart();
   }
 
+  public setSavingsHistogramMode(evt: any): void {
+    const mode: 'planned' | 'real' = (evt.target as HTMLSelectElement).value as 'planned' | 'real';
+    if (this.savingsHistogramMode === mode) {
+      return;
+    }
+
+    this.savingsHistogramMode = mode;
+    this.refreshSavingsColumnChart();
+  }
+
+  public setMonthlyLineMode(evt: any): void {
+    const mode: 'planned' | 'real' = (evt.target as HTMLSelectElement).value as 'planned' | 'real';
+    if (this.monthlyLineMode === mode) {
+      return;
+    }
+
+    this.monthlyLineMode = mode;
+    this.refreshMonthlyLineChart();
+  }
+
   public get totalExpensePlannedYear(): number {
     return this.yearPeriods.reduce(
       (sum, period) => sum + period.expenses.reduce((innerSum, expense) => innerSum + expense.plannedAmount, 0),
@@ -117,10 +142,38 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
       const month = String(index + 1).padStart(2, '0');
       const key = `${this.selectedYear}-${month}`;
       const period = this.yearPeriods.find((entry) => entry.date === key);
-      const incomePlanned = period?.incomes.reduce((sum, income) => sum + income.plannedAmount, 0) ?? 0;
-      const incomeReal = period?.incomes.reduce((sum, income) => sum + income.realAmount, 0) ?? 0;
-      const expensePlanned = period?.expenses.reduce((sum, expense) => sum + expense.plannedAmount, 0) ?? 0;
-      const expenseReal = period?.expenses.reduce((sum, expense) => sum + expense.realAmount, 0) ?? 0;
+
+      if (!period || !this.budget) {
+        return {
+          monthKey: key,
+          monthLabel: new Date(this.selectedYear, index, 1).toLocaleDateString('fr-FR', { month: 'long' }),
+          incomePlanned: 0,
+          incomeReal: 0,
+          expensePlanned: 0,
+          expenseReal: 0,
+          savingPlanned: 0,
+          savingReal: 0,
+        };
+      }
+
+      let incomePlanned = 0;
+      let incomeReal = 0;
+      let savingPlanned = 0;
+      let savingReal = 0;
+
+      for (const income of period.incomes) {
+        incomePlanned += income.plannedAmount;
+        incomeReal += income.realAmount;
+
+        const incomeType = this.budget.incomeTypes.find((t) => t.id === income.typeId);
+        if (incomeType?.saving) {
+          savingPlanned += income.plannedAmount;
+          savingReal += income.realAmount;
+        }
+      }
+
+      const expensePlanned = period.expenses.reduce((sum, expense) => sum + expense.plannedAmount, 0);
+      const expenseReal = period.expenses.reduce((sum, expense) => sum + expense.realAmount, 0);
 
       return {
         monthKey: key,
@@ -129,9 +182,12 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
         incomeReal,
         expensePlanned,
         expenseReal,
+        savingPlanned,
+        savingReal,
       };
     });
   }
+
 
   public get annualRealVsPlannedPercent(): number {
     if (this.totalExpensePlannedYear <= 0) {
@@ -326,56 +382,117 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
     const plannedExpenseData = this.monthlyExpenseStats.map((month) => month.expensePlanned);
     const realExpenseData = this.monthlyExpenseStats.map((month) => month.expenseReal);
 
+    // AJOUT pour l’épargne
+    const plannedSavingData = this.monthlyExpenseStats.map((month) => month.savingPlanned);
+    const realSavingData = this.monthlyExpenseStats.map((month) => month.savingReal);
+
+    const plannedSavingPlusExpenseData = this.monthlyExpenseStats.map(
+      (month) => month.savingPlanned + month.expensePlanned
+    );
+    const realSavingPlusExpenseData = this.monthlyExpenseStats.map(
+      (month) => month.savingReal + month.expenseReal
+    );
+
+    const datasets =
+      this.monthlyLineMode === 'planned'
+        ? [
+            {
+              label: 'Dépenses planifiées',
+              data: plannedExpenseData,
+              borderColor: '#ef8f6b',
+              backgroundColor: 'rgba(239, 143, 107, 0.18)',
+              pointBackgroundColor: '#ef8f6b',
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              borderWidth: 2,
+              tension: 0.3,
+            },
+            {
+              label: 'Revenus planifiés',
+              data: plannedIncomeData,
+              borderColor: '#5a8dee',
+              backgroundColor: 'rgba(90, 141, 238, 0.18)',
+              pointBackgroundColor: '#5a8dee',
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              borderWidth: 2,
+              tension: 0.3,
+            },
+            {
+              label: 'Épargne',
+              data: plannedSavingData,
+              borderColor: '#6ab076',
+              backgroundColor: 'rgba(106, 176, 118, 0.18)',
+              pointBackgroundColor: '#6ab076',
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              borderWidth: 2,
+              tension: 0.3,
+            },
+            {
+              label: 'Épargne + dépenses planifiées',
+              data: plannedSavingPlusExpenseData,
+              borderColor: '#2f6fe4',
+              backgroundColor: 'rgba(47, 111, 228, 0.12)',
+              pointBackgroundColor: '#2f6fe4',
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              borderWidth: 2,
+              tension: 0.3,
+            },
+          ]
+        : [
+            {
+              label: 'Dépenses réelles',
+              data: realExpenseData,
+              borderColor: '#d6577f',
+              backgroundColor: 'rgba(214, 87, 127, 0.12)',
+              pointBackgroundColor: '#d6577f',
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              borderWidth: 2,
+              tension: 0.3,
+            },
+            {
+              label: 'Revenus réels',
+              data: realIncomeData,
+              borderColor: '#2f6fe4',
+              backgroundColor: 'rgba(47, 111, 228, 0.12)',
+              pointBackgroundColor: '#2f6fe4',
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              borderWidth: 2,
+              tension: 0.3,
+            },
+            {
+              label: 'Épargne',
+              data: realSavingData,
+              borderColor: '#6ab076',
+              backgroundColor: 'rgba(106, 176, 118, 0.18)',
+              pointBackgroundColor: '#6ab076',
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              borderWidth: 2,
+              tension: 0.3,
+            },
+            {
+              label: 'Épargne + dépenses réels',
+              data: realSavingPlusExpenseData,
+              borderColor: '#5a8dee',
+              backgroundColor: 'rgba(90, 141, 238, 0.18)',
+              pointBackgroundColor: '#5a8dee',
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              borderWidth: 2,
+              tension: 0.3,
+            },
+          ];
+
     this.monthlyLineChart = new Chart(this.monthlyLineChartCanvas, {
       type: 'line',
       data: {
         labels,
-        datasets: [
-          {
-            label: 'Revenus planifies',
-            data: plannedIncomeData,
-            borderColor: '#5a8dee',
-            backgroundColor: 'rgba(90, 141, 238, 0.18)',
-            pointBackgroundColor: '#5a8dee',
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            borderWidth: 2,
-            tension: 0.3,
-          },
-          {
-            label: 'Revenus reels',
-            data: realIncomeData,
-            borderColor: '#2f6fe4',
-            backgroundColor: 'rgba(47, 111, 228, 0.12)',
-            pointBackgroundColor: '#2f6fe4',
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            borderWidth: 2,
-            tension: 0.3,
-          },
-          {
-            label: 'Depenses planifiees',
-            data: plannedExpenseData,
-            borderColor: '#ef8f6b',
-            backgroundColor: 'rgba(239, 143, 107, 0.18)',
-            pointBackgroundColor: '#ef8f6b',
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            borderWidth: 2,
-            tension: 0.3,
-          },
-          {
-            label: 'Depenses reelles',
-            data: realExpenseData,
-            borderColor: '#d6577f',
-            backgroundColor: 'rgba(214, 87, 127, 0.12)',
-            pointBackgroundColor: '#d6577f',
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            borderWidth: 2,
-            tension: 0.3,
-          },
-        ],
+        datasets,
       },
       options: {
         responsive: true,
@@ -414,8 +531,29 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.savingsColumnChart = null;
 
     const labels = this.savingIncomeYearProgress.map((entry) => entry.name);
+
     const plannedData = this.savingIncomeYearProgress.map((entry) => entry.planned);
     const realData = this.savingIncomeYearProgress.map((entry) => entry.real);
+
+    const data =
+      this.savingsHistogramMode === 'planned'
+        ? plannedData
+        : realData;
+
+    const label =
+      this.savingsHistogramMode === 'planned'
+        ? 'Épargne planifiée'
+        : 'Épargne réelle';
+
+    const backgroundColor =
+      this.savingsHistogramMode === 'planned'
+        ? 'rgba(106, 176, 118, 0.7)'
+        : 'rgba(54, 162, 235, 0.7)';
+
+    const borderColor =
+      this.savingsHistogramMode === 'planned'
+        ? '#6ab076'
+        : '#36a2eb';
 
     this.savingsColumnChart = new Chart(this.savingsColumnChartCanvas, {
       type: 'bar',
@@ -423,18 +561,10 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
         labels,
         datasets: [
           {
-            label: 'Planifie',
-            data: plannedData,
-            backgroundColor: 'rgba(106, 176, 118, 0.7)',
-            borderColor: '#6ab076',
-            borderWidth: 1,
-            borderRadius: 8,
-          },
-          {
-            label: 'Reel',
-            data: realData,
-            backgroundColor: 'rgba(54, 162, 235, 0.7)',
-            borderColor: '#36a2eb',
+            label,
+            data,
+            backgroundColor,
+            borderColor,
             borderWidth: 1,
             borderRadius: 8,
           },

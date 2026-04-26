@@ -1,4 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
+@use './components.scss';
 
 // 2) Reset mobile-first (Bootstrap gère déjà pas mal, mais on ajuste)
 html,

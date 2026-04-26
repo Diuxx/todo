@@ -1,0 +1,49 @@
+
+button {
+    width: 100%;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    border: 1px solid #d8dde8;
+    border-radius: 0.5rem;
+    padding: 0.45rem 0.55rem;
+    font: inherit;
+    background: #fff;
+}
+
+select {
+    border: 1px solid #d5d6dc;
+    border-radius: 0.55rem;
+    background: #ffffff;
+    color: #2b2f37;
+    padding: 0.7rem 0.8rem;
+    font: inherit;
+    font-size: 0.85rem;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    background-image:
+        linear-gradient(45deg, transparent 50%, #4a5568 50%),
+        linear-gradient(135deg, #4a5568 50%, transparent 50%);
+    background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 2rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+
+    &:hover {
+        border-color: #a0aec0;
+        background-color: #f9fafb;
+    }
+
+    &:focus-visible {
+        outline: none;
+        border-color: #4c6fff;
+        box-shadow: 0 0 0 2px rgba(76, 111, 255, 0.2);
+    }
+}
