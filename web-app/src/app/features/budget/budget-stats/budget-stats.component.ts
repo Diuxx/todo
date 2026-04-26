@@ -377,20 +377,28 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.monthlyLineChart = null;
 
     const labels = this.monthlyExpenseStats.map((month) => month.monthLabel);
-    const plannedIncomeData = this.monthlyExpenseStats.map((month) => month.incomePlanned);
-    const realIncomeData = this.monthlyExpenseStats.map((month) => month.incomeReal);
-    const plannedExpenseData = this.monthlyExpenseStats.map((month) => month.expensePlanned);
-    const realExpenseData = this.monthlyExpenseStats.map((month) => month.expenseReal);
+    const plannedIncomeData = this.monthlyExpenseStats.map((month) => {
+      return month.incomePlanned == 0 ? null : month.incomePlanned;
+    });
+    const realIncomeData = this.monthlyExpenseStats.map((month) => month.incomeReal == 0 ? null : month.incomeReal);
+    const plannedExpenseData = this.monthlyExpenseStats.map((month) => month.expensePlanned == 0 ? null : month.expensePlanned);
+    const realExpenseData = this.monthlyExpenseStats.map((month) => month.expenseReal == 0 ? null : month.expenseReal);
 
     // AJOUT pour l’épargne
-    const plannedSavingData = this.monthlyExpenseStats.map((month) => month.savingPlanned);
-    const realSavingData = this.monthlyExpenseStats.map((month) => month.savingReal);
+    const plannedSavingData = this.monthlyExpenseStats.map((month) => month.savingPlanned == 0 ? null : month.savingPlanned);
+    const realSavingData = this.monthlyExpenseStats.map((month) => month.savingReal == 0 ? null : month.savingReal);
 
     const plannedSavingPlusExpenseData = this.monthlyExpenseStats.map(
-      (month) => month.savingPlanned + month.expensePlanned
+      (month) => {
+        const value = month.savingPlanned + month.expensePlanned;
+        return value === 0 ? null : value;
+      }
     );
     const realSavingPlusExpenseData = this.monthlyExpenseStats.map(
-      (month) => month.savingReal + month.expenseReal
+      (month) => {
+        const value = month.savingReal + month.expenseReal;
+        return value === 0 ? null : value;
+      }
     );
 
     const datasets =
@@ -406,6 +414,7 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
               pointHoverRadius: 5,
               borderWidth: 2,
               tension: 0.3,
+              spanGaps: false
             },
             {
               label: 'Revenus planifiés',
@@ -417,6 +426,7 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
               pointHoverRadius: 5,
               borderWidth: 2,
               tension: 0.3,
+              spanGaps: false
             },
             {
               label: 'Épargne',
@@ -428,6 +438,7 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
               pointHoverRadius: 5,
               borderWidth: 2,
               tension: 0.3,
+              spanGaps: false
             },
             {
               label: 'Épargne + dépenses planifiées',
@@ -439,6 +450,7 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
               pointHoverRadius: 5,
               borderWidth: 2,
               tension: 0.3,
+              spanGaps: false
             },
           ]
         : [
@@ -452,6 +464,7 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
               pointHoverRadius: 5,
               borderWidth: 2,
               tension: 0.3,
+              spanGaps: false
             },
             {
               label: 'Revenus réels',
@@ -463,6 +476,7 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
               pointHoverRadius: 5,
               borderWidth: 2,
               tension: 0.3,
+              spanGaps: false
             },
             {
               label: 'Épargne',
@@ -474,6 +488,7 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
               pointHoverRadius: 5,
               borderWidth: 2,
               tension: 0.3,
+              spanGaps: false
             },
             {
               label: 'Épargne + dépenses réels',
@@ -485,8 +500,21 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
               pointHoverRadius: 5,
               borderWidth: 2,
               tension: 0.3,
+
             },
-          ];
+          ];   
+
+      // // If a dataset contains only zero/empty values, hide its points for a cleaner chart
+      // (datasets as any[]).forEach((ds) => {
+      //   const values = Array.isArray(ds.data) ? ds.data : [];
+      //   const hasNonZero = values.some((v: any) => typeof v === 'number' && v !== 0);
+      //   console.log(`Dataset "${ds.label}" has non-zero values:`, hasNonZero, 'Values:', values);
+      //   if (!hasNonZero) {
+      //     ds.pointRadius = 0;
+      //     ds.pointHoverRadius = 0;
+      //     ds.spanGaps = false;
+      //   }
+      // });
 
     this.monthlyLineChart = new Chart(this.monthlyLineChartCanvas, {
       type: 'line',
