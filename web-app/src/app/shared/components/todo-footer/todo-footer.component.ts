@@ -599,7 +599,7 @@ export class TodoFooterComponent implements OnDestroy {
       options: {
         responsive: true,
         // radius: '100%',
-        cutout: '80%',
+        cutout: '70%',
         plugins: { legend: { display: false }, tooltip: { enabled: false } },
         animation: true,
         events: [],

@@ -603,10 +603,11 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            position: 'bottom',
+            position: 'top',
             labels: {
               usePointStyle: true,
               boxWidth: 10,
+              padding: 20,
             },
           },
         },

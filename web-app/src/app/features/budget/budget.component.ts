@@ -15,7 +15,7 @@ import {
 } from '../../shared/models/budget/budget.model';
 import { BudgetService } from '../../shared/services/budget.service';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
-import { generateUUID } from '../../shared/utils';
+import { generateUUID, getKeyByValue } from '../../shared/utils';
 
 @Component({
   standalone: true,
@@ -139,6 +139,34 @@ export class BudgetComponent implements OnInit {
     this.router.navigate(['/budget-settings']);
   }
 
+  /**
+   * Confirm deletion of income/expense.
+   */
+  public confirmDelete(type: 'income' | 'expense'): void {
+    if (this.isSaving) {
+      return;
+    }
+    const title: string = type == 'income' ? 'Supprimer ce revenu ?' : 'Supprimer cette dépense ?';
+    const msg: string = type == 'income' ? "Cette action supprimera ce revenu." : "Cette action supprimera cette dépense.";
+    this.confirmDialogService
+      .confirm({
+        title,
+        message: msg,
+        confirmText: 'Supprimer',
+        cancelText: 'Annuler',
+        variant: 'danger',
+      }).subscribe((confirmed) => {
+        if (!confirmed || this.isSaving) {
+          return;
+        }
+        if (type === 'income') this.deleteIncomeEntry();
+        else if (type === 'expense') this.deleteExpenseEntry();
+      })
+  }
+
+  /**
+   * Show a confirmation dialog before deleting the current month's budget data, and handle the deletion if confirmed
+   */
   public confirmDeleteCurrentMonth(): void {
     if (this.isSaving || !this.currentPeriod) {
       return;
@@ -1042,12 +1070,25 @@ export class BudgetComponent implements OnInit {
       id: incomeIdMap.get(income.id) ?? generateUUID(),
     }));
 
+    console.log('Source Incomes:', sourceIncomes);
+    console.log('Copied Incomes:', copiedIncomes);
+
     for (let index = 0; index < sourceIncomes.length; index += 1) {
       const sourceIncome = sourceIncomes[index];
       const copiedIncome = copiedIncomes[index];
       incomeIdMap.set(sourceIncome.id, copiedIncome.id);
     }
 
+    // retrieve deducted from data.
+    for (const income of copiedIncomes) { // retrieve source income
+      const sourceIncomeId = getKeyByValue(incomeIdMap, income.id);
+      const sourceIncome = sourceIncomes.find((source) => source.id === sourceIncomeId);
+      if (sourceIncome?.deductedFromIncomeId) { // if the source income has deduction.
+        income.deductedFromIncomeId = incomeIdMap.get(sourceIncome.deductedFromIncomeId);
+      }
+    }
+
+    console.log('Resolved copied incomes: ', copiedIncomes);
     const copiedExpenses = previousExpenses.map((expense) => ({
       ...expense,
       id: generateUUID(),

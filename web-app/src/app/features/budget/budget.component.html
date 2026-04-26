@@ -387,7 +387,7 @@
 
 				<div class="income-modal-actions">
 					@if (editingIncomeId) {
-						<button type="button" class="danger-btn" (click)="deleteIncomeEntry()" [disabled]="isSaving">
+						<button type="button" class="danger-btn" (click)="confirmDelete('income')" [disabled]="isSaving">
 							Supprimer
 						</button>
 					}
@@ -488,7 +488,7 @@
 
 			<div class="income-modal-actions">
 				@if (editingExpenseId) {
-					<button type="button" class="danger-btn" (click)="deleteExpenseEntry()" [disabled]="isSaving">
+					<button type="button" class="danger-btn" (click)="confirmDelete('expense')" [disabled]="isSaving">
 						Supprimer
 					</button>
 				}

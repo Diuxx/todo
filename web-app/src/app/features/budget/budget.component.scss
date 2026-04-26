@@ -144,8 +144,8 @@
 }
 
 .period-stat-ring {
-  width: 8.3rem;
-  height: 8.3rem;
+  width: 7rem;
+  height: 7rem;
   border-radius: 50%;
   position: relative;
   display: grid;
@@ -201,11 +201,11 @@
 }
 
 .copy-expenses-checkbox {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
   gap: 0.5rem;
   color: #333;
-
   input {
     margin: 0;
   }
@@ -688,30 +688,3 @@
     color: #d8871f;
   }
 }
-
-// @media (max-width: 720px) {
-//   .period-stat-ring {
-//     width: 7rem;
-//     height: 7rem;
-//   }
-
-//   .saving-year-meta {
-//     display: grid;
-//     gap: 0.12rem;
-//   }
-
-//   .expense-block-head {
-//     align-items: flex-start;
-//     flex-direction: column;
-//   }
-//   .expense-block-head-main {
-//     display: inline-flex;
-//     align-items: center;
-//     justify-content: space-between;
-//     width: 100%;
-//   }
-//   .expense-block-actions {
-//     width: 100%;
-//     justify-content: space-between;
-//   }
-// }

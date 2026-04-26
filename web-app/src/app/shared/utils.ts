@@ -18,3 +18,19 @@ export function startOfToday(offsetMs: number = 1): Date {
 export function generateUUID(): string {
   return uuidv4();
 }
+
+/**
+ * Utility function to get the key associated with a specific value in a Map.
+ * @param map The Map to search through.
+ * @param value The value to find the corresponding key for.
+ * @returns The key associated with the specified value, or undefined if not found.
+ */
+export function getKeyByValue<K, V>(map: Map<K, V>, value: V): K | undefined {
+  for (const [key, val] of map.entries()) {
+    if (val === value) {
+      return key;
+    }
+  }
+
+  return undefined;
+}

@@ -25,6 +25,7 @@ import {
   PasswordSettingsModalComponent,
 } from '../../shared/components/password-settings-modal/password-settings-modal.component';
 import { PasswordPromptModalComponent } from '../../shared/components/password-prompt-modal/password-prompt-modal.component';
+import { environment } from '../../../env/env';
 
 type SensitiveAction = 'delete' | 'export' | 'import';
 
@@ -660,7 +661,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     });
 
     await Share.share({
-      title: 'Sauvegarde JSON',
+      title: `todo-v${environment.appVersion}-backup`,
       text: `Fichier exporte: ${fileName}`,
       url: result.uri,
       dialogTitle: 'Enregistrer ou partager la sauvegarde',
