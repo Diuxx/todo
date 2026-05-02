@@ -355,6 +355,53 @@ export class CalendarComponent implements OnInit {
     this.router.navigate(['/item', todo.itemId]);
   }
 
+  public isFrenchHoliday(date: Date): boolean {
+    return this.getFrenchHolidaysForYear(date.getFullYear()).has(this.toDateKey(date));
+  }
+
+  public getFrenchHolidayName(date: Date): string | null {
+    return this.getFrenchHolidaysForYear(date.getFullYear()).get(this.toDateKey(date)) ?? null;
+  }
+
+  private getFrenchHolidaysForYear(year: number): Map<string, string> {
+    const easter = this.getEasterSunday(year);
+    const shift = (days: number) => this.addDays(easter, days);
+    const pad = (n: number) => `${n}`.padStart(2, '0');
+    const fixed = (m: number, d: number) => `${year}-${pad(m)}-${pad(d)}`;
+
+    return new Map<string, string>([
+      [fixed(1, 1),  'Jour de l\'An'],
+      [this.toDateKey(shift(1)),  'Lundi de Pâques'],
+      [fixed(5, 1),  'Fête du Travail'],
+      [fixed(5, 8),  'Victoire 1945'],
+      [this.toDateKey(shift(39)), 'Ascension'],
+      [this.toDateKey(shift(50)), 'Lundi de Pentecôte'],
+      [fixed(7, 14), 'Fête Nationale'],
+      [fixed(8, 15), 'Assomption'],
+      [fixed(11, 1), 'Toussaint'],
+      [fixed(11, 11),'Armistice'],
+      [fixed(12, 25),'Noël'],
+    ]);
+  }
+
+  private getEasterSunday(year: number): Date {
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+    const day = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(year, month, day);
+  }
+
   private getWeekStart(date: Date): Date {
     const normalized = this.startOfDay(date);
     const currentDay = normalized.getDay();

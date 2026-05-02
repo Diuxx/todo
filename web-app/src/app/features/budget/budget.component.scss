@@ -688,3 +688,11 @@
     color: #d8871f;
   }
 }
+
+.income-amount,
+.expense-amount {
+  &.is-dimmed {
+    color: #a0a6b0;
+    font-weight: 400;
+  }
+}

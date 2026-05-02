@@ -128,13 +128,17 @@
 							<div class="income-row-right">
 								<div class="income-amounts-wrap">
 									<div class="income-amounts">
-										<p class="income-amount income-amount-planned">
-											P: {{ getIncomeGrossPlanned(income) | number: '1.2-2' }}
+									<p
+										class="income-amount income-amount-planned"
+										[class.is-dimmed]="getIncomeGrossReal(income) !== 0"
+									>
+										P: {{ getIncomeGrossPlanned(income) | number: '1.2-2' }}
                                             <i class="income-deduction-line">/ {{ getIncomeWithAllDeductionsPlanned(income) | number: '1.2-2' }}</i> €
-										</p>
-										<p
-											class="income-amount income-amount-real"
-											[class.is-below-planned]="getIncomeGrossReal(income) < getIncomeGrossPlanned(income)"
+									</p>
+									<p
+										class="income-amount income-amount-real"
+										[class.is-below-planned]="getIncomeGrossReal(income) < getIncomeGrossPlanned(income)"
+										[class.is-dimmed]="getIncomeGrossReal(income) === 0"
 										>
 											R: {{ getIncomeGrossReal(income) | number: '1.2-2' }}
                                             <i class="income-deduction-line">/ {{ getIncomeWithAllDeductionsReal(income) | number: '1.2-2' }}</i> €
@@ -241,12 +245,16 @@
 
 											<div class="expense-row-right">
 												<div class="expense-amounts">
-													<p class="expense-amount expense-amount-planned">
+													<p
+														class="expense-amount expense-amount-planned"
+														[class.is-dimmed]="expense.realAmount !== 0"
+													>
 														P: {{ expense.plannedAmount | number: '1.2-2' }} €
 													</p>
 													<p
 														class="expense-amount expense-amount-real"
 														[class.is-above-planned]="expense.realAmount > expense.plannedAmount"
+														[class.is-dimmed]="expense.realAmount === 0"
 													>
 														R: {{ expense.realAmount | number: '1.2-2' }} €
 													</p>
@@ -280,12 +288,16 @@
 
 									<div class="expense-row-right">
 										<div class="expense-amounts">
-											<p class="expense-amount expense-amount-planned">
+											<p
+												class="expense-amount expense-amount-planned"
+												[class.is-dimmed]="expense.realAmount !== 0"
+											>
 												P: {{ expense.plannedAmount | number: '1.2-2' }} €
 											</p>
 											<p
 												class="expense-amount expense-amount-real"
 												[class.is-above-planned]="expense.realAmount > expense.plannedAmount"
+												[class.is-dimmed]="expense.realAmount === 0"
 											>
 												R: {{ expense.realAmount | number: '1.2-2' }} €
 											</p>

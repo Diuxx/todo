@@ -37,6 +37,7 @@
               'is-outside': !cell.inCurrentMonth,
               'is-today': cell.isToday,
               'is-selected': cell.isSelected,
+              'is-holiday': isFrenchHoliday(cell.date),
             }"
             (click)="selectDate(cell.date)"
           >
@@ -48,6 +49,9 @@
                 </span>
               }
             </div>
+            @if (isFrenchHoliday(cell.date)) {
+              <span class="holiday-label">{{ getFrenchHolidayName(cell.date) }}</span>
+            }
 
             <div class="month-cell-list">
               <div class="month-cell-dots">

@@ -99,6 +99,23 @@
     border-color: #dc2626;
     border-style: solid;
   }
+
+  &.is-holiday {
+    background: #f0f1f3;
+    border-color: #d0d3d9;
+  }
+}
+
+.holiday-label {
+  display: block;
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: #7a7f8a;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .month-cell-head {
