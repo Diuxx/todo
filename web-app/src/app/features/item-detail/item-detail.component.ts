@@ -122,7 +122,7 @@ export class ItemDetailComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.log('Error fetching item with id:', id, err);
+        console.error('Error fetching item with id:', id, err);
         this.isLoading = false;
       },
     });
@@ -177,7 +177,7 @@ export class ItemDetailComponent implements OnInit {
           next: () => {
             this.router.navigate(['/']);
           },
-          error: () => console.log('Error deleting item'),
+          error: () => console.error('Error deleting item'),
         });
       });
   }
@@ -200,7 +200,7 @@ export class ItemDetailComponent implements OnInit {
         this.itemForm.markAsPristine();
         this.triggerSavedFeedback();
       },
-      error: () => console.log('Error updating item'),
+      error: () => console.error('Error updating item'),
     });
   }
 

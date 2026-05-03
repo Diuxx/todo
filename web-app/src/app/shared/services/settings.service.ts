@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, from, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AppSettings } from '../models/app-settings.model';
@@ -10,7 +10,7 @@ const SETTINGS_ID = 'app-settings';
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
   private readonly settingsSubject = new BehaviorSubject<AppSettings | null>(null);
-  private readonly passwordService = new PasswordService();
+  private readonly passwordService = inject(PasswordService);
 
   /**
    * Emits the latest settings whenever they are loaded or updated.

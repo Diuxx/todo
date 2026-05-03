@@ -309,16 +309,13 @@ export class LocalNotificationService {
     await LocalNotifications.addListener(
       'localNotificationActionPerformed',
       (action: ActionPerformed) => {
-        console.log('[LocalNotification] Notification tap:', action);
         this.onNotificationTap?.(action);
       }
     );
 
     await LocalNotifications.addListener(
       'localNotificationReceived',
-      (notification: LocalNotificationSchema) => {
-        console.log('[LocalNotification] Notification received:', notification);
-      }
+      (_notification: LocalNotificationSchema) => {}
     );
 
     this.isInitialized = true;

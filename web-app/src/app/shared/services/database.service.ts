@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { db } from '../../db.config';
 import { generateUUID } from '../utils';
 import { appDataExample } from '../models/mock-data';
@@ -14,7 +14,7 @@ import { createDefaultBudget } from '../models/budget/budget.model';
 })
 export class DatabaseService {
   private readonly SETTINGS_ID = 'app-settings';
-  private readonly passwordService = new PasswordService();
+  private readonly passwordService = inject(PasswordService);
 
   /**
    * Initialize the database and create default settings if not exist.

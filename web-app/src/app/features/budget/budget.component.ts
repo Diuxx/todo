@@ -1070,9 +1070,6 @@ export class BudgetComponent implements OnInit {
       id: incomeIdMap.get(income.id) ?? generateUUID(),
     }));
 
-    console.log('Source Incomes:', sourceIncomes);
-    console.log('Copied Incomes:', copiedIncomes);
-
     for (let index = 0; index < sourceIncomes.length; index += 1) {
       const sourceIncome = sourceIncomes[index];
       const copiedIncome = copiedIncomes[index];
@@ -1088,7 +1085,6 @@ export class BudgetComponent implements OnInit {
       }
     }
 
-    console.log('Resolved copied incomes: ', copiedIncomes);
     const copiedExpenses = previousExpenses.map((expense) => ({
       ...expense,
       id: generateUUID(),

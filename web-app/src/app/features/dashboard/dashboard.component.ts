@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgClass } from '@angular/common';
 import { AppData } from '../../shared/models/app-data.model';
@@ -6,7 +6,8 @@ import { AppItem } from '../../shared/models/app-item.model';
 import { ItemsService } from '../../shared/services/items.service';
 import { DashboardSkeletonComponent } from '../../shared/components/dashboard-skeleton/dashboard-skeleton.component';
 import { SettingsService } from '../../shared/services/settings.service';
-import { switchMap } from 'rxjs';
+import { Subject, switchMap } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AppSettings } from '../../shared/models/app-settings.model';
 import { PasswordPromptModalComponent } from '../../shared/components/password-prompt-modal/password-prompt-modal.component';
 import { ItemLockService } from '../../shared/services/item-lock.service';
@@ -19,13 +20,14 @@ import { getTodoCriticalityRank, normalizeTodoDueDate } from '../../shared/utils
   styleUrls: ['./dashboard.component.scss'],
   imports: [NgClass, DashboardSkeletonComponent, PasswordPromptModalComponent],
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   // -- variables --
   private readonly itemsService = inject(ItemsService);
   private readonly settingsService = inject(SettingsService);
   private readonly router: Router = inject(Router);
   private readonly route: ActivatedRoute = inject(ActivatedRoute);
   private readonly itemLockService = inject(ItemLockService);
+  private readonly destroy$ = new Subject<void>();
 
   public data: AppData | null = null;
   public filter: string | null = null;
@@ -43,16 +45,19 @@ export class DashboardComponent implements OnInit {
 
   // -- functions --
   public ngOnInit(): void {
-    console.log('DashboardComponent initialized');
-    this.route.queryParamMap.subscribe((params) => {
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const rawFilter = params.get('filter');
       this.calendarOnlyMode = params.get('calendar') === '1' || rawFilter === 'calendar';
       this.filter = rawFilter === 'todo' || rawFilter === 'note' || rawFilter === 'citation' ? rawFilter : null;
       this.searchQuery = params.get('q') || null;
-      console.log('filter:', this.filter, 'calendarOnly:', this.calendarOnlyMode);
 
       this.getData(this.searchQuery ? null : this.filter);
     });
+  }
+
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -212,7 +217,6 @@ export class DashboardComponent implements OnInit {
           this.items = items;
           this.settings = config;
           this.isLoading = false;
-          console.log('Active items fetched successfully:', items);
         },
         error: (error) => {
           console.error('Error fetching active items:', error);
