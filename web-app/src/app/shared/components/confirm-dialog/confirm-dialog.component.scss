@@ -7,7 +7,10 @@
   pointer-events: none;
 }
 
-.confirm-overlay { @include modal-overlay; }
+.confirm-overlay {
+  @include modal-overlay;
+  animation: fade-backdrop 120ms ease;
+}
 
 .confirm-dialog { @include dialog-box(420px, 0.8rem); }
 

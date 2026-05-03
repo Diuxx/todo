@@ -16,13 +16,14 @@ import {
 import { BudgetService } from '../../shared/services/budget.service';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 import { generateUUID, getKeyByValue } from '../../shared/utils';
+import { SwipeNavDirective } from '../../shared/directives/swipe-nav.directive';
 
 @Component({
   standalone: true,
   selector: 'todo-budget',
   templateUrl: './budget.component.html',
   styleUrls: ['./budget.component.scss'],
-  imports: [FormsModule, DecimalPipe],
+  imports: [FormsModule, DecimalPipe, SwipeNavDirective],
 })
 export class BudgetComponent implements OnInit {
   private readonly budgetService = inject(BudgetService);

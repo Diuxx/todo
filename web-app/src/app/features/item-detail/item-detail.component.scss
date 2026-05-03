@@ -110,7 +110,7 @@
   }
 
   &:active {
-    transform: translateY(0);
+    transform: scale(0.94);
     box-shadow: 0 2px 8px var(--app-color-black-08);
   }
 
@@ -225,6 +225,13 @@
   padding: 10px;
   border-radius: 12px;
   background-color: var(--todo-item-color);
+  animation: fade-in-up 180ms ease-out backwards;
+
+  @for $i from 1 through 8 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{($i - 1) * 25}ms;
+    }
+  }
 
   &.criticality-h {
     background-color: #fde7e3;

@@ -2,6 +2,7 @@ import { DatePipe, NgClass } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { SelectItemTypeModalComponent } from '../../shared/components/select-item-type-modal/select-item-type-modal.component';
+import { SwipeNavDirective } from '../../shared/directives/swipe-nav.directive';
 import { AppItem, TodoInformation } from '../../shared/models/app-item.model';
 import { RecurrenceType, TodoCriticality } from '../../shared/models/base-entity.model';
 import { ItemsService } from '../../shared/services/items.service';
@@ -46,7 +47,7 @@ type CalendarTodoOccurrence = ScheduledTodo & {
   selector: 'todo-calendar',
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
-  imports: [NgClass, DatePipe, SelectItemTypeModalComponent],
+  imports: [NgClass, DatePipe, SelectItemTypeModalComponent, SwipeNavDirective],
 })
 export class CalendarComponent implements OnInit {
   private readonly itemsService = inject(ItemsService);

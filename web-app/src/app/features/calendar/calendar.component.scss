@@ -1,43 +1,56 @@
 @use 'mixins' as *;
+@use 'swipe-nav';
 
 :host { @include page-host(); }
+
+.calendar-swipe-wrapper {
+  will-change: transform, opacity;
+}
 
 .calendar-page {
   display: grid;
   gap: 1rem;
 }
 
-.calendar-toolbar {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
+.calendar-month-nav {
+  width: fit-content;
+  margin: 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid #d8d8d8;
+  background: #f7f7f8;
+}
 
-  h1 {
-    margin: 0;
-    font-size: 1.4rem;
+.calendar-nav-btn {
+  @include circle-btn(2rem);
+  border: none;
+  background: transparent;
+  color: #3b3b3b;
+
+  &:hover {
+    background: #ececef;
   }
 }
 
-.calendar-period {
-  margin: 0.2rem 0 0;
-  font-size: 0.95rem;
+.calendar-period-btn {
+  margin: 0;
+  min-width: 7.5rem;
+  text-align: center;
   font-weight: 600;
-  color: var(--text-secondary-color);
   text-transform: capitalize;
-}
+  font-size: 0.9rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
 
-.calendar-nav {
-  display: flex;
-  gap: 0.5rem;
-
-  button {
-    border: 1px solid var(--box-border);
-    border-radius: 999px;
-    padding: 0.4rem 0.75rem;
-    background: var(--app-bg-color);
-    color: var(--app-fg-color);
-    font-weight: 600;
+  &:hover {
+    background: #ececef;
   }
 }
 
@@ -320,10 +333,6 @@
     padding-right: 0.75rem;
   }
 
-  .calendar-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
 
   .calendar-month {
     gap: 0.25rem;

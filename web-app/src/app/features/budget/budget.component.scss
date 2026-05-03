@@ -1,4 +1,5 @@
 @use 'mixins' as *;
+@use 'swipe-nav';
 
 :host { @include page-host(); }
 
@@ -7,6 +8,14 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+
+.budget-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  will-change: transform, opacity;
 }
 
 .budget-month-nav {
@@ -232,56 +241,92 @@
   }
 }
 
-.saving-year-list {
-  display: grid;
-  gap: 0.55rem;
-}
-
-.saving-year-row {
-  display: grid;
-  gap: 0.32rem;
-}
-
-.saving-year-meta {
+.saving-year-legend {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  color: #62815c;
+}
+
+.saving-legend-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 2px;
+
+  &.saving-legend-dot-planned {
+    background: #9bd49d;
+  }
+
+  &.saving-legend-dot-real {
+    background: #3f8550;
+  }
+}
+
+.saving-year-bars {
+  display: flex;
+  align-items: flex-end;
   gap: 0.75rem;
 }
 
-.saving-year-name,
-.saving-year-values {
-  margin: 0;
-}
-
-.saving-year-name {
-  font-weight: 700;
-  color: #304030;
-}
-
-.saving-year-values {
-  font-size: 0.78rem;
-  color: #6a766b;
-}
-
-.saving-year-track {
-  width: 100%;
-  height: 0.8rem;
-  border-radius: 999px;
-  background: #e5ecdf;
-  overflow: hidden;
+.saving-bar-group {
+  flex: 1;
+  min-width: 0;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
 }
 
-.saving-year-fill {
-  height: 100%;
+.saving-bar-track {
+  width: 100%;
+  height: 110px;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.2rem;
+}
 
-  &.saving-year-fill-planned {
-    background: linear-gradient(90deg, #9bd49d, #79be7d);
+.saving-bar {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  min-height: 2px;
+  transition: height 0.35s ease;
+
+  &.saving-bar-planned {
+    background: linear-gradient(180deg, #b2e0b4, #79be7d);
   }
 
-  &.saving-year-fill-real {
-    background: linear-gradient(90deg, #5fa66c, #3f8550);
+  &.saving-bar-real {
+    background: linear-gradient(180deg, #5fa66c, #3f8550);
+  }
+}
+
+.saving-bar-name {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #304030;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.saving-bar-val {
+  margin: 0;
+  font-size: 0.7rem;
+  text-align: center;
+  white-space: nowrap;
+
+  &.saving-bar-val-planned {
+    color: #79be7d;
+  }
+
+  &.saving-bar-val-real {
+    color: #3f8550;
+    font-weight: 600;
   }
 }
 

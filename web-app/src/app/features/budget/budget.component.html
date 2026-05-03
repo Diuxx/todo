@@ -34,6 +34,9 @@
 		</button>
 	</header>
 
+	<div class="budget-content" appSwipeNav
+		(swipePrevious)="goToPreviousMonth()"
+		(swipeNext)="goToNextMonth()">
 	@if (isLoading) {
 		<p class="budget-state">Chargement...</p>
 	} @else if (!currentPeriod) {
@@ -166,25 +169,25 @@
 					<p>{{ activeMonth.getFullYear() }}</p>
 				</div>
 
-				<div class="saving-year-list">
+				<div class="saving-year-legend">
+					<span class="saving-legend-dot saving-legend-dot-planned"></span><span>Prévu</span>
+					<span class="saving-legend-dot saving-legend-dot-real"></span><span>Réel</span>
+				</div>
+
+				<div class="saving-year-bars">
 					@for (savingEntry of savingIncomeYearProgress; track savingEntry.typeId) {
-						<div class="saving-year-row">
-							<div class="saving-year-meta">
-								<p class="saving-year-name">{{ savingEntry.typeName }}</p>
-								<p class="saving-year-values">
-									P {{ savingEntry.planned | number: '1.2-2' }} € • R {{ savingEntry.real | number: '1.2-2' }} €
-								</p>
+						<div class="saving-bar-group">
+							<div class="saving-bar-track">
+								<div class="saving-bar saving-bar-planned"
+									[style.height.%]="getSavingIncomeStackPercent(savingEntry.planned)">
+								</div>
+								<div class="saving-bar saving-bar-real"
+									[style.height.%]="getSavingIncomeStackPercent(savingEntry.real)">
+								</div>
 							</div>
-							<div class="saving-year-track">
-								<div
-									class="saving-year-fill saving-year-fill-planned"
-									[style.width.%]="getSavingIncomeStackPercent(savingEntry.planned)"
-								></div>
-								<div
-									class="saving-year-fill saving-year-fill-real"
-									[style.width.%]="getSavingIncomeStackPercent(savingEntry.real)"
-								></div>
-							</div>
+							<p class="saving-bar-name">{{ savingEntry.typeName }}</p>
+							<p class="saving-bar-val saving-bar-val-planned">{{ savingEntry.planned | number: '1.0-0' }} €</p>
+							<p class="saving-bar-val saving-bar-val-real">{{ savingEntry.real | number: '1.0-0' }} €</p>
 						</div>
 					}
 				</div>
@@ -512,4 +515,5 @@
 		</div>
 		</div>
 	}
+	</div>
 </section>

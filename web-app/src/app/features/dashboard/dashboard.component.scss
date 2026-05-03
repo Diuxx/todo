@@ -9,6 +9,16 @@
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     grid-template-rows: masonry;
     gap: 16px;
+
+    & > * {
+      animation: fade-in-up 200ms ease-out backwards;
+
+      @for $i from 1 through 12 {
+        &:nth-child(#{$i}) {
+          animation-delay: #{($i - 1) * 40}ms;
+        }
+      }
+    }
   }
 
   .dashboard-card-large {
@@ -67,7 +77,8 @@
       cursor: pointer;
     }
     &.is-selected {
-      transform: scale(1.46);
+      transform: scale(1.02);
+      box-shadow: 0 8px 24px var(--app-color-black-20);
       z-index: 2;
     }
 

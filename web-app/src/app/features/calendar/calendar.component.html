@@ -1,21 +1,17 @@
 <section class="calendar-page">
-  <header class="calendar-toolbar">
-    <div>
-      <h1>Calendrier</h1>
-      <!-- <p class="calendar-period">{{ periodLabel }}</p> -->
-    </div>
-
-    <div class="calendar-nav">
-      <button type="button" (click)="goToPrevious()" aria-label="Mois précédent">
-        <i class="bi bi-chevron-left"></i>
-      </button>
-      <button type="button" (click)="goToToday()">{{ periodLabel }}</button>
-      <button type="button" (click)="goToNext()" aria-label="Mois suivant">
-        <i class="bi bi-chevron-right"></i>
-      </button>
-    </div>
+  <header class="calendar-month-nav">
+    <button type="button" class="calendar-nav-btn" (click)="goToPrevious()" aria-label="Mois précédent">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <button type="button" class="calendar-period-btn" (click)="goToToday()">{{ periodLabel }}</button>
+    <button type="button" class="calendar-nav-btn" (click)="goToNext()" aria-label="Mois suivant">
+      <i class="bi bi-chevron-right"></i>
+    </button>
   </header>
 
+  <div class="calendar-swipe-wrapper" appSwipeNav
+    (swipePrevious)="goToPrevious()"
+    (swipeNext)="goToNext()">
   @if (isLoading) {
     <p class="calendar-loading">Chargement...</p>
   } @else {
@@ -138,4 +134,5 @@
     >
     </select-item-type-modal>
   }
+  </div>
 </section>

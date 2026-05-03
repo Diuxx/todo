@@ -14,6 +14,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  animation: fade-backdrop 120ms ease;
 }
 
 .admin-modal {
@@ -24,6 +25,7 @@
   padding: 1.25rem;
   display: grid;
   gap: 1rem;
+  animation: modal-enter 160ms ease-out;
 }
 
 .modal-header {
