@@ -5,6 +5,9 @@
 
 .calendar-swipe-wrapper {
   will-change: transform, opacity;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .calendar-page {

@@ -44,6 +44,16 @@
               >
                 <i class="bi bi-gear"></i>
               </button>
+              @if (item.type === 'todo') {
+                <button
+                  type="button"
+                  class="icon-action-btn add-todo-btn"
+                  aria-label="Ajouter une tâche"
+                  (click)="addTodoSubItem()"
+                >
+                  <i class="bi bi-plus-lg"></i>
+                </button>
+              }
             </div>
             <button
               type="button"
@@ -59,7 +69,6 @@
               #titleInput
               type="text"
               class="editable title-editable"
-              [ngClass]="{ 'to-be-saved': isFormChanged() }"
               formControlName="title"
               placeholder="Titre de l'item"
             />
@@ -72,6 +81,7 @@
               track subItemForm.get('id')?.value;
               let i = $index
             ) {
+              @if (!isInitiallyDoneHidden(subItemForm)) {
               <div class="todo-row" [formGroup]="subItemForm" [ngClass]="getTodoRowClass(subItemForm)">
                 <label class="todo-subitem-check">
                   <input
@@ -121,6 +131,13 @@
                   </button>
                 </div>
               </div>
+              }
+            }
+            @if (initiallyDoneCount > 0) {
+              <button type="button" class="todo-done-toggle" (click)="showDoneItems = !showDoneItems">
+                <i class="bi" [ngClass]="showDoneItems ? 'bi-eye-slash' : 'bi-eye'"></i>
+                {{ showDoneItems ? 'Masquer les tâches terminées' : initiallyDoneCount + ' tâche(s) terminée(s) - Afficher' }}
+              </button>
             }
             <div class="todo-row todo-add clickable" (click)="addTodoSubItem()">
               <i class="bi bi-plus-lg"></i> Ajouter une tâche

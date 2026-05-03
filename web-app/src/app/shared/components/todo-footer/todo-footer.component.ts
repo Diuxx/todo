@@ -3,7 +3,7 @@ import { Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/cor
 import { NavigationEnd, Router } from '@angular/router';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { Subject, filter, takeUntil } from 'rxjs';
-import { SaveActionService, TodoProgress } from '../../services/save-action.service';
+import { FormSaveState, SaveActionService, TodoProgress } from '../../services/save-action.service';
 import { SelectItemTypeModalComponent } from '../select-item-type-modal/select-item-type-modal.component';
 import { ItemsService } from '../../services/items.service';
 import { AppItem, TodoInformation } from '../../models/app-item.model';
@@ -22,6 +22,7 @@ Chart.register(...registerables);
 export class TodoFooterComponent implements OnDestroy {
   @Input() visible: boolean = true;
   public showSaveIcon: boolean = false;
+  public formSaveState: FormSaveState = 'pristine';
   public isDashboardRoute: boolean = true;
   public isBudgetRoute: boolean = false;
   public isSelectTypeModalVisible: boolean = false;
@@ -72,6 +73,10 @@ export class TodoFooterComponent implements OnDestroy {
     this.saveActionService.save$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.loadProgressStats());
+
+    this.saveActionService.formSaveState$.pipe(takeUntil(this.destroy$)).subscribe((state) => {
+      this.formSaveState = state;
+    });
 
     this.saveActionService.todoProgress$.pipe(takeUntil(this.destroy$)).subscribe((progress) => {
       this.todoProgress = progress;

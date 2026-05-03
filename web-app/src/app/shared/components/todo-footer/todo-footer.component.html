@@ -1,6 +1,6 @@
 @if (visible) {
   <footer>
-    <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
+    <div class="footer-menu" [ngClass]="{ 'edit-mode-dirty': showSaveIcon && formSaveState === 'dirty', 'edit-mode-saved': showSaveIcon && formSaveState !== 'dirty' }">
       <button
         type="button"
         class="footer-menu-item"
@@ -16,7 +16,7 @@
         }
       </button>
     </div>
-    <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
+    <div class="footer-menu" [ngClass]="{ 'edit-mode-dirty': showSaveIcon && formSaveState === 'dirty', 'edit-mode-saved': showSaveIcon && formSaveState !== 'dirty' }">
       <button
         type="button"
         class="footer-menu-item"
@@ -35,7 +35,11 @@
     </div>
     <div
       class="footer-board"
-      [ngClass]="{ 'todo-progress-mode': !!todoProgress || isBudgetRoute }"
+      [ngClass]="{
+        'todo-progress-mode': !!todoProgress || isBudgetRoute,
+        'edit-mode-dirty': showSaveIcon && formSaveState === 'dirty',
+        'edit-mode-saved': showSaveIcon && formSaveState !== 'dirty'
+      }"
       (click)="onBoardClick()"
     >
       @if (isBudgetRoute) {
@@ -64,7 +68,7 @@
         ></canvas>
       }
     </div>
-    <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
+    <div class="footer-menu" [ngClass]="{ 'edit-mode-dirty': showSaveIcon && formSaveState === 'dirty', 'edit-mode-saved': showSaveIcon && formSaveState !== 'dirty' }">
       <button
         type="button"
         class="footer-menu-item"
@@ -74,7 +78,7 @@
         <span>Budget</span>
       </button>
     </div>
-    <div class="footer-menu" [ngClass]="{ 'edit-mode': showSaveIcon }">
+    <div class="footer-menu" [ngClass]="{ 'edit-mode-dirty': showSaveIcon && formSaveState === 'dirty', 'edit-mode-saved': showSaveIcon && formSaveState !== 'dirty' }">
       <button
         type="button"
         class="footer-menu-item"

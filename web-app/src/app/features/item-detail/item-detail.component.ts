@@ -56,7 +56,6 @@ export class ItemDetailComponent implements OnInit {
   private readonly itemLockService = inject(ItemLockService);
 
   private readonly destroy$ = new Subject<void>();
-  private savedFeedbackTimeoutId?: ReturnType<typeof setTimeout>;
 
   private pendingTextareaFocus: boolean = false;
   private contentTextareaElement?: HTMLTextAreaElement;
@@ -65,6 +64,7 @@ export class ItemDetailComponent implements OnInit {
 
   public isTodoEditModalVisible: boolean = false;
   public isAdminModalVisible: boolean = false;
+  public showDoneItems: boolean = false;
   public itemForm: FormGroup = createItemForm(this.formBuilder);
   public editingSubItemForm?: FormGroup;
   public isLoading: boolean = true;
@@ -110,6 +110,7 @@ export class ItemDetailComponent implements OnInit {
         this.itemForm = createItemForm(this.formBuilder, item);
         this.initializeTodoDoneState();
         this.sortTodoSubItemsOnInit();
+        this.saveActionService.updateFormSaveState('pristine');
         this.setupAutoSaveSubscriptions();
         this.emitTodoProgress();
         this.pendingTextareaFocus = !!item && !(item.type === 'todo' && item.todoContent?.length);
@@ -139,10 +140,7 @@ export class ItemDetailComponent implements OnInit {
     this.destroy$.next();
     this.destroy$.complete();
 
-    if (this.savedFeedbackTimeoutId) {
-      clearTimeout(this.savedFeedbackTimeoutId);
-    }
-
+    this.saveActionService.updateFormSaveState('pristine');
     this.saveActionService.updateTodoProgress(null);
   }
 
@@ -477,6 +475,21 @@ export class ItemDetailComponent implements OnInit {
     return `criticality-${normalizeTodoCriticality(subItemForm.get('criticality')?.value)}`;
   }
 
+  public get initiallyDoneCount(): number {
+    return getTodoSubItemFormGroups(this.itemForm).filter((f) => {
+      const id = `${f.get('id')?.value ?? ''}`;
+      return this.initialTodoDoneState.get(id) === true;
+    }).length;
+  }
+
+  public isInitiallyDoneHidden(subItemForm: FormGroup): boolean {
+    if (this.showDoneItems) {
+      return false;
+    }
+    const id = `${subItemForm.get('id')?.value ?? ''}`;
+    return this.initialTodoDoneState.get(id) === true;
+  }
+
   private initializeTodoDoneState(): void {
     this.initialTodoDoneState.clear();
 
@@ -632,24 +645,19 @@ export class ItemDetailComponent implements OnInit {
 
   private setupAutoSaveSubscriptions(): void {
     this.itemForm.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.itemForm.dirty) {
+          this.saveActionService.updateFormSaveState('dirty');
+        }
+      });
+
+    this.itemForm.valueChanges
       .pipe(debounceTime(1000), takeUntil(this.destroy$))
       .subscribe(() => this.saveElement());
   }
 
   private triggerSavedFeedback(): void {
-    const titleInput = this.titleInputRef?.nativeElement;
-    const contentTextarea = this.contentTextareaElement;
-
-    titleInput?.classList.add('saved-feedback');
-    contentTextarea?.classList.add('saved-feedback');
-
-    if (this.savedFeedbackTimeoutId) {
-      clearTimeout(this.savedFeedbackTimeoutId);
-    }
-
-    this.savedFeedbackTimeoutId = setTimeout(() => {
-      titleInput?.classList.remove('saved-feedback');
-      contentTextarea?.classList.remove('saved-feedback');
-    }, 1200);
+    this.saveActionService.updateFormSaveState('saved');
   }
 }
