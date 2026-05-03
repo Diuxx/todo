@@ -1,11 +1,6 @@
-:host {
-  grid-area: main;
-  margin-top: 110px;
-  margin-bottom: 60px;
-  display: block;
-  padding: 1rem;
-  overflow-y: auto;
-}
+@use 'mixins' as *;
+
+:host { @include page-host(); }
 
 .budget-settings-page {
   display: grid;
@@ -32,12 +27,10 @@
 }
 
 .back-button {
-  border: 1px solid #d0d8e6;
+  @include btn-base;
+  border-color: #d0d8e6;
   background: #f4f8ff;
   color: #274b79;
-  border-radius: 0.55rem;
-  padding: 0.45rem 0.7rem;
-  font-weight: 600;
 }
 
 .state-line,

@@ -1,11 +1,6 @@
-:host {
-  grid-area: main;
-  margin-top: 110px;
-  margin-bottom: 60px;
-  display: block;
-  padding: 1rem;
-  overflow-y: auto;
-}
+@use 'mixins' as *;
+
+:host { @include page-host(); }
 
 .budget-stats-page {
   display: grid;
@@ -38,13 +33,9 @@
 }
 
 .year-btn {
+  @include circle-btn(2rem);
   border: none;
   background: transparent;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
 
   &:hover {
     background: #ececef;

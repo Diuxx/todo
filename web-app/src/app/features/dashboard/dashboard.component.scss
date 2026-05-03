@@ -1,11 +1,8 @@
+@use 'mixins' as *;
+
 :host {
-  grid-area: main;
-  margin-top: 110px;
-  margin-bottom: 60px;
-  padding: 1rem;
-  padding-bottom: calc(
-    60px + 1rem
-  ); /* To prevent content from being hidden behind the fixed footer */
+  @include page-host();
+  padding-bottom: calc(60px + 1rem); /* To prevent content from being hidden behind the fixed footer */
   overflow-y: scroll;
   .dashboard-container {
     display: grid;

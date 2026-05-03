@@ -1,11 +1,6 @@
-:host {
-  grid-area: main;
-  margin-top: 110px;
-  margin-bottom: 60px;
-  display: block;
-  padding: 1rem;
-  overflow-y: auto;
-}
+@use 'mixins' as *;
+
+:host { @include page-host(); }
 
 .budget-page {
     min-height: 100%;
@@ -34,48 +29,36 @@
 }
 
 .month-delete-btn {
-  border: 1px solid #e8b8bd;
-  background: #fff3f4;
-  color: #9a2a33;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
+  @include circle-btn(2rem);
+  border: 1px solid var(--app-color-red-border-45);
+  background: var(--app-color-red-light);
+  color: var(--app-color-red-ink-dark);
 
   &:disabled {
     opacity: 0.5;
   }
 
   &:hover:not(:disabled) {
-    background: #ffe9ec;
+    background: var(--app-color-white);
   }
 }
 
 .month-stats-btn {
-  border: 1px solid #c7d8f5;
-  background: #edf3ff;
-  color: #2a5da8;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
+  @include circle-btn(2rem);
+  border: 1px solid var(--app-color-blue-45);
+  background: var(--app-color-blue-light);
+  color: var(--app-color-blue);
 
   &:hover {
-    background: #e2ecff;
+    background: var(--app-color-white);
   }
 }
 
 .month-settings-btn {
+  @include circle-btn(2rem);
   border: 1px solid #d4c9ee;
   background: #f6f2ff;
   color: #6040a8;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
 
   &:hover {
     background: #eee7ff;
@@ -83,13 +66,9 @@
 }
 
 .month-nav-btn {
+  @include circle-btn(2rem);
   border: none;
   background: transparent;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
   color: #3b3b3b;
 
   &:hover {
@@ -104,10 +83,10 @@
 }
 
 .budget-state-card {
-  border: 1px solid #e2e2e5;
+  border: 1px solid var(--box-border);
   border-radius: 0.9rem;
   padding: 1rem;
-  background: #fff;
+  background: var(--app-color-white);
   display: grid;
   gap: 0.75rem;
 
@@ -118,12 +97,7 @@
 
   button {
     justify-self: start;
-    border: 1px solid #cfcfd4;
-    background: #f4f4f6;
-    color: #222;
-    border-radius: 0.6rem;
-    padding: 0.55rem 0.9rem;
-    font-weight: 600;
+    @include btn-base;
 
     &:disabled {
       opacity: 0.65;
@@ -218,9 +192,9 @@
 
 .income-block,
 .expense-block {
-  border: 1px solid #e2e2e5;
+  border: 1px solid var(--box-border);
   border-radius: 0.9rem;
-  background: #fff;
+  background: var(--app-color-white);
   padding: 1rem;
   display: grid;
   gap: 0.75rem;
@@ -337,12 +311,7 @@
     font-size: 1.05rem;
   }
   button {
-    border: 1px solid #cfcfd4;
-    background: #f4f4f6;
-    color: #222;
-    border-radius: 0.6rem;
-    padding: 0.45rem 0.8rem;
-    font-weight: 600;
+    @include btn-base;
   }
 }
 
@@ -354,7 +323,7 @@
 
 .income-row,
 .expense-row {
-  border: 1px solid #e3e4e8;
+  border: 1px solid var(--box-border);
   border-radius: 0.85rem;
   background: #f6f6f8;
   min-height: 3.2rem;
@@ -524,8 +493,8 @@
 .income-modal {
   width: min(28rem, 100%);
   border-radius: 0.9rem;
-  background: #fff;
-  border: 1px solid #e0e1e6;
+  background: var(--app-color-white);
+  border: 1px solid var(--box-border);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
   padding: 1rem;
   display: grid;
@@ -569,10 +538,10 @@
 .modal-transfer-btn {
   height: 2.3rem;
   width: 2.3rem;
-  border: 1px solid #d5d6dc;
+  border: 1px solid var(--box-border);
   border-radius: 0.6rem;
-  background: #f6f7fa;
-  color: #4f5868;
+  background: var(--surface-muted);
+  color: var(--app-fg-color);
   display: grid;
   place-items: center;
   align-self: end;
@@ -588,23 +557,16 @@
   gap: 0.5rem;
 
   button {
-    border: 1px solid #cfcfd4;
-    background: #f4f4f6;
-    color: #222;
-    border-radius: 0.6rem;
-    padding: 0.5rem 0.85rem;
-    font-weight: 600;
+    @include btn-base;
   }
 
   .ghost-btn {
-    background: #fff;
+    background: var(--app-color-white);
   }
 
   .danger-btn {
     margin-right: auto;
-    border-color: #e8b8bd;
-    background: #fff3f4;
-    color: #9a2a33;
+    @include btn-danger-variant;
   }
 }
 

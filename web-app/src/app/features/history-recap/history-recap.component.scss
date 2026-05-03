@@ -1,11 +1,8 @@
+@use 'mixins' as *;
+
 :host {
-  display: block;
-  grid-area: main;
-  margin-top: 110px;
-  margin-bottom: 60px;
-  padding: 1rem;
-  padding-bottom: calc(60px + 1rem);
-  overflow-y: auto;
+  @include page-host();
+  padding-bottom: calc(60px + 1rem); // s'assure que le contenu n'est pas masqué par le footer
 }
 
 .recap-page {

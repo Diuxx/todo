@@ -1,0 +1,154 @@
+// ─── SCSS Mixins partagés ──────────────────────────────────────────────────
+// Usage dans les composants Angular : @use 'mixins' as *;
+// Requiert stylePreprocessorOptions.includePaths: ['src/styles'] dans angular.json.
+
+/// Layout commun pour toutes les pages principales (feature routes).
+/// Génère les propriétés :host standard : position grid, marges header/footer, padding, scroll.
+///
+/// @param {Length} $padding [1rem] - Padding interne de la page
+@mixin page-host($padding: 1rem) {
+  display: block;
+  grid-area: main;
+  margin-top: 110px;
+  margin-bottom: 60px;
+  padding: $padding;
+  overflow-y: auto;
+}
+
+/// Overlay plein écran pour les modales (confirm-dialog, password-prompt…).
+/// Le :host parent doit avoir pointer-events: none ; l'overlay rétablit pointer-events: auto.
+@mixin modal-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: radial-gradient(
+    circle at 50% -30%,
+    var(--app-color-white-30),
+    var(--app-color-black-45)
+  );
+}
+
+/// Boîte de dialogue modale (conteneur centré, style carte, animation d'entrée).
+/// Référence l'animation globale `modal-enter` définie dans styles.scss.
+///
+/// @param {Length} $width [420px]  - Largeur max de la boîte
+/// @param {Length} $gap   [0.8rem] - Gap interne entre les éléments
+@mixin dialog-box($width: 420px, $gap: 0.8rem) {
+  width: min(#{$width}, 100%);
+  border: 1px solid var(--box-border);
+  border-radius: 16px;
+  background: var(--app-color-white);
+  box-shadow: 0 18px 36px var(--app-color-black-22);
+  padding: 1.1rem;
+  display: grid;
+  gap: $gap;
+  animation: modal-enter 160ms ease-out;
+}
+
+/// Bouton circulaire (navigation mois, boutons d'icônes ronds, etc.).
+///
+/// @param {Length} $size [2rem] - Largeur et hauteur du bouton
+@mixin circle-btn($size: 2rem) {
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+// ─── Mixins boutons ───────────────────────────────────────────────────────
+// Pour les composants qui ont des classes sémantiques propres
+// (confirm-btn, password-action-btn…) et ne peuvent pas utiliser .btn directement.
+
+/// Styles de base communs à tous les boutons texte.
+@mixin btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: auto;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--box-border);
+  border-radius: var(--btn-radius);
+  background: var(--app-color-white);
+  color: var(--app-fg-color);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    border-color: var(--app-color-grey);
+    background: var(--surface-muted);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--app-color-blue);
+    box-shadow: var(--input-focus-shadow);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+/// Modificateur primaire bleu (s'applique en override après btn-base).
+@mixin btn-primary-variant {
+  border-color: var(--app-color-blue-45);
+  background: var(--app-color-blue-light);
+  color: var(--app-color-blue);
+
+  &:hover:not(:disabled) {
+    background: var(--app-color-white);
+    border-color: var(--app-color-blue);
+  }
+}
+
+/// Modificateur danger rouge (s'applique en override après btn-base).
+@mixin btn-danger-variant {
+  border-color: var(--app-color-red-border-45);
+  background: var(--app-color-red-light);
+  color: var(--app-color-red-ink-dark);
+
+  &:hover:not(:disabled) {
+    background: var(--app-color-white);
+    border-color: var(--app-color-red-border-70);
+  }
+}
+
+// ─── Mixin input ──────────────────────────────────────────────────────────
+
+/// Input texte standard (text, number, date, password, textarea).
+/// Remplace les styles éparpillés dans les composants.
+@mixin form-input {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--input-border-color);
+  border-radius: var(--input-radius);
+  background: var(--app-color-white);
+  color: var(--app-fg-color);
+  font: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--input-focus-border-color);
+    box-shadow: var(--input-focus-shadow);
+  }
+
+  &:disabled {
+    background: var(--surface-muted);
+    color: var(--text-secondary-color);
+    cursor: not-allowed;
+  }
+}

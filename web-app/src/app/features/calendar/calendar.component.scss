@@ -1,11 +1,6 @@
-:host {
-  grid-area: main;
-  margin-top: 110px;
-  margin-bottom: 60px;
-  display: block;
-  padding: 1rem;
-  overflow-y: auto;
-}
+@use 'mixins' as *;
+
+:host { @include page-host(); }
 
 .calendar-page {
   display: grid;

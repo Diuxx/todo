@@ -1,5 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
 @use './components.scss';
+@use './_buttons.scss';
 
 // 2) Reset mobile-first (Bootstrap gère déjà pas mal, mais on ajuste)
 html,
@@ -88,6 +89,19 @@ textarea {
 
 .form-check-input {
   margin-top: 0 !important;
+}
+
+// Animation d'entrée partagée entre toutes les modales (confirm-dialog, password-*-modal).
+// Référencée via @include dialog-box() depuis src/styles/_mixins.scss.
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 // 9) Motion accessibility

@@ -1,12 +1,6 @@
-:host {
-  display: block;
-  grid-area: main;
-  padding: 1rem;
-  padding-bottom: 1rem;
-  margin-top: 110px;
-  margin-bottom: 60px;
-  overflow-y: auto;
-}
+@use 'mixins' as *;
+
+:host { @include page-host(); }
 
 .settings-container {
   display: flex;
@@ -275,21 +269,12 @@
 }
 
 .data-export-btn {
+  @include btn-base;
+  @include btn-primary-variant;
   margin-top: 0.35rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
   min-height: 38px;
-  padding: 0.5rem 0.85rem;
-  border: 1px solid var(--app-color-blue-45);
-  border-radius: 0.6rem;
-  background: var(--app-color-blue-light);
-  color: var(--app-color-blue);
   font-size: 0.82rem;
   font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
 
   &:disabled {
     opacity: 0.6;
@@ -298,21 +283,12 @@
 }
 
 .data-import-btn {
+  @include btn-base;
+  @include btn-danger-variant;
   margin-top: 0.2rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
   min-height: 38px;
-  padding: 0.5rem 0.85rem;
-  border: 1px solid rgba(200, 57, 57, 0.45);
-  border-radius: 0.6rem;
-  background: rgba(200, 57, 57, 0.12);
-  color: #a12626;
   font-size: 0.82rem;
   font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
 
   &:disabled {
     opacity: 0.6;
@@ -361,20 +337,12 @@
 }
 
 .security-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
+  @include btn-base;
+  @include btn-primary-variant;
   flex-shrink: 0;
   min-height: 42px;
-  padding: 0.65rem 1rem;
-  border: 1px solid var(--app-color-blue-45);
-  border-radius: 0.6rem;
-  background: var(--app-color-blue-light);
-  color: var(--app-color-blue);
   font-size: 0.88rem;
   font-weight: 700;
-  cursor: pointer;
 }
 
 .danger-zone {
@@ -406,29 +374,12 @@
 }
 
 .danger-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
+  @include btn-base;
+  @include btn-danger-variant;
   flex-shrink: 0;
   min-height: 42px;
-  padding: 0.65rem 1rem;
-  border: 1px solid rgba(200, 57, 57, 0.45);
-  border-radius: 0.6rem;
-  background: rgba(200, 57, 57, 0.12);
-  color: #a12626;
   font-size: 0.88rem;
   font-weight: 700;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    opacity 0.15s ease;
-
-  &:hover:not(:disabled) {
-    background: rgba(200, 57, 57, 0.18);
-    border-color: rgba(200, 57, 57, 0.7);
-  }
 
   &:disabled {
     opacity: 0.6;

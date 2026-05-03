@@ -1,0 +1,104 @@
+// ─── Classes de boutons globales ──────────────────────────────────────────
+// Usage : ajouter la classe directement dans le HTML Angular.
+// Pour les composants avec classes sémantiques propres (confirm-btn, password-action-btn…),
+// utiliser les mixins btn-* depuis _mixins.scss.
+
+// ── Base commune ─────────────────────────────────────────────────────────
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: auto; // annule le reset global button { width: 100% }
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--box-border);
+  border-radius: var(--btn-radius);
+  background: var(--app-color-white);
+  color: var(--app-fg-color);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    border-color: var(--app-color-grey);
+    background: var(--surface-muted);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--app-color-blue);
+    box-shadow: var(--input-focus-shadow);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// ── Primaire (bleu) ───────────────────────────────────────────────────────
+
+.btn-primary {
+  border-color: var(--app-color-blue-45);
+  background: var(--app-color-blue-light);
+  color: var(--app-color-blue);
+
+  &:hover:not(:disabled) {
+    background: var(--app-color-white);
+    border-color: var(--app-color-blue);
+  }
+}
+
+// ── Danger (rouge) ────────────────────────────────────────────────────────
+
+.btn-danger {
+  border-color: var(--app-color-red-border-45);
+  background: var(--app-color-red-light);
+  color: var(--app-color-red-ink-dark);
+
+  &:hover:not(:disabled) {
+    background: var(--app-color-white);
+    border-color: var(--app-color-red-border-70);
+  }
+}
+
+// ── Ghost (transparent) ───────────────────────────────────────────────────
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--box-border);
+  color: var(--app-fg-color);
+
+  &:hover:not(:disabled) {
+    background: var(--surface-muted);
+  }
+}
+
+// ── Bouton rond (navigation mois, année…) ────────────────────────────────
+
+.btn-circle {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--app-fg-color);
+  display: grid;
+  place-items: center;
+
+  &:hover {
+    background: var(--app-color-black-08);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--input-focus-shadow);
+  }
+}

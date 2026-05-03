@@ -1,49 +1,58 @@
-
-button {
-    width: 100%;
-}
+// button sans classe n'a pas de largeur forcée — à contrôler via les classes .btn, .btn-primary, etc.
+// Le reset width:100% était la source principale d'incohérence entre les composants.
 
 input,
-select,
 textarea {
     width: 100%;
-    border: 1px solid #d8dde8;
-    border-radius: 0.5rem;
+    border: 1px solid var(--input-border-color);
+    border-radius: var(--input-radius);
     padding: 0.45rem 0.55rem;
     font: inherit;
-    background: #fff;
+    background: var(--app-color-white);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:focus {
+        outline: none;
+        border-color: var(--input-focus-border-color);
+        box-shadow: var(--input-focus-shadow);
+    }
+
+    &:disabled {
+        background: var(--surface-muted);
+        cursor: not-allowed;
+    }
 }
 
 select {
-    border: 1px solid #d5d6dc;
-    border-radius: 0.55rem;
-    background: #ffffff;
-    color: #2b2f37;
-    padding: 0.7rem 0.8rem;
+    width: 100%;
+    border: 1px solid var(--input-border-color);
+    border-radius: var(--input-radius);
+    background: var(--app-color-white);
+    color: var(--app-fg-color);
+    padding: 0.5rem 2rem 0.5rem 0.6rem;
     font: inherit;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     appearance: none;
     -webkit-appearance: none;
-    -moz-appearance: none;
     cursor: pointer;
-    background-image:
-        linear-gradient(45deg, transparent 50%, #4a5568 50%),
-        linear-gradient(135deg, #4a5568 50%, transparent 50%);
-    background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
-    background-size: 5px 5px, 5px 5px;
+    // flèche chevron SVG inline (remplace les gradients CSS tricks)
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a5568'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    padding-right: 2rem;
-    cursor: pointer;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    background-position: calc(100% - 10px) 50%;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
     &:hover {
         border-color: #a0aec0;
-        background-color: #f9fafb;
     }
 
-    &:focus-visible {
+    &:focus {
         outline: none;
-        border-color: #4c6fff;
-        box-shadow: 0 0 0 2px rgba(76, 111, 255, 0.2);
+        border-color: var(--input-focus-border-color);
+        box-shadow: var(--input-focus-shadow);
+    }
+
+    &:disabled {
+        background-color: var(--surface-muted);
+        cursor: not-allowed;
     }
 }

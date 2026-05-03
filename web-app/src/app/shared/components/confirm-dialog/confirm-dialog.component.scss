@@ -1,3 +1,5 @@
+@use 'mixins' as *;
+
 :host {
   display: block;
   position: fixed;
@@ -5,31 +7,9 @@
   pointer-events: none;
 }
 
-.confirm-overlay {
-  position: fixed;
-  inset: 0;
-  pointer-events: auto;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  background: radial-gradient(
-    circle at 50% -30%,
-    var(--app-color-white-30),
-    var(--app-color-black-45)
-  );
-}
+.confirm-overlay { @include modal-overlay; }
 
-.confirm-dialog {
-  width: min(420px, 100%);
-  border: 1px solid var(--box-border);
-  border-radius: 16px;
-  background: var(--app-color-white);
-  box-shadow: 0 18px 36px var(--app-color-black-22);
-  padding: 1.1rem;
-  display: grid;
-  gap: 0.8rem;
-  animation: confirm-enter 160ms ease-out;
-}
+.confirm-dialog { @include dialog-box(420px, 0.8rem); }
 
 .confirm-icon {
   width: 40px;
@@ -71,49 +51,20 @@
 }
 
 .confirm-btn {
-  border: 1px solid var(--box-border);
-  border-radius: 10px;
-  background: var(--app-color-white);
-  color: var(--app-fg-color);
-  padding: 0.5rem 0.9rem;
-  cursor: pointer;
-  font-weight: 600;
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
+  @include btn-base;
 
-  &:focus-visible {
-    outline: none;
-    border-color: var(--app-color-blue);
-    box-shadow: 0 0 0 3px var(--app-color-blue-focus-18);
+  &.cancel:hover {
+    border-color: var(--app-color-grey);
+    background: var(--surface-muted);
   }
-}
 
-.confirm-btn.cancel:hover {
-  border-color: var(--app-color-grey);
-  background: var(--surface-muted);
-}
+  &.confirm-primary {
+    @include btn-primary-variant;
+  }
 
-.confirm-btn.confirm-primary {
-  border-color: var(--app-color-blue);
-  background: var(--app-color-blue-light);
-  color: var(--app-color-blue);
-}
-
-.confirm-btn.confirm-primary:hover {
-  border-color: var(--app-color-blue);
-  background: var(--app-color-white);
-}
-
-.confirm-btn.confirm-danger {
-  border-color: var(--app-color-red-border-45);
-  background: var(--app-color-red-light);
-  color: var(--app-color-red-ink-dark);
-}
-
-.confirm-btn.confirm-danger:hover {
-  border-color: var(--app-color-red-border-70);
-  background: var(--app-color-white);
+  &.confirm-danger {
+    @include btn-danger-variant;
+  }
 }
 
 @media (max-width: 480px) {
@@ -126,13 +77,4 @@
   }
 }
 
-@keyframes confirm-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
+

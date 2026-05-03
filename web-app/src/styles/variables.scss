@@ -87,6 +87,17 @@
   --box-border: #e5e7eb;
   --border: rgba(52, 152, 219, 0.3);
   --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+
+  // Couleur de texte secondaire (labels, hints, sous-titres)
+  --text-secondary-color: #6c757d;
+
+  // ── Tokens boutons ───────────────────────────────────────────────────────
+  --btn-radius: 0.6rem;       // radius standard pour tous les boutons texte
+  --btn-radius-sm: 0.5rem;    // contextes compacts (mini-chips, toggles)
+
+  // ── Tokens inputs ────────────────────────────────────────────────────────
+  --input-radius: 0.5rem;                               // radius standard input/select/textarea
+  --input-focus-shadow: 0 0 0 3px var(--app-color-blue-focus-18); // ring focus unifié
 }
 
 .apply-bg-red {
