@@ -50,9 +50,6 @@
   &.type-citation {
     grid-template-rows: auto 1fr;
     background-color: var(--citation-color);
-    .detail-card-title-container {
-      grid-template-columns: 1fr auto;
-    }
   }
   &.type-image {
     background-color: var(--image-color);
@@ -60,14 +57,15 @@
 }
 
 .detail-card-actions {
-  display: grid;
-  grid-template-columns: 1fr auto auto auto;
-  justify-content: center;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  // display: flex;
-  // justify-content: flex-end;
   gap: 0.6rem;
-  flex-wrap: wrap;
+  .left-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
 }
 
 /* can be editable */
@@ -145,6 +143,16 @@
   &:hover {
     background-color: var(--app-color-blue-light);
     border-color: var(--app-color-blue);
+  }
+}
+
+.options-btn {
+  border-color: var(--input-border-color);
+  color: var(--app-fg-color);
+
+  &:hover {
+    background-color: var(--surface-muted);
+    border-color: var(--input-focus-border-color);
   }
 }
 

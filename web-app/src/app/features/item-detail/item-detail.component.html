@@ -9,39 +9,42 @@
       <article [class]="'type-' + item.type + ' detail-card'" [formGroup]="itemForm">
         <span class="detail-card-title">
           <div class="detail-card-actions">
-            <div class="detail-toggles" style="align-self: flex-start">
-              <label class="item-toggle">
-                <input type="checkbox" formControlName="isArchived" />
-                <span>Archiver cet item</span>
-              </label>
+            <div class="left-actions">
+              <button
+                type="button"
+                class="icon-action-btn lock-toggle"
+                [attr.aria-label]="
+                  itemForm.get('isLocked')?.value ? 'Déverrouiller l\'item' : 'Verrouiller l\'item'
+                "
+                (click)="toggleLock()"
+              >
+                <i
+                  class="bi"
+                  [ngClass]="itemForm.get('isLocked')?.value ? 'bi-lock-fill' : 'bi-unlock-fill'"
+                ></i>
+              </button>
+              <button
+                type="button"
+                class="icon-action-btn favorite-toggle"
+                [attr.aria-label]="
+                  itemForm.get('isFavorite')?.value ? 'Retirer des favoris' : 'Ajouter aux favoris'
+                "
+                (click)="toggleFavorite()"
+              >
+                <i
+                  class="bi"
+                  [ngClass]="itemForm.get('isFavorite')?.value ? 'bi-star-fill' : 'bi-star'"
+                ></i>
+              </button>
+              <button
+                type="button"
+                class="icon-action-btn options-btn"
+                aria-label="Options de l'item"
+                (click)="openAdminModal()"
+              >
+                <i class="bi bi-gear"></i>
+              </button>
             </div>
-
-            <button
-              type="button"
-              class="icon-action-btn lock-toggle"
-              [attr.aria-label]="
-                itemForm.get('isLocked')?.value ? 'Déverrouiller l\'item' : 'Verrouiller l\'item'
-              "
-              (click)="toggleLock()"
-            >
-              <i
-                class="bi"
-                [ngClass]="itemForm.get('isLocked')?.value ? 'bi-lock-fill' : 'bi-unlock-fill'"
-              ></i>
-            </button>
-            <button
-              type="button"
-              class="icon-action-btn favorite-toggle"
-              [attr.aria-label]="
-                itemForm.get('isFavorite')?.value ? 'Retirer des favoris' : 'Ajouter aux favoris'
-              "
-              (click)="toggleFavorite()"
-            >
-              <i
-                class="bi"
-                [ngClass]="itemForm.get('isFavorite')?.value ? 'bi-star-fill' : 'bi-star'"
-              ></i>
-            </button>
             <button
               type="button"
               class="icon-action-btn delete-btn"
@@ -60,17 +63,6 @@
               formControlName="title"
               placeholder="Titre de l'item"
             />
-            @if (item.type === 'citation') {
-              <div class="detail-toggles">
-                <label class="item-toggle">
-                  <input type="checkbox" formControlName="isAffirmation" />
-                  <span>
-                    <i class="bi bi-megaphone-fill"></i>
-                    Affirmation
-                  </span>
-                </label>
-              </div>
-            }
           </div>
         </span>
         @if (item.type === 'todo') {
@@ -151,6 +143,13 @@
       (save)="saveTodoModal()"
     >
     </todo-edit-modal>
+    <item-admin-modal
+      [visible]="isAdminModalVisible"
+      [itemForm]="itemForm"
+      [itemType]="item.type"
+      (close)="closeAdminModal()"
+    >
+    </item-admin-modal>
   }
 
   <app-password-prompt-modal

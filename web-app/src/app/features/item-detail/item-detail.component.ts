@@ -6,6 +6,7 @@ import { AppItem } from '../../shared/models/app-item.model';
 import { ItemsService } from '../../shared/services/items.service';
 import { SaveActionService } from '../../shared/services/save-action.service';
 import { TodoEditModalComponent } from './todo-edit-modal/todo-edit-modal.component';
+import { ItemAdminModalComponent } from './item-admin-modal/item-admin-modal.component';
 import {
   createItemForm,
   getTodoContentFormArray,
@@ -28,6 +29,7 @@ import {
 const ITEM_DETAIL_IMPORTS = [
   ReactiveFormsModule,
   TodoEditModalComponent,
+  ItemAdminModalComponent,
   NgClass,
   NgStyle,
   ItemDetailSkeletonComponent,
@@ -62,6 +64,7 @@ export class ItemDetailComponent implements OnInit {
   private readonly initialTodoDoneState = new Map<string, boolean>();
 
   public isTodoEditModalVisible: boolean = false;
+  public isAdminModalVisible: boolean = false;
   public itemForm: FormGroup = createItemForm(this.formBuilder);
   public editingSubItemForm?: FormGroup;
   public isLoading: boolean = true;
@@ -376,6 +379,17 @@ export class ItemDetailComponent implements OnInit {
     });
 
     this.emitTodoProgress();
+  }
+
+  public openAdminModal(): void {
+    this.isAdminModalVisible = true;
+  }
+
+  public closeAdminModal(): void {
+    this.isAdminModalVisible = false;
+    if (this.itemForm.dirty) {
+      this.saveElement();
+    }
   }
 
   public toggleFavorite(): void {

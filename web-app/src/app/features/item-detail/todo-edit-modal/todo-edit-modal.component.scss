@@ -282,6 +282,36 @@
   justify-content: center;
 }
 
+.advanced-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  border: 1px solid var(--input-border-color);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary-color);
+  padding: 0.25rem 0.6rem;
+  height: 30px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    border-color: var(--input-focus-border-color);
+    background: var(--surface-muted);
+    color: var(--app-fg-color);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--input-focus-border-color);
+  }
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;

@@ -22,6 +22,12 @@
         placeholder="Texte de la sous-tâche"
       ></textarea>
 
+      <button type="button" class="advanced-toggle-btn" (click)="toggleAdvanced()">
+        <i class="bi" [ngClass]="showAdvanced ? 'bi-chevron-up' : 'bi-sliders'"></i>
+        {{ showAdvanced ? 'Masquer les options' : 'Plus d\'options' }}
+      </button>
+
+      @if (showAdvanced) {
       <div class="meta-row">
         <div class="meta-field due-date-section">
           @if (!isDueDateVisible) {
@@ -151,6 +157,8 @@
           }
         </small>
       </div>
+
+      } <!-- end showAdvanced -->
 
       <div class="modal-actions">
         <button type="button" class="modal-btn modal-btn-alert" (click)="closeModal()">

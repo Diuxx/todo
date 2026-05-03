@@ -23,6 +23,11 @@ export class TodoEditModalComponent implements OnChanges {
   @Output() save = new EventEmitter<void>();
 
   public isDueDateVisible: boolean = false;
+  public showAdvanced: boolean = false;
+
+  public toggleAdvanced(): void {
+    this.showAdvanced = !this.showAdvanced;
+  }
 
   public readonly recurrenceOptions: RecurrenceType[] = [
     'none',

@@ -1,0 +1,36 @@
+@if (visible && itemForm) {
+  <div class="admin-modal-overlay" (click)="closeModal()">
+    <div class="admin-modal" (click)="$event.stopPropagation()" [formGroup]="itemForm">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <i class="bi bi-gear"></i>
+          Options
+        </h3>
+        <button type="button" class="modal-close-btn" aria-label="Fermer" (click)="closeModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="admin-options">
+        <label class="admin-toggle">
+          <input type="checkbox" formControlName="isArchived" />
+          <span>Archiver cet item</span>
+        </label>
+
+        @if (itemType === 'citation') {
+          <label class="admin-toggle">
+            <input type="checkbox" formControlName="isAffirmation" />
+            <span>
+              <i class="bi bi-megaphone-fill"></i>
+              Affirmation
+            </span>
+          </label>
+        }
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" (click)="closeModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+}

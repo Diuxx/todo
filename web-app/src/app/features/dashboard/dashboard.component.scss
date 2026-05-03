@@ -113,6 +113,9 @@
       line-clamp: 3;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
+      &.note-content {
+        white-space: pre-line;
+      }
       .dashboard-card-content-todo-item {
         display: grid;
         grid-template-columns: auto 1fr auto;
