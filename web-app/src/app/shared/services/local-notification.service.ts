@@ -481,7 +481,10 @@ export class LocalNotificationService {
     const recurrenceType = todo.config?.recurrenceType;
 
     if (recurrenceType !== 'daily' && recurrenceType !== 'weekly' && recurrenceType !== 'monthly') {
-      return false;
+      // Non-recurring items derive their completion state from history, not the stored isDone flag.
+      const history = await db.todoHistory.where('todoItemId').equals(todo.id).toArray();
+      const latest = history.sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+      return latest?.status === 'done';
     }
 
     const { startISO, endISO } = this.getPeriodBounds(recurrenceType);
