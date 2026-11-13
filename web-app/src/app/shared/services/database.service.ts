@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { db } from '../../db.config';
 import { generateUUID } from '../utils';
+import { PasswordService } from './password.service';
 import { appDataExample } from '../models/mock-data';
 import { CitationMeta } from '../models/citation-meta.model';
 import { ImageMeta } from '../models/image-meta.model';
@@ -13,6 +14,7 @@ import { createDefaultBudget } from '../models/budget/budget.model';
 })
 export class DatabaseService {
   private readonly SETTINGS_ID = 'app-settings';
+  private readonly passwordService = inject(PasswordService);
 
   /**
    * Initialize the database and create default settings if not exist.
@@ -41,10 +43,10 @@ export class DatabaseService {
       });
     }
 
-    if (!hasSettings.passwordHash) {
+    if (typeof hasSettings.passwordHash !== 'string') {
       await db.settings.put({
         ...hasSettings,
-        passwordHash: '',
+        passwordHash: this.passwordService.legacyDefaultPasswordHash,
       });
     }
   }
