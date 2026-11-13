@@ -34,6 +34,92 @@ describe('LocalNotificationService completion logic', () => {
     await db.todoHistory.where('todoItemId').equals(todoId).delete();
   });
 
+  it('keeps a weekly reminder scheduled after the current occurrence is done', async () => {
+    const todo = createTodo();
+    todo.isDone = true;
+    todo.config = {
+      ...todo.config!,
+      recurrenceType: 'weekly',
+      recurrenceRule: 'weekly:monday',
+    };
+
+    const notifications = await service['buildNotificationsForItem']({
+      id: todoId + '-parent',
+      type: 'todo',
+      title: 'Routine',
+      color: 'default',
+      visibility: 'private',
+      isArchived: false,
+      isFavorite: false,
+      isLocked: false,
+      isAffirmation: false,
+      tags: [],
+      todoContent: [todo],
+      createdAt: earlier,
+      updatedAt: later,
+    });
+
+    expect(notifications.length).toBe(1);
+    expect(notifications[0].weekday).toBeDefined();
+  });
+
+  it('schedules custom weekday reminders only for selected weekdays', async () => {
+    const todo = createTodo();
+    todo.isDone = true;
+    todo.config = {
+      ...todo.config!,
+      recurrenceType: 'custom',
+      recurrenceRule: '30 10 * * 1,5',
+    };
+
+    const notifications = await service['buildNotificationsForItem']({
+      id: todoId + '-parent',
+      type: 'todo',
+      title: 'Routine',
+      color: 'default',
+      visibility: 'private',
+      isArchived: false,
+      isFavorite: false,
+      isLocked: false,
+      isAffirmation: false,
+      tags: [],
+      todoContent: [todo],
+      createdAt: earlier,
+      updatedAt: later,
+    });
+
+    expect(notifications.length).toBe(2);
+    expect(new Set(notifications.map((notification) => notification.taskId)).size).toBe(2);
+    expect(notifications.every((notification) => notification.weekday !== undefined)).toBeTrue();
+  });
+
+  it('does not silently turn unsupported custom cron rules into daily reminders', async () => {
+    const todo = createTodo();
+    todo.config = {
+      ...todo.config!,
+      recurrenceType: 'custom',
+      recurrenceRule: '0 10 1 * *',
+    };
+
+    const notifications = await service['buildNotificationsForItem']({
+      id: todoId + '-parent',
+      type: 'todo',
+      title: 'Routine',
+      color: 'default',
+      visibility: 'private',
+      isArchived: false,
+      isFavorite: false,
+      isLocked: false,
+      isAffirmation: false,
+      tags: [],
+      todoContent: [todo],
+      createdAt: earlier,
+      updatedAt: later,
+    });
+
+    expect(notifications).toEqual([]);
+  });
+
   it('treats a non-recurring todo as completed after restarting with a stale stored flag', async () => {
     await db.todoHistory.add({
       id: todoId + '-done',
