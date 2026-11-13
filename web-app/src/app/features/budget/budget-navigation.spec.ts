@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { createDefaultBudget } from '../../shared/models/budget/budget.model';
 import { BudgetService } from '../../shared/services/budget.service';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
@@ -12,11 +12,14 @@ describe('Budget navigation consistency', () => {
   let router: jasmine.SpyObj<Router>;
   let budgetService: jasmine.SpyObj<BudgetService>;
   let route: ActivatedRoute;
+  let confirmation: jasmine.SpyObj<ConfirmDialogService>;
 
   function configure(month: string): void {
     router = jasmine.createSpyObj<Router>('Router', ['navigate']);
     router.navigate.and.resolveTo(true);
-    budgetService = jasmine.createSpyObj<BudgetService>('BudgetService', ['get', 'getPeriod']);
+    budgetService = jasmine.createSpyObj<BudgetService>('BudgetService', ['get', 'getPeriod', 'upsertIncome', 'upsertAccount']);
+    confirmation = jasmine.createSpyObj<ConfirmDialogService>('ConfirmDialogService', ['confirm']);
+    confirmation.confirm.and.returnValue(of(false));
     budgetService.get.and.returnValue(of(createDefaultBudget()));
     budgetService.getPeriod.and.returnValue(of(undefined));
     route = {
@@ -28,7 +31,7 @@ describe('Budget navigation consistency', () => {
         { provide: Router, useValue: router },
         { provide: ActivatedRoute, useValue: route },
         { provide: BudgetService, useValue: budgetService },
-        { provide: ConfirmDialogService, useValue: {} },
+        { provide: ConfirmDialogService, useValue: confirmation },
       ],
     });
   }
@@ -88,4 +91,54 @@ describe('Budget navigation consistency', () => {
     expect(component.selectedYear).toBe(2022);
     component.ngOnDestroy();
   });
+  it('asks before discarding an open budget transaction form', async () => {
+    configure('2026-11');
+    const component = TestBed.runInInjectionContext(() => new BudgetComponent());
+    component.isIncomeModalVisible = true;
+
+    expect(await component.canDeactivate()).toBeFalse();
+    expect(confirmation.confirm).toHaveBeenCalled();
+  });
+
+  it('protects unsaved budget administration fields', async () => {
+    configure('2026-11');
+    const component = TestBed.runInInjectionContext(() => new BudgetSettingsComponent());
+    component.budget = createDefaultBudget();
+    component.accountFormName = 'Not yet saved';
+
+    expect(component.hasUnsavedBudgetEdits).toBeTrue();
+    expect(await component.canDeactivate()).toBeFalse();
+    expect(confirmation.confirm).toHaveBeenCalled();
+  });
+
+  it('surfaces a failed budget write without leaving a stuck loading state', () => {
+    configure('2026-11');
+    budgetService.upsertIncome.and.returnValue(throwError(() => new Error('Storage error')));
+    const component = TestBed.runInInjectionContext(() => new BudgetComponent());
+    component.budget = createDefaultBudget();
+    component.currentPeriod = null;
+    spyOn(console, 'error');
+
+    component.createFirstEntry();
+
+    expect(component.isSaving).toBeFalse();
+    expect(component.saveState).toBe('error');
+    expect(component.saveErrorMessage).not.toBeNull();
+  });
+
+  it('surfaces errors when editing budget administration lists', () => {
+    configure('2026-11');
+    budgetService.upsertAccount.and.returnValue(throwError(() => new Error('Storage error')));
+    const component = TestBed.runInInjectionContext(() => new BudgetSettingsComponent());
+    component.budget = createDefaultBudget();
+    component.accountFormName = 'Another account';
+    spyOn(console, 'error');
+
+    component.addAccount();
+
+    expect(component.isSaving).toBeFalse();
+    expect(component.saveState).toBe('error');
+    expect(component.saveErrorMessage).not.toBeNull();
+  });
+
 });
