@@ -251,8 +251,11 @@ export class BudgetService {
   }
 
   private async mutateBudget(project: (budget: Budget) => Budget): Promise<Budget> {
-    const current = await this.loadBudget();
-    return this.saveBudget(project(current));
+    // Read and write in one transaction so concurrent changes do not overwrite each other.
+    return db.transaction('rw', db.budgets, async () => {
+      const current = await this.loadBudget();
+      return this.saveBudget(project(current));
+    });
   }
 
   private async loadBudget(): Promise<Budget> {
@@ -280,9 +283,8 @@ export class BudgetService {
     const incomeTypes = (budget.incomeTypes ?? defaultIncomeTypes).map((incomeType) => ({ ...incomeType }));
 
     return {
-      periods: (budget.periods ?? [])
-        .map((period) => this.normalizePeriod(period, incomeTypes))
-        .filter((period) => period.incomes.length > 0 || period.expenses.length > 0),
+      // Empty periods are valid: users can explicitly create a month before entering data.
+      periods: (budget.periods ?? []).map((period) => this.normalizePeriod(period, incomeTypes)),
       accounts: (budget.accounts ?? []).map((account) => ({ ...account })),
       expenseCategories: (budget.expenseCategories ?? []).map((category) => ({ ...category })),
       incomeTypes,
