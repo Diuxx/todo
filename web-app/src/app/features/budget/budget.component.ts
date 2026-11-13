@@ -1,4 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -40,6 +41,7 @@ export class BudgetComponent implements OnInit {
   public isSaving = false;
   public saveState: FormSaveState = 'pristine';
   public saveErrorMessage: string | null = null;
+  public loadErrorMessage: string | null = null;
   public copyPreviousMonthExpenses = false;
   public isIncomeModalVisible = false;
   public editingIncomeId: string | null = null;
@@ -123,6 +125,38 @@ export class BudgetComponent implements OnInit {
       }
     }
 
+    this.loadBudgetAndPeriod();
+  }
+
+  public async canDeactivate(): Promise<boolean> {
+    if (this.isSaving) {
+      return false;
+    }
+
+    if (!this.isIncomeModalVisible && !this.isExpenseModalVisible) {
+      return true;
+    }
+
+    return firstValueFrom(this.confirmDialogService.confirm({
+      title: 'Quitter sans enregistrer ?',
+      message: 'Les modifications du formulaire budgétaire en cours seront perdues.',
+      confirmText: 'Quitter sans enregistrer',
+      cancelText: 'Rester',
+      variant: 'danger',
+    }));
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  public warnBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.isSaving && !this.isIncomeModalVisible && !this.isExpenseModalVisible) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = '';
+  }
+
+  public retryLoadingBudget(): void {
     this.loadBudgetAndPeriod();
   }
 
@@ -1013,6 +1047,7 @@ export class BudgetComponent implements OnInit {
   }
 
   private loadBudgetAndPeriod(): void {
+    this.loadErrorMessage = null;
     this.isLoading = true;
 
     this.budgetService.get().subscribe({
@@ -1021,13 +1056,16 @@ export class BudgetComponent implements OnInit {
         this.currentPeriod = this.findPeriodForActiveMonth(budget);
         this.isLoading = false;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Unable to load budget:', error);
+        this.loadErrorMessage = 'Impossible de charger le budget.';
         this.isLoading = false;
       },
     });
   }
 
   private loadCurrentPeriod(): void {
+    this.loadErrorMessage = null;
     this.isLoading = true;
 
     this.budgetService.getPeriod(this.activeMonthKey).subscribe({
@@ -1035,7 +1073,9 @@ export class BudgetComponent implements OnInit {
         this.currentPeriod = period ?? null;
         this.isLoading = false;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Unable to load budget:', error);
+        this.loadErrorMessage = 'Impossible de charger le budget.';
         this.isLoading = false;
       },
     });
