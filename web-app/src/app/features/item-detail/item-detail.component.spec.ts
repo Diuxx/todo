@@ -104,7 +104,9 @@ describe('ItemDetailComponent autosave', () => {
     await Promise.resolve();
 
     expect(component.itemForm.dirty).toBeTrue();
-    expect(saveState.updateFormSaveState).toHaveBeenCalledWith('dirty');
+    expect(component.saveState).toBe('error');
+    expect(component.saveErrorMessage).not.toBeNull();
+    expect(saveState.updateFormSaveState).toHaveBeenCalledWith('error');
   });
   it('waits for the pending write before allowing route deactivation', async () => {
     component.itemForm.get('title')?.setValue('Last edit');
