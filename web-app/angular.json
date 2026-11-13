@@ -96,6 +96,9 @@
               }
             ],
             "styles": ["src/styles/styles.scss", "src/styles/customization.scss"],
+            "stylePreprocessorOptions": {
+              "includePaths": ["src/styles"]
+            },
             "scripts": []
           }
         }
