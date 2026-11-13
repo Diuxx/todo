@@ -1,22 +1,13 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
-import { Capacitor } from '@capacitor/core';
-import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
 import { Subject, debounceTime, firstValueFrom, takeUntil } from 'rxjs';
 import { SettingsService } from '../../shared/services/settings.service';
 import { AppSettings } from '../../shared/models/app-settings.model';
-import { db } from '../../db.config';
-import { AppData } from '../../shared/models/app-data.model';
-import {
-  createDefaultBudget,
-  IncomeItem,
-  Period,
-  resolveExpenseIncomeId,
-} from '../../shared/models/budget/budget.model';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 import { DatabaseService } from '../../shared/services/database.service';
+import { BackupService } from '../../shared/services/backup.service';
+import { BackupFileService } from '../../shared/services/backup-file.service';
 import { LocalNotificationService } from '../../shared/services/local-notification.service';
 import { PasswordService } from '../../shared/services/password.service';
 import {
@@ -24,8 +15,6 @@ import {
   PasswordSettingsModalComponent,
 } from '../../shared/components/password-settings-modal/password-settings-modal.component';
 import { PasswordPromptModalComponent } from '../../shared/components/password-prompt-modal/password-prompt-modal.component';
-import { environment } from '../../../env/env';
-import { MAX_BACKUP_BYTES, isValidBackup } from '../../shared/utils/backup-validation';
 
 type SensitiveAction = 'delete' | 'export' | 'import';
 
@@ -45,6 +34,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private readonly settingsService = inject(SettingsService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
   private readonly databaseService = inject(DatabaseService);
+  private readonly backupService = inject(BackupService);
+  private readonly backupFileService = inject(BackupFileService);
   private readonly localNotificationService = inject(LocalNotificationService);
   private readonly passwordService = inject(PasswordService);
   private readonly destroy$ = new Subject<void>();
@@ -385,16 +376,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.isExportingData = true;
 
     try {
-      const payload = await this.getCurrentAppData();
-      const json = JSON.stringify(payload, null, 2);
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const fileName = `todo-backup-${timestamp}.json`;
-
-      if (Capacitor.isNativePlatform()) {
-        await this.downloadAppDataOnDevice(fileName, json);
-      } else {
-        this.downloadAppDataInBrowser(fileName, json);
-      }
+      await this.backupFileService.download(await this.backupService.getCurrentData());
     } finally {
       this.isExportingData = false;
     }
@@ -420,54 +402,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.isImportingData = true;
 
     try {
-      if (file.size > MAX_BACKUP_BYTES) {
-        throw new Error('Le fichier dépasse la taille maximale autorisée (10 Mo).');
-      }
-
-      const content = await file.text();
-      const parsed: unknown = JSON.parse(content);
-
-      if (!isValidBackup(parsed)) {
-        throw new Error('Le fichier JSON ne correspond pas au format attendu.');
-      }
-
-      const migratedPayload = this.withBudgetMigration(parsed);
-
-      await db.transaction(
-        'rw',
-        [db.items, db.todoHistory, db.citationsMeta, db.imagesMeta, db.budgets, db.settings],
-        async () => {
-          await db.items.clear();
-          await db.todoHistory.clear();
-          await db.citationsMeta.clear();
-          await db.imagesMeta.clear();
-          await db.budgets.clear();
-          await db.settings.clear();
-
-          if (migratedPayload.items.length) {
-            await db.items.bulkAdd(migratedPayload.items);
-          }
-
-          if (migratedPayload.todoHistory.length) {
-            await db.todoHistory.bulkAdd(migratedPayload.todoHistory);
-          }
-
-          if (migratedPayload.citationsMeta.length) {
-            await db.citationsMeta.bulkAdd(migratedPayload.citationsMeta);
-          }
-
-          if (migratedPayload.imagesMeta.length) {
-            await db.imagesMeta.bulkAdd(migratedPayload.imagesMeta);
-          }
-
-          await db.budgets.add({
-            id: 'main',
-            ...migratedPayload.budget,
-          });
-
-          await db.settings.add(migratedPayload.settings);
-        }
-      );
+      const migratedPayload = await this.backupService.restoreFromFile(file);
 
       this.settingsForm.patchValue(
         {
@@ -499,155 +434,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   private async loadStorageStats(): Promise<void> {
-    this.historyRowsCount = await db.todoHistory.count();
-
-    const payload = await this.getCurrentAppData();
-    const serialized = JSON.stringify(payload);
-    const byteSize = new Blob([serialized]).size;
-    this.databaseSizeKb = Math.round(byteSize / 1024);
-  }
-
-  private async getCurrentAppData(): Promise<AppData> {
-    const [items, todoHistory, citationsMeta, imagesMeta, budgets, settingsList] = await Promise.all([
-      db.items.toArray(),
-      db.todoHistory.toArray(),
-      db.citationsMeta.toArray(),
-      db.imagesMeta.toArray(),
-      db.budgets.toArray(),
-      db.settings.toArray(),
-    ]);
-
-    const budgetDocument = budgets[0];
-    const budget = budgetDocument
-      ? {
-          periods: budgetDocument.periods,
-          accounts: budgetDocument.accounts,
-          expenseCategories: budgetDocument.expenseCategories,
-          incomeTypes: budgetDocument.incomeTypes,
-        }
-      : createDefaultBudget();
-
-    return {
-      id: 'app-data',
-      items,
-      todoHistory,
-      citationsMeta,
-      imagesMeta,
-      budget,
-      settings: settingsList[0],
-    };
-  }
-
-  private withBudgetMigration(payload: AppData): AppData {
-    const budgetCandidate = (payload as { budget?: unknown }).budget;
-
-    if (!this.isBudgetLike(budgetCandidate)) {
-      return {
-        ...payload,
-        budget: createDefaultBudget(),
-      };
-    }
-
-    return {
-      ...payload,
-      budget: {
-        periods: Array.isArray(budgetCandidate.periods)
-          ? budgetCandidate.periods.map((period) => {
-              const candidatePeriod = period as Partial<Period> & {
-                expenses?: Array<{ accountId: string; incomeId?: string }>;
-              };
-              const candidateIncomes = Array.isArray(candidatePeriod.incomes)
-                ? (candidatePeriod.incomes as IncomeItem[])
-                : [];
-
-              return {
-                ...candidatePeriod,
-                date: typeof candidatePeriod.date === 'string' ? candidatePeriod.date : '',
-                incomes: candidateIncomes,
-                expenses: Array.isArray(candidatePeriod.expenses)
-                  ? candidatePeriod.expenses.map((expense) => ({
-                      ...expense,
-                      incomeId: resolveExpenseIncomeId(expense, candidateIncomes),
-                    }))
-                  : [],
-              };
-            })
-          : [],
-        accounts: Array.isArray(budgetCandidate.accounts)
-          ? budgetCandidate.accounts
-          : createDefaultBudget().accounts,
-        expenseCategories: Array.isArray(budgetCandidate.expenseCategories)
-          ? budgetCandidate.expenseCategories
-          : createDefaultBudget().expenseCategories,
-        incomeTypes: Array.isArray(budgetCandidate.incomeTypes)
-          ? budgetCandidate.incomeTypes
-          : createDefaultBudget().incomeTypes,
-      },
-    };
-  }
-
-  private isBudgetLike(value: unknown): value is {
-    periods: unknown;
-    accounts: unknown;
-    expenseCategories: unknown;
-    incomeTypes?: unknown;
-  } {
-    if (!value || typeof value !== 'object') {
-      return false;
-    }
-
-    const candidate = value as {
-      periods?: unknown;
-      accounts?: unknown;
-      expenseCategories?: unknown;
-      incomeTypes?: unknown;
-    };
-
-    return (
-      Array.isArray(candidate.periods) &&
-      Array.isArray(candidate.accounts) &&
-      Array.isArray(candidate.expenseCategories)
-    );
-  }
-
-  private downloadAppDataInBrowser(fileName: string, json: string): void {
-    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-    const downloadUrl = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.href = downloadUrl;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(downloadUrl);
-  }
-
-  private async downloadAppDataOnDevice(fileName: string, json: string): Promise<void> {
-    const permissions = await Filesystem.checkPermissions();
-
-    if (permissions.publicStorage !== 'granted') {
-      const requested = await Filesystem.requestPermissions();
-
-      if (requested.publicStorage !== 'granted') {
-        throw new Error('Storage permission denied');
-      }
-    }
-
-    const result = await Filesystem.writeFile({
-      path: fileName,
-      data: json,
-      directory: Directory.Documents,
-      encoding: Encoding.UTF8,
-      recursive: true,
-    });
-
-    await Share.share({
-      title: `todo-v${environment.appVersion}-backup`,
-      text: `Fichier exporte: ${fileName}`,
-      url: result.uri,
-      dialogTitle: 'Enregistrer ou partager la sauvegarde',
-    });
+    const stats = await this.backupService.getStorageStats();
+    this.historyRowsCount = stats.historyRowsCount;
+    this.databaseSizeKb = stats.databaseSizeKb;
   }
 
   private async upgradeVerifiedPassword(password: string): Promise<void> {
