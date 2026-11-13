@@ -15,10 +15,6 @@ export interface PasswordModalSubmitPayload {
   nextPassword: string;
 }
 
-export interface PasswordModalResetPayload {
-  currentPassword: string;
-}
-
 @Component({
   standalone: true,
   selector: 'app-password-settings-modal',
@@ -35,7 +31,6 @@ export class PasswordSettingsModalComponent implements OnChanges {
 
   @Output() close = new EventEmitter<void>();
   @Output() submitPassword = new EventEmitter<PasswordModalSubmitPayload>();
-  @Output() resetPassword = new EventEmitter<PasswordModalResetPayload>();
 
   public currentPassword = '';
   public nextPassword = '';
@@ -86,19 +81,6 @@ export class PasswordSettingsModalComponent implements OnChanges {
     this.submitPassword.emit({
       currentPassword: this.currentPassword,
       nextPassword: this.nextPassword,
-    });
-  }
-
-  public restoreDefaultPassword(): void {
-    this.localErrorMessage = null;
-
-    if (this.requiresCurrentPassword && !this.currentPassword.trim()) {
-      this.localErrorMessage = 'Le mot de passe actuel est requis.';
-      return;
-    }
-
-    this.resetPassword.emit({
-      currentPassword: this.currentPassword,
     });
   }
 
