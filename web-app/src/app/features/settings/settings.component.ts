@@ -167,6 +167,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.openSensitivePasswordPrompt('import');
   }
 
+  public cancelImportSelection(): void {
+    this.importPasswordValidated = false;
+    this.pendingImportInput = null;
+  }
+
   public async importAppData(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
