@@ -12,7 +12,7 @@ export interface TodoProgress {
   monthlyTotal: number;
 }
 
-export type FormSaveState = 'pristine' | 'dirty' | 'saved';
+export type FormSaveState = 'pristine' | 'dirty' | 'saving' | 'saved' | 'error';
 
 @Injectable({ providedIn: 'root' })
 export class SaveActionService {
