@@ -1,8 +1,8 @@
+import { environment } from '../../../env/env';
 import { AppData } from '../models/app-data.model';
 import { AppItem } from '../models/app-item.model';
-import { TodoHistoryEntry } from '../models/todo-history.model';
 import { Budget } from '../models/budget/budget.model';
-import { environment } from '../../../env/env';
+import { TodoHistoryEntry } from '../models/todo-history.model';
 
 export const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 
@@ -25,9 +25,11 @@ function isDateString(value: unknown): boolean {
 }
 
 function hasBaseEntity(value: unknown): value is JsonObject {
-  return hasIdentity(value) &&
+  return (
+    hasIdentity(value) &&
     isDateString(value['createdAt']) &&
-    isDateString(value['updatedAt']);
+    isDateString(value['updatedAt'])
+  );
 }
 
 function hasUniqueIds(entries: JsonObject[]): boolean {
@@ -36,19 +38,24 @@ function hasUniqueIds(entries: JsonObject[]): boolean {
 }
 
 function isTodoSubItem(value: unknown): boolean {
-  return hasBaseEntity(value) &&
+  return (
+    hasBaseEntity(value) &&
     (value['title'] === undefined || typeof value['title'] === 'string') &&
-    (value['config'] === undefined || isObject(value['config']));
+    (value['config'] === undefined || isObject(value['config']))
+  );
 }
 
 function isItem(value: unknown): value is AppItem {
-  if (!hasBaseEntity(value) ||
-      !['todo', 'note', 'citation', 'image'].includes(String(value['type'])) ||
-      !Array.isArray(value['tags']) ||
-      !value['tags'].every((tag: unknown) => typeof tag === 'string') ||
-      !['private', 'public'].includes(String(value['visibility'])) ||
-      !['default', 'blue', 'green', 'yellow', 'orange', 'red', 'purple', 'pink', 'gray']
-        .includes(String(value['color']))) {
+  if (
+    !hasBaseEntity(value) ||
+    !['todo', 'note', 'citation', 'image'].includes(String(value['type'])) ||
+    !Array.isArray(value['tags']) ||
+    !value['tags'].every((tag: unknown) => typeof tag === 'string') ||
+    !['private', 'public'].includes(String(value['visibility'])) ||
+    !['default', 'blue', 'green', 'yellow', 'orange', 'red', 'purple', 'pink', 'gray'].includes(
+      String(value['color'])
+    )
+  ) {
     return false;
   }
 
@@ -58,29 +65,39 @@ function isItem(value: unknown): value is AppItem {
     }
   }
 
-  return (value['todoContent'] === undefined ||
-    (Array.isArray(value['todoContent']) && value['todoContent'].every(isTodoSubItem)));
+  return (
+    value['todoContent'] === undefined ||
+    (Array.isArray(value['todoContent']) && value['todoContent'].every(isTodoSubItem))
+  );
 }
 
 function isHistory(value: unknown): value is TodoHistoryEntry {
-  return hasBaseEntity(value) &&
+  return (
+    hasBaseEntity(value) &&
     isNonEmptyString(value['todoItemId']) &&
     ['pending', 'done'].includes(String(value['status'])) &&
-    (value['completedAt'] === undefined || isDateString(value['completedAt']));
+    (value['completedAt'] === undefined || isDateString(value['completedAt']))
+  );
 }
 
 function isCitationMeta(value: unknown): boolean {
-  return hasIdentity(value) && isNonEmptyString(value['itemId']) &&
+  return (
+    hasIdentity(value) &&
+    isNonEmptyString(value['itemId']) &&
     (value['author'] === undefined || typeof value['author'] === 'string') &&
-    (value['source'] === undefined || typeof value['source'] === 'string');
+    (value['source'] === undefined || typeof value['source'] === 'string')
+  );
 }
 
 function isImageMeta(value: unknown): boolean {
-  return hasIdentity(value) && isNonEmptyString(value['itemId']) &&
-    typeof value['imageUrl'] === 'string';
+  return (
+    hasIdentity(value) &&
+    isNonEmptyString(value['itemId']) &&
+    typeof value['imageUrl'] === 'string'
+  );
 }
 
-function isBudgetEntry(value: unknown): boolean {
+function isBudgetEntry(value: unknown): value is JsonObject {
   return hasIdentity(value) && typeof value['name'] === 'string';
 }
 
@@ -89,33 +106,41 @@ function isAmount(value: unknown): boolean {
 }
 
 function isBudgetTransaction(value: unknown): boolean {
-  return isBudgetEntry(value) &&
-    isAmount(value['plannedAmount']) && isAmount(value['realAmount']) &&
-    isNonEmptyString(value['accountId']);
+  return (
+    isBudgetEntry(value) &&
+    isAmount(value['plannedAmount']) &&
+    isAmount(value['realAmount']) &&
+    isNonEmptyString(value['accountId'])
+  );
 }
 
 function isBudget(value: unknown): value is Budget {
-  if (!isObject(value) ||
-      !Array.isArray(value['periods']) ||
-      !Array.isArray(value['accounts']) ||
-      !Array.isArray(value['expenseCategories']) ||
-      (value['incomeTypes'] !== undefined && !Array.isArray(value['incomeTypes']))) {
+  if (
+    !isObject(value) ||
+    !Array.isArray(value['periods']) ||
+    !Array.isArray(value['accounts']) ||
+    !Array.isArray(value['expenseCategories']) ||
+    (value['incomeTypes'] !== undefined && !Array.isArray(value['incomeTypes']))
+  ) {
     return false;
   }
 
-  const periodValid = value['periods'].every((period: unknown) =>
-    isObject(period) &&
-    typeof period['date'] === 'string' &&
-    Array.isArray(period['incomes']) &&
-    period['incomes'].every(isBudgetTransaction) &&
-    Array.isArray(period['expenses']) &&
-    period['expenses'].every(isBudgetTransaction)
+  const periodsAreValid = value['periods'].every(
+    (period: unknown) =>
+      isObject(period) &&
+      typeof period['date'] === 'string' &&
+      Array.isArray(period['incomes']) &&
+      period['incomes'].every(isBudgetTransaction) &&
+      Array.isArray(period['expenses']) &&
+      period['expenses'].every(isBudgetTransaction)
   );
 
-  return periodValid &&
+  return (
+    periodsAreValid &&
     value['accounts'].every(isBudgetEntry) &&
     value['expenseCategories'].every(isBudgetEntry) &&
-    (value['incomeTypes'] === undefined || value['incomeTypes'].every(isBudgetEntry));
+    (value['incomeTypes'] === undefined || value['incomeTypes'].every(isBudgetEntry))
+  );
 }
 
 function isSupportedPasswordHash(value: unknown): boolean {
@@ -123,16 +148,27 @@ function isSupportedPasswordHash(value: unknown): boolean {
     return false;
   }
 
-  if (!value) {
+  if (value === '' || /^[a-f0-9]{64}$/i.test(value)) {
     return true;
   }
 
-  if (/^[a-f0-9]{64}$/i.test(value)) {
-    return true;
-  }
+  const [scheme, iterations, salt, digest, extra] = value.split('$');
 
-  const [scheme, iterations, salt, digest, extra] = value.split('
-  return hasIdentity(value) && value['id'] === 'app-settings' &&
+  return (
+    extra === undefined &&
+    scheme === 'pbkdf2-sha256' &&
+    Number.isInteger(Number(iterations)) &&
+    Number(iterations) >= 100_000 &&
+    Number(iterations) <= 1_000_000 &&
+    /^[a-f0-9]{32}$/i.test(salt ?? '') &&
+    /^[a-f0-9]{64}$/i.test(digest ?? '')
+  );
+}
+
+function isSettings(value: unknown): boolean {
+  return (
+    hasIdentity(value) &&
+    value['id'] === 'app-settings' &&
     ['light', 'dark', 'system'].includes(String(value['theme'])) &&
     ['fr', 'en'].includes(String(value['language'])) &&
     typeof value['dailyAffirmationEnabled'] === 'boolean' &&
@@ -141,73 +177,38 @@ function isSupportedPasswordHash(value: unknown): boolean {
     isNonEmptyString(value['userId']) &&
     typeof value['userName'] === 'string' &&
     (value['version'] === undefined ||
-      (Number.isInteger(value['version']) &&
-        Number(value['version']) >= 1 &&
-        Number(value['version']) <= environment.dbVersion));
+      (typeof value['version'] === 'number' &&
+        Number.isInteger(value['version']) &&
+        value['version'] >= 1 &&
+        value['version'] <= environment.dbVersion))
+  );
 }
 
 export function isValidBackup(value: unknown): value is AppData {
-  if (!isObject(value) || value['id'] !== 'app-data' ||
-      !isSettings(value['settings']) ||
-      !Array.isArray(value['items']) ||
-      !Array.isArray(value['todoHistory']) ||
-      !Array.isArray(value['citationsMeta']) ||
-      !Array.isArray(value['imagesMeta']) ||
-      (value['budget'] !== undefined && !isBudget(value['budget']))) {
+  if (
+    !isObject(value) ||
+    value['id'] !== 'app-data' ||
+    !isSettings(value['settings']) ||
+    !Array.isArray(value['items']) ||
+    !Array.isArray(value['todoHistory']) ||
+    !Array.isArray(value['citationsMeta']) ||
+    !Array.isArray(value['imagesMeta']) ||
+    (value['budget'] !== undefined && !isBudget(value['budget']))
+  ) {
     return false;
   }
 
-  const collections: Array<{ entries: unknown[]; validate: (entry: unknown) => boolean }> = [
+  const collections: Array<{
+    entries: unknown[];
+    validate: (entry: unknown) => boolean;
+  }> = [
     { entries: value['items'], validate: isItem },
     { entries: value['todoHistory'], validate: isHistory },
     { entries: value['citationsMeta'], validate: isCitationMeta },
     { entries: value['imagesMeta'], validate: isImageMeta },
   ];
 
-  return collections.every(({ entries, validate }) =>
-    entries.every(validate) && hasUniqueIds(entries as JsonObject[]));
-}
-);
-  return extra === undefined &&
-    scheme === 'pbkdf2-sha256' &&
-    Number.isInteger(Number(iterations)) &&
-    Number(iterations) >= 100_000 &&
-    Number(iterations) <= 1_000_000 &&
-    /^[a-f0-9]{32}$/i.test(salt ?? '') &&
-    /^[a-f0-9]{64}$/i.test(digest ?? '');
-}
-
-function isSettings(value: unknown): boolean {
-  return hasIdentity(value) &&
-    ['light', 'dark', 'system'].includes(String(value['theme'])) &&
-    ['fr', 'en'].includes(String(value['language'])) &&
-    typeof value['dailyAffirmationEnabled'] === 'boolean' &&
-    typeof value['showArchivedItems'] === 'boolean' &&
-    typeof value['passwordHash'] === 'string' &&
-    isNonEmptyString(value['userId']) &&
-    typeof value['userName'] === 'string' &&
-    (value['version'] === undefined ||
-      (Number.isInteger(value['version']) && Number(value['version']) <= environment.dbVersion));
-}
-
-export function isValidBackup(value: unknown): value is AppData {
-  if (!isObject(value) || value['id'] !== 'app-data' ||
-      !isSettings(value['settings']) ||
-      !Array.isArray(value['items']) ||
-      !Array.isArray(value['todoHistory']) ||
-      !Array.isArray(value['citationsMeta']) ||
-      !Array.isArray(value['imagesMeta']) ||
-      (value['budget'] !== undefined && !isBudget(value['budget']))) {
-    return false;
-  }
-
-  const collections: Array<{ entries: unknown[]; validate: (entry: unknown) => boolean }> = [
-    { entries: value['items'], validate: isItem },
-    { entries: value['todoHistory'], validate: isHistory },
-    { entries: value['citationsMeta'], validate: isCitationMeta },
-    { entries: value['imagesMeta'], validate: isImageMeta },
-  ];
-
-  return collections.every(({ entries, validate }) =>
-    entries.every(validate) && hasUniqueIds(entries as JsonObject[]));
+  return collections.every(
+    ({ entries, validate }) => entries.every(validate) && hasUniqueIds(entries as JsonObject[])
+  );
 }
