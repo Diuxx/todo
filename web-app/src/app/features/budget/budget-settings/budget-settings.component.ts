@@ -1,4 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BudgetService } from '../../../shared/services/budget.service';
@@ -47,6 +48,61 @@ export class BudgetSettingsComponent implements OnInit {
   public expenseCategoryFormIcon = '';
 
   public ngOnInit(): void {
+    this.loadBudget();
+  }
+
+  public get hasUnsavedBudgetEdits(): boolean {
+    if (!this.budget) {
+      return false;
+    }
+
+    const account = this.budget.accounts.find((entry) => entry.id === this.selectedAccountId);
+    const category = this.budget.expenseCategories.find(
+      (entry) => entry.id === this.selectedExpenseCategoryId
+    );
+    const incomeType = this.budget.incomeTypes.find(
+      (entry) => entry.id === this.selectedIncomeTypeId
+    );
+
+    return (
+      this.accountFormName.trim() !== (account?.name ?? '') ||
+      this.expenseCategoryFormName.trim() !== (category?.name ?? '') ||
+      this.expenseCategoryFormIcon.trim() !== (category?.icon ?? '') ||
+      this.incomeTypeFormName.trim() !== (incomeType?.name ?? '') ||
+      this.incomeTypeFormSaving !== (incomeType?.saving ?? false) ||
+      (this.isSelectedEmptyPeriod && this.copyPeriodData)
+    );
+  }
+
+  public async canDeactivate(): Promise<boolean> {
+    if (this.isSaving) {
+      return false;
+    }
+
+    if (!this.hasUnsavedBudgetEdits) {
+      return true;
+    }
+
+    return firstValueFrom(this.confirmDialogService.confirm({
+      title: 'Quitter sans enregistrer ?',
+      message: 'Les modifications des listes du budget seront perdues.',
+      confirmText: 'Quitter sans enregistrer',
+      cancelText: 'Rester',
+      variant: 'danger',
+    }));
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  public warnBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.isSaving && !this.hasUnsavedBudgetEdits) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = '';
+  }
+
+  public retryLoadingBudget(): void {
     this.loadBudget();
   }
 
@@ -526,7 +582,8 @@ export class BudgetSettingsComponent implements OnInit {
         this.onExpenseCategorySelectionChange();
         this.isLoading = false;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Unable to load budget administration:', error);
         this.isLoading = false;
       },
     });
