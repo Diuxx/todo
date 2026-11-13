@@ -1,6 +1,5 @@
 import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { NgClass } from '@angular/common';
 import { Subject, debounceTime, firstValueFrom, takeUntil } from 'rxjs';
 import { SettingsService } from '../../shared/services/settings.service';
 import { FormSaveState, SaveActionService } from '../../shared/services/save-action.service';
@@ -26,7 +25,6 @@ type SensitiveAction = 'delete' | 'export' | 'import';
   styleUrls: ['./settings.component.scss'],
   imports: [
     ReactiveFormsModule,
-    NgClass,
     PasswordSettingsModalComponent,
     PasswordPromptModalComponent,
     SaveStatusComponent,
