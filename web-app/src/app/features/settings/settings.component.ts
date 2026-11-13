@@ -20,12 +20,12 @@ import { DatabaseService } from '../../shared/services/database.service';
 import { LocalNotificationService } from '../../shared/services/local-notification.service';
 import { PasswordService } from '../../shared/services/password.service';
 import {
-  PasswordModalResetPayload,
   PasswordModalSubmitPayload,
   PasswordSettingsModalComponent,
 } from '../../shared/components/password-settings-modal/password-settings-modal.component';
 import { PasswordPromptModalComponent } from '../../shared/components/password-prompt-modal/password-prompt-modal.component';
 import { environment } from '../../../env/env';
+import { MAX_BACKUP_BYTES, isValidBackup } from '../../shared/utils/backup-validation';
 
 type SensitiveAction = 'delete' | 'export' | 'import';
 
@@ -131,31 +131,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
       const nextPasswordHash = await this.passwordService.hash(payload.nextPassword);
       await this.persistPasswordHash(nextPasswordHash);
-    } finally {
-      this.isPasswordSaving = false;
-    }
-  }
-
-  public async resetPasswordToDefault(payload: PasswordModalResetPayload): Promise<void> {
-    const currentPasswordHash = this.settingsForm.get('passwordHash')?.value as string;
-
-    this.passwordErrorMessage = null;
-    this.isPasswordSaving = true;
-
-    try {
-      if (this.hasCustomPassword) {
-        const isCurrentPasswordValid = await this.passwordService.verify(
-          payload.currentPassword,
-          currentPasswordHash
-        );
-
-        if (!isCurrentPasswordValid) {
-          this.passwordErrorMessage = 'Le mot de passe actuel est incorrect.';
-          return;
-        }
-      }
-
-      await this.persistPasswordHash(this.passwordService.defaultPasswordHash);
     } finally {
       this.isPasswordSaving = false;
     }
@@ -315,19 +290,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
     return 'Continuer';
   }
 
-  private isValidAppData(payload: AppData): payload is AppData {
-    return (
-      !!payload &&
-      Array.isArray(payload.items) &&
-      Array.isArray(payload.todoHistory) &&
-      Array.isArray(payload.citationsMeta) &&
-      Array.isArray(payload.imagesMeta) &&
-      !!payload.settings &&
-      typeof payload.settings === 'object' &&
-      typeof payload.settings.id === 'string'
-    );
-  }
-
   private buildForm(settings: AppSettings): void {
     this.settingsForm = this.fb.group({
       id: [settings.id],
@@ -369,6 +331,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   private openSensitivePasswordPrompt(action: SensitiveAction): void {
+    const passwordHash = this.settingsForm?.get('passwordHash')?.value as string | undefined;
+    if (!passwordHash || passwordHash === this.passwordService.legacyDefaultPasswordHash) {
+      this.passwordErrorMessage = 'Définissez un mot de passe personnel avant cette action.';
+      this.openPasswordModal();
+      this.passwordErrorMessage = 'Définissez un mot de passe personnel avant cette action.';
+      this.pendingImportInput = null;
+      return;
+    }
+
     this.pendingSensitiveAction = action;
     this.sensitivePasswordErrorMessage = null;
     this.isSensitivePasswordPromptVisible = true;
@@ -441,16 +412,18 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.isImportingData = true;
 
     try {
-      const content = await file.text();
-      const parsed = JSON.parse(content) as AppData;
+      if (file.size > MAX_BACKUP_BYTES) {
+        throw new Error('Le fichier dépasse la taille maximale autorisée (10 Mo).');
+      }
 
-      if (!this.isValidAppData(parsed)) {
+      const content = await file.text();
+      const parsed: unknown = JSON.parse(content);
+
+      if (!isValidBackup(parsed)) {
         throw new Error('Le fichier JSON ne correspond pas au format attendu.');
       }
 
       const migratedPayload = this.withBudgetMigration(parsed);
-
-      await this.localNotificationService.clearAllTodoNotifications();
 
       await db.transaction(
         'rw',
@@ -505,11 +478,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
       this.settingsForm.markAsPristine();
       this.updatePasswordState(migratedPayload.settings.passwordHash);
       await this.loadStorageStats();
+      await this.localNotificationService.clearAllTodoNotifications();
       await this.localNotificationService.syncScheduledTodoNotifications();
       this.triggerSavedFeedback();
     } catch (error) {
       console.error('[Settings] Import failed:', error);
-      alert("Impossible d'importer ce fichier JSON.");
+      alert(error instanceof Error ? error.message : "Impossible d'importer ce fichier JSON.");
     } finally {
       input.value = '';
       this.isImportingData = false;
