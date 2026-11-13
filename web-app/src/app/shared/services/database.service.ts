@@ -1,8 +1,8 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { db } from '../../db.config';
 import { generateUUID } from '../utils';
-import { appDataExample } from '../models/mock-data';
 import { PasswordService } from './password.service';
+import { appDataExample } from '../models/mock-data';
 import { CitationMeta } from '../models/citation-meta.model';
 import { ImageMeta } from '../models/image-meta.model';
 import { AppSettings, BackupState } from '../models/app-settings.model';
@@ -33,8 +33,7 @@ export class DatabaseService {
     }
 
     if (!hasBudget) {
-      // If an example budget exists in `appDataExample`, use it; otherwise create defaults
-      const budgetPayload = (appDataExample && (appDataExample as any).budget) ?? createDefaultBudget();
+      const budgetPayload = appDataExample.budget ?? createDefaultBudget();
       await db.budgets.add({
         periods: budgetPayload.periods,
         accounts: budgetPayload.accounts,
@@ -44,10 +43,10 @@ export class DatabaseService {
       });
     }
 
-    if (!hasSettings.passwordHash) {
+    if (typeof hasSettings.passwordHash !== 'string') {
       await db.settings.put({
         ...hasSettings,
-        passwordHash: this.passwordService.defaultPasswordHash,
+        passwordHash: this.passwordService.legacyDefaultPasswordHash,
       });
     }
   }
@@ -68,7 +67,7 @@ export class DatabaseService {
       language: 'fr',
       dailyAffirmationEnabled: false,
       showArchivedItems: false,
-      passwordHash: this.passwordService.defaultPasswordHash,
+      passwordHash: '',
       userName: 'Nouvel Utilisateur',
       userId: generateUUID(),
       backupState: backupState,
@@ -85,27 +84,16 @@ export class DatabaseService {
     await db.citationsMeta.bulkAdd(this.normalizeCitationMetas(appDataExample.citationsMeta));
     await db.imagesMeta.bulkAdd(this.normalizeImageMetas(appDataExample.imagesMeta));
 
-    // Seed budget from example data when available, otherwise use defaults
-    try {
-      const budgetPayload = appDataExample.budget ?? createDefaultBudget();
-      await db.budgets.add({
-        periods: budgetPayload.periods,
-        accounts: budgetPayload.accounts,
-        expenseCategories: budgetPayload.expenseCategories,
-        incomeTypes: budgetPayload.incomeTypes,
-        id: 'main',
-      });
-    } catch (err) {
-      // If adding fails (already exists), fall back to ensuring default budget exists
-      const defaultBudget = createDefaultBudget();
-      await db.budgets.put({
-        periods: defaultBudget.periods,
-        accounts: defaultBudget.accounts,
-        expenseCategories: defaultBudget.expenseCategories,
-        incomeTypes: defaultBudget.incomeTypes,
-        id: 'main',
-      });
-    }
+    // Dexie's populate hook can already create the budget on first open.
+    // Upsert the seed instead of masking unexpected database failures.
+    const budgetPayload = appDataExample.budget ?? createDefaultBudget();
+    await db.budgets.put({
+      periods: budgetPayload.periods,
+      accounts: budgetPayload.accounts,
+      expenseCategories: budgetPayload.expenseCategories,
+      incomeTypes: budgetPayload.incomeTypes,
+      id: 'main',
+    });
   }
 
   private async initializeDefaultDatabase(): Promise<void> {

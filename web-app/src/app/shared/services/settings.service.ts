@@ -1,9 +1,9 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, from, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AppSettings } from '../models/app-settings.model';
-import { db } from '../../db.config';
 import { PasswordService } from './password.service';
+import { db } from '../../db.config';
 
 const SETTINGS_ID = 'app-settings';
 
@@ -41,7 +41,7 @@ export class SettingsService {
     const payload: AppSettings = {
       ...settings,
       id: SETTINGS_ID,
-      passwordHash: settings.passwordHash || this.passwordService.defaultPasswordHash,
+      passwordHash: settings.passwordHash ?? '',
     };
 
     return from(db.settings.put(payload).then(() => payload)).pipe(
@@ -56,13 +56,13 @@ export class SettingsService {
       return undefined;
     }
 
-    if (settings.passwordHash) {
+    if (typeof settings.passwordHash === 'string') {
       return settings;
     }
 
     const normalized: AppSettings = {
       ...settings,
-      passwordHash: this.passwordService.defaultPasswordHash,
+      passwordHash: this.passwordService.legacyDefaultPasswordHash,
     };
 
     await db.settings.put(normalized);

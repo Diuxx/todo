@@ -1,26 +1,24 @@
-ng new life-leveling --routing --style=scss --ssr=false
-npm i bootstrap @popperjs/core
-npm i chart.js
-npm i bootstrap-icons
+# Todo
 
-todo: install ng2-charts
+Todo is a local-first personal organizer for managing tasks, notes, quotations and budgets on the web and Android.
 
+## Features
 
--- installer capacitor dans le projet.
-npm i @capacitor/core
-npm i -D @capacitor/cli
+- Tasks and recurring checklists with completion history.
+- Notes, citations, favorites and calendar organization.
+- Budget tracking and statistics.
+- Local reminders on supported Android devices.
+- JSON backup and restore.
+- Optional personal password for protected actions and items.
 
--- init capacitor
-npx cap init
+## Quick Start
 
--- ajouter le code android (android studio)
-npm i @capacitor/android
-npx cap add android
+```bash
+cd web-app
+npm install
+npm run start
+```
 
--- syncro le front et android  <!>
-npx cap sync android
+## Documentation
 
--- mise en place de logo (créer un dossier resources à la racine du projet.)
-npm install --save-dev @capacitor/assets
-npx capacitor-assets generate --android (génére toutes les definitions)
-
+See [Usage](docs/USAGE.md) for setup, development, Android packaging and limitations.
