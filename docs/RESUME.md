@@ -14,6 +14,9 @@ Todo is an Angular/Capacitor local-first personal organization application for t
 - `web-app/src/app/shared/services/backup.service.ts`: backup data validation, migration, import transactions and storage statistics.
 - `web-app/src/app/shared/services/backup-file.service.ts`: browser downloads and Android backup sharing.
 - `web-app/src/app/shared/services/items.service.ts`: item persistence, transactional cleanup of related history and metadata, notification synchronization.
+- `web-app/src/app/features/item-detail/item-detail.component.ts`: serialized autosave writes with pending changes preserved.
+- `web-app/src/app/shared/services/budget.service.ts`: atomic period mutations and expense/income reference normalization.
+- `web-app/src/app/shared/services/local-notification.service.ts`: recurring reminders and supported custom weekday schedules.
 - `web-app/src/app/shared/utils/backup-validation.ts`: imported JSON structure validation.
 - `web-app/src/app/shared/services/password.service.ts`: PBKDF2 hashing and legacy SHA-256 verification.
 - `web-app/src/app/shared/services/item-lock.service.ts`: in-memory item unlock state.
@@ -37,6 +40,6 @@ Angular pages call injectable services. Services read/write Dexie tables for ite
 2. Test real database upgrades from previously distributed versions.
 3. Test imports using exported backups and corrupted/oversized inputs.
 4. Strengthen security and recovery UX, particularly legacy default-password installations.
-5. Verify new item cleanup and backup flows with real browser data; review startup errors and notification synchronization.
+5. Validate recurring reminders and startup recovery on Android and real browsers; extend support for additional custom cron patterns deliberately.
 
 Read [PROJECT.md](PROJECT.md) for project conventions and [CODE_AUDIT.md](CODE_AUDIT.md) for audit findings.
