@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, from, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AppSettings } from '../models/app-settings.model';
+import { PasswordService } from './password.service';
 import { db } from '../../db.config';
 
 const SETTINGS_ID = 'app-settings';
@@ -9,6 +10,7 @@ const SETTINGS_ID = 'app-settings';
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
   private readonly settingsSubject = new BehaviorSubject<AppSettings | null>(null);
+  private readonly passwordService = inject(PasswordService);
 
   /**
    * Emits the latest settings whenever they are loaded or updated.
@@ -54,13 +56,13 @@ export class SettingsService {
       return undefined;
     }
 
-    if (settings.passwordHash) {
+    if (typeof settings.passwordHash === 'string') {
       return settings;
     }
 
     const normalized: AppSettings = {
       ...settings,
-      passwordHash: '',
+      passwordHash: this.passwordService.legacyDefaultPasswordHash,
     };
 
     await db.settings.put(normalized);
