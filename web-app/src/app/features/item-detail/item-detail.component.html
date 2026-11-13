@@ -12,6 +12,9 @@
           [errorMessage]="saveErrorMessage"
           (retry)="saveElement()"
         ></app-save-status>
+        @if (deleteErrorMessage) {
+          <p class="detail-delete-error" role="alert">{{ deleteErrorMessage }}</p>
+        }
         <span class="detail-card-title">
           <div class="detail-card-actions">
             <div class="left-actions">
