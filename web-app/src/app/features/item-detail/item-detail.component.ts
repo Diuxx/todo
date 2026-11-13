@@ -64,6 +64,7 @@ export class ItemDetailComponent implements OnInit {
   private editingSubItemSnapshot: Record<string, unknown> | null = null;
   private readonly initialTodoDoneState = new Map<string, boolean>();
   private pendingItemSave: Promise<boolean> | null = null;
+  private itemWasDeleted = false;
 
   public isTodoEditModalVisible: boolean = false;
   public isAdminModalVisible: boolean = false;
@@ -73,6 +74,7 @@ export class ItemDetailComponent implements OnInit {
   public isLoading: boolean = true;
   public saveState: FormSaveState = 'pristine';
   public saveErrorMessage: string | null = null;
+  public deleteErrorMessage: string | null = null;
   public loadErrorMessage: string | null = null;
   public isUnlockModalVisible = false;
   public isUnlockSubmitting = false;
@@ -167,10 +169,14 @@ export class ItemDetailComponent implements OnInit {
   }
 
   public isFormChanged(): boolean {
-    return this.itemForm.dirty || this.pendingItemSave !== null;
+    return !this.itemWasDeleted && (this.itemForm.dirty || this.pendingItemSave !== null);
   }
 
   public async canDeactivate(): Promise<boolean> {
+    if (this.itemWasDeleted) {
+      return true;
+    }
+
     // Changes inside the subtask modal have not yet been accepted by the user.
     if (this.isTodoEditModalVisible) {
       return false;
@@ -208,17 +214,30 @@ export class ItemDetailComponent implements OnInit {
       })
       .pipe(takeUntil(this.destroy$))
       .subscribe((confirmed) => {
-        if (!confirmed || !this.item) {
-          return;
+        if (confirmed && this.item) {
+          void this.deleteConfirmedItem();
         }
-
-        this.itemsService.deleteItem(this.item.id).subscribe({
-          next: () => {
-            this.router.navigate(['/']);
-          },
-          error: () => console.error('Error deleting item'),
-        });
       });
+  }
+
+  private async deleteConfirmedItem(): Promise<void> {
+    if (!this.item) {
+      return;
+    }
+
+    this.deleteErrorMessage = null;
+
+    try {
+      // An existing write must finish before deletion, otherwise it could recreate the item.
+      await this.pendingItemSave;
+      await firstValueFrom(this.itemsService.deleteItem(this.item.id));
+      this.itemWasDeleted = true;
+      this.itemForm.markAsPristine();
+      void this.router.navigate(['/']);
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      this.deleteErrorMessage = "Impossible de supprimer cet élément. Réessayez.";
+    }
   }
 
   /**
