@@ -6,6 +6,11 @@
 
   @if (isLoading) {
     <div class="recap-loading">Chargement des statistiques...</div>
+  } @else if (loadErrorMessage) {
+    <div class="recap-loading" role="alert">
+      <p>{{ loadErrorMessage }}</p>
+      <button type="button" (click)="retryLoadingRecap()">Réessayer</button>
+    </div>
   } @else {
     <article class="recap-panel recap-weekly-panel">
       <div class="recap-panel-header recap-panel-header-split">

@@ -13,6 +13,11 @@
 
   @if (isLoading) {
     <p class="stats-state">Chargement...</p>
+  } @else if (loadErrorMessage) {
+    <div class="stats-state" role="alert">
+      <p>{{ loadErrorMessage }}</p>
+      <button type="button" (click)="retryLoadingBudget()">Réessayer</button>
+    </div>
   } @else if (!hasAnyExpenseForYear) {
     <p class="stats-state">Aucune donnée financière enregistrée pour {{ selectedYear }}.</p>
   } @else {

@@ -1,10 +1,11 @@
-import { Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Observable, Subject, debounceTime, takeUntil } from 'rxjs';
+import { Observable, Subject, debounceTime, firstValueFrom, takeUntil } from 'rxjs';
 import { AppItem } from '../../shared/models/app-item.model';
 import { ItemsService } from '../../shared/services/items.service';
-import { SaveActionService } from '../../shared/services/save-action.service';
+import { FormSaveState, SaveActionService } from '../../shared/services/save-action.service';
+import { SaveStatusComponent } from '../../shared/components/save-status/save-status.component';
 import { TodoEditModalComponent } from './todo-edit-modal/todo-edit-modal.component';
 import { ItemAdminModalComponent } from './item-admin-modal/item-admin-modal.component';
 import {
@@ -34,6 +35,7 @@ const ITEM_DETAIL_IMPORTS = [
   NgStyle,
   ItemDetailSkeletonComponent,
   PasswordPromptModalComponent,
+  SaveStatusComponent,
 ];
 
 @Component({
@@ -61,7 +63,9 @@ export class ItemDetailComponent implements OnInit {
   private contentTextareaElement?: HTMLTextAreaElement;
   private editingSubItemSnapshot: Record<string, unknown> | null = null;
   private readonly initialTodoDoneState = new Map<string, boolean>();
-  private isItemSaveInProgress = false;
+  private pendingItemSave: Promise<boolean> | null = null;
+  private itemWasDeleted = false;
+  private isDeletingItem = false;
 
   public isTodoEditModalVisible: boolean = false;
   public isAdminModalVisible: boolean = false;
@@ -69,6 +73,10 @@ export class ItemDetailComponent implements OnInit {
   public itemForm: FormGroup = createItemForm(this.formBuilder);
   public editingSubItemForm?: FormGroup;
   public isLoading: boolean = true;
+  public saveState: FormSaveState = 'pristine';
+  public saveErrorMessage: string | null = null;
+  public deleteErrorMessage: string | null = null;
+  public loadErrorMessage: string | null = null;
   public isUnlockModalVisible = false;
   public isUnlockSubmitting = false;
   public unlockErrorMessage: string | null = null;
@@ -99,37 +107,53 @@ export class ItemDetailComponent implements OnInit {
 
   public ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-
-    if (!id) {
-      return;
+    if (id) {
+      this.loadItem(id);
     }
 
-    // get item and create form.
-    this.itemsService.getItemById(id).subscribe({
+    this.saveActionService.save$.pipe(takeUntil(this.destroy$)).subscribe(() => this.saveElement());
+  }
+
+  public retryLoadingItem(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.loadItem(id);
+    }
+  }
+
+  private loadItem(id: string): void {
+    this.isLoading = true;
+    this.loadErrorMessage = null;
+
+    this.itemsService.getItemById(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (item) => {
+        if (!item) {
+          this.loadErrorMessage = "Cet élément n'existe plus.";
+          this.isLoading = false;
+          return;
+        }
+
         this.item = item;
         this.itemForm = createItemForm(this.formBuilder, item);
         this.initializeTodoDoneState();
         this.sortTodoSubItemsOnInit();
-        this.saveActionService.updateFormSaveState('pristine');
+        this.updateSaveState('pristine');
         this.setupAutoSaveSubscriptions();
         this.emitTodoProgress();
-        this.pendingTextareaFocus = !!item && !(item.type === 'todo' && item.todoContent?.length);
-        this.hasCurrentAccess =
-          !!item && (!item.isLocked || this.itemLockService.isUnlocked(item.id));
+        this.pendingTextareaFocus = item.type !== 'todo' || !item.todoContent?.length;
+        this.hasCurrentAccess = !item.isLocked || this.itemLockService.isUnlocked(item.id);
         this.isLoading = false;
 
-        if (item?.isLocked && !this.hasCurrentAccess) {
+        if (item.isLocked && !this.hasCurrentAccess) {
           this.isUnlockModalVisible = true;
         }
       },
-      error: (err) => {
-        console.error('Error fetching item with id:', id, err);
+      error: (error) => {
+        console.error('Error fetching item with id:', id, error);
+        this.loadErrorMessage = "Impossible de charger cet élément.";
         this.isLoading = false;
       },
     });
-
-    this.saveActionService.save$.pipe(takeUntil(this.destroy$)).subscribe(() => this.saveElement());
   }
 
   public ngOnDestroy(): void {
@@ -141,12 +165,39 @@ export class ItemDetailComponent implements OnInit {
     this.destroy$.next();
     this.destroy$.complete();
 
-    this.saveActionService.updateFormSaveState('pristine');
+    this.updateSaveState('pristine');
     this.saveActionService.updateTodoProgress(null);
   }
 
   public isFormChanged(): boolean {
-    return this.itemForm.dirty;
+    return !this.itemWasDeleted && (this.itemForm.dirty || this.pendingItemSave !== null || this.isDeletingItem);
+  }
+
+  public async canDeactivate(): Promise<boolean> {
+    if (this.itemWasDeleted) {
+      return true;
+    }
+
+    if (this.isDeletingItem) {
+      return false;
+    }
+
+    // Changes inside the subtask modal have not yet been accepted by the user.
+    if (this.isTodoEditModalVisible) {
+      return false;
+    }
+
+    return this.persistPendingChanges();
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  public warnBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.isFormChanged()) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = '';
   }
 
   /**
@@ -168,17 +219,33 @@ export class ItemDetailComponent implements OnInit {
       })
       .pipe(takeUntil(this.destroy$))
       .subscribe((confirmed) => {
-        if (!confirmed || !this.item) {
-          return;
+        if (confirmed && this.item) {
+          void this.deleteConfirmedItem();
         }
-
-        this.itemsService.deleteItem(this.item.id).subscribe({
-          next: () => {
-            this.router.navigate(['/']);
-          },
-          error: () => console.error('Error deleting item'),
-        });
       });
+  }
+
+  private async deleteConfirmedItem(): Promise<void> {
+    if (!this.item) {
+      return;
+    }
+
+    this.deleteErrorMessage = null;
+    this.isDeletingItem = true;
+
+    try {
+      // An existing write must finish before deletion, otherwise it could recreate the item.
+      await this.pendingItemSave;
+      await firstValueFrom(this.itemsService.deleteItem(this.item.id));
+      this.itemWasDeleted = true;
+      this.itemForm.markAsPristine();
+      void this.router.navigate(['/']);
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      this.deleteErrorMessage = "Impossible de supprimer cet élément. Réessayez.";
+    } finally {
+      this.isDeletingItem = false;
+    }
   }
 
   /**
@@ -186,36 +253,66 @@ export class ItemDetailComponent implements OnInit {
    * @returns void
    */
   public saveElement(): void {
-    if (!this.item || !this.itemForm.dirty || this.isItemSaveInProgress) {
-      return;
+    void this.persistPendingChanges();
+  }
+
+  private persistPendingChanges(): Promise<boolean> {
+    if (this.itemWasDeleted || this.isDeletingItem) {
+      return Promise.resolve(true);
     }
 
-    const payload = mapItemFormToAppItem(this.itemForm, this.item);
-    const savedFormSnapshot = JSON.stringify(this.itemForm.getRawValue());
-    this.isItemSaveInProgress = true;
-    this.item = payload;
+    if (this.pendingItemSave) {
+      return this.pendingItemSave;
+    }
 
-    this.itemsService.updateItem(payload).subscribe({
-      next: (persistedItem) => {
-        this.item = persistedItem;
-        this.isItemSaveInProgress = false;
+    if (!this.item || !this.itemForm.dirty) {
+      return Promise.resolve(true);
+    }
 
-        if (JSON.stringify(this.itemForm.getRawValue()) === savedFormSnapshot) {
-          this.itemForm.markAsPristine();
-          this.triggerSavedFeedback();
-          return;
-        }
-
-        // User changes that arrived during the save must be persisted afterwards.
-        this.saveActionService.updateFormSaveState('dirty');
-        this.saveElement();
-      },
-      error: (error) => {
-        this.isItemSaveInProgress = false;
-        this.saveActionService.updateFormSaveState('dirty');
-        console.error('Error updating item:', error);
-      },
+    const save = this.writePendingChanges();
+    this.pendingItemSave = save;
+    void save.finally(() => {
+      if (this.pendingItemSave === save) {
+        this.pendingItemSave = null;
+      }
     });
+
+    return save;
+  }
+
+  private async writePendingChanges(): Promise<boolean> {
+    while (this.item && this.itemForm.dirty) {
+      const payload = mapItemFormToAppItem(this.itemForm, this.item);
+      const savedSnapshot = JSON.stringify(this.itemForm.getRawValue());
+
+      this.saveErrorMessage = null;
+      this.updateSaveState('saving');
+
+      try {
+        this.item = await firstValueFrom(this.itemsService.updateItem(payload));
+      } catch (error) {
+        this.saveErrorMessage = "L'enregistrement a échoué. Réessayez avant de quitter.";
+        this.updateSaveState('error');
+        console.error('Error updating item:', error);
+        return false;
+      }
+
+      if (JSON.stringify(this.itemForm.getRawValue()) === savedSnapshot) {
+        this.itemForm.markAsPristine();
+        this.triggerSavedFeedback();
+        return true;
+      }
+
+      // The form changed during persistence. Save that newer snapshot as well.
+      this.updateSaveState('dirty');
+    }
+
+    return true;
+  }
+
+  private updateSaveState(state: FormSaveState): void {
+    this.saveState = state;
+    this.saveActionService.updateFormSaveState(state);
   }
 
   /**
@@ -669,7 +766,7 @@ export class ItemDetailComponent implements OnInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         if (this.itemForm.dirty) {
-          this.saveActionService.updateFormSaveState('dirty');
+          this.updateSaveState('dirty');
         }
       });
 
@@ -679,6 +776,6 @@ export class ItemDetailComponent implements OnInit {
   }
 
   private triggerSavedFeedback(): void {
-    this.saveActionService.updateFormSaveState('saved');
+    this.updateSaveState('saved');
   }
 }

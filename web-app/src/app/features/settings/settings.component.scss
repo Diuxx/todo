@@ -32,29 +32,6 @@
   color: var(--app-fg-color);
 }
 
-.save-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--app-color-green);
-  background-color: var(--app-color-green-light);
-  border-radius: 999px;
-  padding: 0.2rem 0.75rem;
-  opacity: 0;
-  transform: translateY(-4px);
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s ease;
-  pointer-events: none;
-
-  &.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* ── Section ─────────────────────────────────────────────── */
 
 .settings-section {
@@ -398,4 +375,28 @@
   .danger-btn {
     width: 100%;
   }
+}
+
+.data-action-error,
+.settings-load-error {
+  color: #b42318;
+  font-size: 0.85rem;
+}
+
+.settings-load-error {
+  padding: 1rem;
+}
+
+.settings-load-error button {
+  border: 1px solid currentColor;
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.7rem;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.data-action-success {
+  color: var(--app-color-green);
+  font-size: 0.85rem;
 }

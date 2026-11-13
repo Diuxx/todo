@@ -37,6 +37,10 @@
       border-color: var(--border-to-be-saved-color);
     }
 
+    &.edit-mode-error {
+      border-color: #b42318;
+    }
+
     &.todo-progress-mode {
       padding: 0;
     }
@@ -62,6 +66,10 @@
     &.edit-mode-dirty {
       border-top: 1px solid var(--border-to-be-saved-color);
       transition: border-color 0.4s ease;
+    }
+
+    &.edit-mode-error {
+      border-top: 1px solid #b42318;
     }
     .footer-menu-item {
       display: flex;

@@ -33,12 +33,22 @@
 			<i class="bi bi-gear"></i>
 		</button>
 	</header>
+  <app-save-status
+    [state]="saveState"
+    [errorMessage]="saveErrorMessage"
+    [showRetry]="false"
+  ></app-save-status>
 
 	<div class="budget-content" appSwipeNav
 		(swipePrevious)="goToPreviousMonth()"
 		(swipeNext)="goToNextMonth()">
 	@if (isLoading) {
 		<p class="budget-state">Chargement...</p>
+	} @else if (loadErrorMessage) {
+    <div class="budget-state" role="alert">
+      <p>{{ loadErrorMessage }}</p>
+      <button type="button" (click)="retryLoadingBudget()">Réessayer</button>
+    </div>
 	} @else if (!currentPeriod) {
 		<div class="budget-state-card">
 			<p>Aucune donnée pour {{ activeMonthLabel }}.</p>

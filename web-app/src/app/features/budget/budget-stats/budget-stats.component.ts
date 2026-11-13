@@ -74,6 +74,7 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
   public budget: Budget | null = null;
   public selectedYear = new Date().getFullYear();
   public isLoading = true;
+  public loadErrorMessage: string | null = null;
 
   public savingsHistogramMode: 'planned' | 'real' = 'planned';
   public monthlyLineMode: 'planned' | 'real' = 'planned';
@@ -361,7 +362,12 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.budget.periods.filter((period) => period.date.startsWith(yearPrefix));
   }
 
+  public retryLoadingBudget(): void {
+    this.loadBudget();
+  }
+
   private loadBudget(): void {
+    this.loadErrorMessage = null;
     this.isLoading = true;
     this.budgetService.get().subscribe({
       next: (budget) => {
@@ -370,7 +376,9 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.refreshMonthlyLineChart();
         this.refreshSavingsColumnChart();
       },
-      error: () => {
+      error: (error) => {
+        console.error('Unable to load budget statistics:', error);
+        this.loadErrorMessage = 'Impossible de charger les statistiques budgétaires.';
         this.isLoading = false;
       },
     });

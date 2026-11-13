@@ -6,11 +6,19 @@
     </div>
     <button type="button" class="back-button" (click)="goToBudget()">Retour budget</button>
   </header>
+  <app-save-status
+    [state]="saveState"
+    [errorMessage]="saveErrorMessage"
+    [showRetry]="false"
+  ></app-save-status>
 
   @if (isLoading) {
     <p class="state-line">Chargement...</p>
   } @else if (!budget) {
-    <p class="state-line">Impossible de charger le budget.</p>
+    <div class="state-line" role="alert">
+      <p>Impossible de charger le budget.</p>
+      <button type="button" (click)="retryLoadingBudget()">Réessayer</button>
+    </div>
   } @else {
     <div class="settings-grid">
       <section class="settings-card">

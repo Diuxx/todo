@@ -15,6 +15,7 @@ Todo is an Angular/Capacitor local-first personal organization application for t
 - `web-app/src/app/shared/services/backup-file.service.ts`: browser downloads and Android backup sharing.
 - `web-app/src/app/shared/services/items.service.ts`: item persistence, transactional cleanup of related history and metadata, notification synchronization.
 - `web-app/src/app/features/item-detail/item-detail.component.ts`: serialized autosave writes with pending changes preserved.
+- `web-app/src/app/shared/components/save-status/` and `shared/guards/pending-changes.guard.ts`: shared persistence feedback and navigation protection for active editors.
 - `web-app/src/app/shared/services/budget.service.ts`: atomic period mutations and expense/income reference normalization.
 - `web-app/src/app/shared/services/local-notification.service.ts`: recurring reminders and supported custom weekday schedules.
 - `web-app/src/app/shared/utils/backup-validation.ts`: imported JSON structure validation.
@@ -31,6 +32,7 @@ Angular pages call injectable services. Services read/write Dexie tables for ite
 - Multi-table restore uses a Dexie transaction; deleting items or subtasks also removes their related records transactionally.
 - Schema migrations from Dexie 1 → 3 → 4 → 5 have been restored from Git history and require testing against actual historical databases.
 - New passwords use salted PBKDF2; older SHA-256 hashes remain verifiable while migrating.
+- Item and settings autosaves finish before route deactivation; failed saves remain visible and block accidental navigation. Budget drafts require explicit confirmation to discard.
 - App-level password is not encryption at rest. JSON backups are unencrypted.
 - Never commit Android signing credentials.
 

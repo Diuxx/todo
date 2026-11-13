@@ -67,6 +67,7 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
   private titleBySubItemId: Map<string, string> = new Map();
 
   public isLoading: boolean = true;
+  public loadErrorMessage: string | null = null;
   public availableMonths: MonthOption[] = [];
   public selectedMonthKey: string = '';
   public weeklyStats: WeeklyStats[] = [];
@@ -124,7 +125,12 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
     this.destroyCurrentWeekChart();
   }
 
+  public retryLoadingRecap(): void {
+    this.loadRecap();
+  }
+
   private loadRecap(): void {
+    this.loadErrorMessage = null;
     this.isLoading = true;
 
     combineLatest([this.todoHistoryService.getAll(), this.itemsService.getAllActive('todo')])
@@ -149,7 +155,9 @@ export class HistoryRecapComponent implements AfterViewInit, OnDestroy {
           this.refreshMonthView();
           this.isLoading = false;
         },
-        error: () => {
+        error: (error) => {
+          console.error('Unable to load recap:', error);
+          this.loadErrorMessage = 'Impossible de charger le récapitulatif.';
           this.availableMonths = [];
           this.selectedMonthKey = '';
           this.weeklyStats = [];

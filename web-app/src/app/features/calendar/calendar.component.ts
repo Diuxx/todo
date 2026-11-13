@@ -60,6 +60,7 @@ export class CalendarComponent implements OnInit {
   public anchorDate = this.startOfDay(new Date());
 
   public isLoading = true;
+  public loadErrorMessage: string | null = null;
   public items: AppItem[] = [];
   public isSelectTypeModalVisible = false;
   private scheduledTodos: ScheduledTodo[] = [];
@@ -69,13 +70,27 @@ export class CalendarComponent implements OnInit {
   private historyLoadToken = 0;
 
   public ngOnInit(): void {
+    this.loadCalendarItems();
+  }
+
+  public retryLoadingCalendar(): void {
+    this.historyWindowStart = Number.NaN;
+    this.historyWindowEnd = Number.NaN;
+    this.loadCalendarItems();
+  }
+
+  private loadCalendarItems(): void {
+    this.isLoading = true;
+    this.loadErrorMessage = null;
     this.itemsService.getAll(null, true).subscribe({
       next: (items) => {
         this.items = items;
         this.scheduledTodos = this.extractScheduledTodos(items);
         this.reloadDoneHistoryForVisiblePeriod(true);
       },
-      error: () => {
+      error: (error) => {
+        console.error('Unable to load calendar items:', error);
+        this.loadErrorMessage = 'Impossible de charger le calendrier.';
         this.items = [];
         this.doneHistoryBySubItem = new Map();
         this.scheduledTodos = [];
@@ -991,11 +1006,13 @@ export class CalendarComponent implements OnInit {
         this.historyWindowEnd = end;
         this.isLoading = false;
       },
-      error: () => {
+      error: (error) => {
         if (token !== this.historyLoadToken) {
           return;
         }
 
+        console.error('Unable to load completion history:', error);
+        this.loadErrorMessage = "Impossible de charger l'historique du calendrier.";
         this.doneHistoryBySubItem = new Map();
         this.historyWindowStart = start;
         this.historyWindowEnd = end;

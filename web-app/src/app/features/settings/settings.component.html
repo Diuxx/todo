@@ -3,9 +3,11 @@
     <div class="settings-card">
       <div class="settings-card-header">
         <h1 class="settings-card-title">Options</h1>
-        <span class="save-badge" [ngClass]="{ visible: savedFeedback }">
-          <i class="bi bi-check2"></i> Enregistré
-        </span>
+        <app-save-status
+          [state]="saveState"
+          [errorMessage]="saveErrorMessage"
+          (retry)="saveSettings()"
+        ></app-save-status>
       </div>
 
       <!-- Profil -->
@@ -142,6 +144,12 @@
 
       <section class="settings-section">
         <h2 class="settings-section-title"><i class="bi bi-database"></i> Données</h2>
+        @if (dataActionErrorMessage) {
+          <p class="data-action-error" role="alert">{{ dataActionErrorMessage }}</p>
+        }
+        @if (dataActionSuccessMessage) {
+          <p class="data-action-success" role="status">{{ dataActionSuccessMessage }}</p>
+        }
 
         <div class="stats-grid">
           <div class="stats-card">
@@ -237,4 +245,9 @@
     (submitPassword)="confirmSensitivePassword($event)"
   >
   </app-password-prompt-modal>
+} @else if (loadErrorMessage) {
+  <section class="settings-load-error" role="alert">
+    <p>{{ loadErrorMessage }}</p>
+    <button type="button" (click)="retryLoadingSettings()">Réessayer</button>
+  </section>
 }
