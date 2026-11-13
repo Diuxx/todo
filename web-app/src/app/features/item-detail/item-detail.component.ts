@@ -371,7 +371,7 @@ export class ItemDetailComponent implements OnInit {
 
     if (isChecked) {
       statusUpdate$ = this.todoHistoryService.markTodoItemAsDone(subItemId);
-    } else if (recurrenceType === 'daily') {
+    } else if (recurrenceType === 'daily' || recurrenceType === 'custom') {
       statusUpdate$ = this.todoHistoryService.unDoneDaily(subItemId);
     } else if (recurrenceType === 'weekly') {
       statusUpdate$ = this.todoHistoryService.unDoneWeekly(subItemId);
