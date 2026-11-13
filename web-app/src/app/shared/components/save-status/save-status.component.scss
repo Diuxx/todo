@@ -1,0 +1,43 @@
+:host {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.save-status {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-secondary-color);
+}
+
+.save-spinner {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: save-spin 0.8s linear infinite;
+}
+
+.is-error {
+  color: #b42318;
+}
+
+button {
+  padding: 0.2rem 0.55rem;
+  border: 1px solid currentColor;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+@keyframes save-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
