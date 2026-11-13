@@ -1,10 +1,35 @@
 import { db } from '../../db.config';
+import { AppData } from '../models/app-data.model';
+import { createDefaultBudget } from '../models/budget/budget.model';
 import { MAX_BACKUP_BYTES } from '../utils/backup-validation';
 import { BackupService } from './backup.service';
 
 describe('BackupService safety', () => {
   let service: BackupService;
   let testItemId: string;
+
+  function backupFixture(version: number): AppData {
+    return {
+      id: 'app-data',
+      items: [],
+      todoHistory: [],
+      citationsMeta: [],
+      imagesMeta: [],
+      budget: createDefaultBudget(),
+      settings: {
+        id: 'app-settings',
+        theme: 'system',
+        language: 'fr',
+        dailyAffirmationEnabled: false,
+        showArchivedItems: false,
+        passwordHash: '',
+        userName: 'Test',
+        userId: 'test-user',
+        backupState: { status: 'idle' },
+        version,
+      },
+    };
+  }
 
   beforeEach(async () => {
     await db.open();
@@ -32,7 +57,7 @@ describe('BackupService safety', () => {
   });
 
   it('preserves unlinked expenses when migrating a current-version backup', async () => {
-    const exported = await service.getCurrentData();
+    const exported = backupFixture(5);
     const detachedExpense = {
       id: 'unlinked-expense',
       name: 'Detached expense',
@@ -65,7 +90,7 @@ describe('BackupService safety', () => {
   });
 
   it('continues resolving income references in legacy backups', async () => {
-    const exported = await service.getCurrentData();
+    const exported = backupFixture(5);
     const income = {
       id: 'legacy-income', name: 'Salary', typeId: exported.budget.incomeTypes[0].id,
       plannedAmount: 100, realAmount: 100, accountId: exported.budget.accounts[0].id,
