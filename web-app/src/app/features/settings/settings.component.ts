@@ -214,6 +214,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
         return;
       }
 
+      if (this.passwordService.isLegacyPasswordHash(currentPasswordHash)) {
+        await this.upgradeVerifiedPassword(password);
+      }
+
       const action = this.pendingSensitiveAction;
       const importInput = this.pendingImportInput;
 
@@ -639,6 +643,18 @@ export class SettingsComponent implements OnInit, OnDestroy {
       url: result.uri,
       dialogTitle: 'Enregistrer ou partager la sauvegarde',
     });
+  }
+
+  private async upgradeVerifiedPassword(password: string): Promise<void> {
+    const currentSettings = await firstValueFrom(this.settingsService.get());
+    if (!currentSettings) {
+      throw new Error('Unable to load settings to upgrade the password.');
+    }
+
+    const passwordHash = await this.passwordService.hash(password);
+    await firstValueFrom(this.settingsService.update({ ...currentSettings, passwordHash }));
+    this.settingsForm.patchValue({ passwordHash }, { emitEvent: false });
+    this.updatePasswordState(passwordHash);
   }
 
   private async persistPasswordHash(passwordHash: string): Promise<void> {
