@@ -118,6 +118,65 @@ function isBudget(value: unknown): value is Budget {
     (value['incomeTypes'] === undefined || value['incomeTypes'].every(isBudgetEntry));
 }
 
+function isSupportedPasswordHash(value: unknown): boolean {
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  if (!value) {
+    return true;
+  }
+
+  if (/^[a-f0-9]{64}$/i.test(value)) {
+    return true;
+  }
+
+  const [scheme, iterations, salt, digest, extra] = value.split('
+  return hasIdentity(value) && value['id'] === 'app-settings' &&
+    ['light', 'dark', 'system'].includes(String(value['theme'])) &&
+    ['fr', 'en'].includes(String(value['language'])) &&
+    typeof value['dailyAffirmationEnabled'] === 'boolean' &&
+    typeof value['showArchivedItems'] === 'boolean' &&
+    isSupportedPasswordHash(value['passwordHash']) &&
+    isNonEmptyString(value['userId']) &&
+    typeof value['userName'] === 'string' &&
+    (value['version'] === undefined ||
+      (Number.isInteger(value['version']) &&
+        Number(value['version']) >= 1 &&
+        Number(value['version']) <= environment.dbVersion));
+}
+
+export function isValidBackup(value: unknown): value is AppData {
+  if (!isObject(value) || value['id'] !== 'app-data' ||
+      !isSettings(value['settings']) ||
+      !Array.isArray(value['items']) ||
+      !Array.isArray(value['todoHistory']) ||
+      !Array.isArray(value['citationsMeta']) ||
+      !Array.isArray(value['imagesMeta']) ||
+      (value['budget'] !== undefined && !isBudget(value['budget']))) {
+    return false;
+  }
+
+  const collections: Array<{ entries: unknown[]; validate: (entry: unknown) => boolean }> = [
+    { entries: value['items'], validate: isItem },
+    { entries: value['todoHistory'], validate: isHistory },
+    { entries: value['citationsMeta'], validate: isCitationMeta },
+    { entries: value['imagesMeta'], validate: isImageMeta },
+  ];
+
+  return collections.every(({ entries, validate }) =>
+    entries.every(validate) && hasUniqueIds(entries as JsonObject[]));
+}
+);
+  return extra === undefined &&
+    scheme === 'pbkdf2-sha256' &&
+    Number.isInteger(Number(iterations)) &&
+    Number(iterations) >= 100_000 &&
+    Number(iterations) <= 1_000_000 &&
+    /^[a-f0-9]{32}$/i.test(salt ?? '') &&
+    /^[a-f0-9]{64}$/i.test(digest ?? '');
+}
+
 function isSettings(value: unknown): boolean {
   return hasIdentity(value) &&
     ['light', 'dark', 'system'].includes(String(value['theme'])) &&
