@@ -522,13 +522,7 @@ export class BudgetComponent implements OnInit {
 
     this.isSaving = true;
 
-    const nextBudget: Budget = {
-      ...this.budget,
-      periods: this.budget.periods.map((period) => {
-        if (period.date !== currentPeriodDate) {
-          return period;
-        }
-
+    this.budgetService.updatePeriodEntries(currentPeriodDate, (period) => {
         let incomes = [...period.incomes];
         const existingIncome = this.editingIncomeId
           ? incomes.find((income) => income.id === this.editingIncomeId)
@@ -576,10 +570,7 @@ export class BudgetComponent implements OnInit {
           ...period,
           incomes,
         };
-      }),
-    };
-
-    this.budgetService.update(nextBudget).subscribe({
+    }).subscribe({
       next: (budget) => {
         this.budget = budget;
         this.currentPeriod = this.findPeriodForActiveMonth(budget);
@@ -608,13 +599,7 @@ export class BudgetComponent implements OnInit {
 
     this.isSaving = true;
 
-    const nextBudget: Budget = {
-      ...this.budget,
-      periods: this.budget.periods.map((period) => {
-        if (period.date !== currentPeriodDate) {
-          return period;
-        }
-
+    this.budgetService.updatePeriodEntries(currentPeriodDate, (period) => {
         const incomeToDelete = period.incomes.find((income) => income.id === incomeIdToDelete);
 
         if (!incomeToDelete) {
@@ -646,11 +631,13 @@ export class BudgetComponent implements OnInit {
         return {
           ...period,
           incomes,
+          expenses: period.expenses.map((expense) =>
+            expense.incomeId === incomeIdToDelete
+              ? { ...expense, incomeId: undefined }
+              : expense
+          ),
         };
-      }),
-    };
-
-    this.budgetService.update(nextBudget).subscribe({
+    }).subscribe({
       next: (budget) => {
         this.budget = budget;
         this.currentPeriod = this.findPeriodForActiveMonth(budget);
