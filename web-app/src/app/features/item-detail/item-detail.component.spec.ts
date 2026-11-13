@@ -68,10 +68,12 @@ describe('ItemDetailComponent autosave', () => {
 
   it('persists changes made while an earlier save is pending', () => {
     component.itemForm.get('title')?.setValue('First edit');
+    component.itemForm.markAsDirty();
     component.saveElement();
 
     expect(itemService.updateItem).toHaveBeenCalledTimes(1);
     component.itemForm.get('title')?.setValue('Second edit');
+    component.itemForm.markAsDirty();
     component.saveElement();
     expect(itemService.updateItem).toHaveBeenCalledTimes(1);
     expect(component.itemForm.dirty).toBeTrue();
@@ -92,6 +94,7 @@ describe('ItemDetailComponent autosave', () => {
 
   it('keeps the form dirty if the save fails', () => {
     component.itemForm.get('title')?.setValue('Unsent');
+    component.itemForm.markAsDirty();
     component.saveElement();
     spyOn(console, 'error');
 
