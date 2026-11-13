@@ -9,7 +9,6 @@ const HASH_BYTES = 32;
 
 @Injectable({ providedIn: 'root' })
 export class PasswordService {
-  public readonly defaultPasswordHash = '';
   public readonly legacyDefaultPasswordHash = LEGACY_DEFAULT_PASSWORD_HASH;
 
   public async hash(password: string): Promise<string> {
@@ -57,10 +56,6 @@ export class PasswordService {
 
   public isLegacyPasswordHash(passwordHash?: string | null): boolean {
     return !!passwordHash && /^[a-f0-9]{64}$/i.test(passwordHash);
-  }
-
-  public hasPassword(passwordHash?: string | null): boolean {
-    return !!passwordHash;
   }
 
   private async deriveKey(
