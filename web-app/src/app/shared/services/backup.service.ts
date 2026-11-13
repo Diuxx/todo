@@ -107,6 +107,7 @@ export class BackupService {
     }
 
     const defaults = createDefaultBudget();
+    const isLegacyBackup = (payload.settings.version ?? 1) < 5;
     return {
       ...payload,
       budget: {
@@ -114,7 +115,13 @@ export class BackupService {
           ...period,
           expenses: period.expenses.map((expense) => ({
             ...expense,
-            incomeId: resolveExpenseIncomeId(expense, period.incomes),
+            // Version 5+ explicitly permits unlinked expenses. Earlier backups
+            // lacked income references and still require the legacy migration.
+            incomeId: isLegacyBackup
+              ? resolveExpenseIncomeId(expense, period.incomes)
+              : period.incomes.some((income) => income.id === expense.incomeId)
+                ? expense.incomeId
+                : undefined,
           })),
         })),
         accounts: importedBudget.accounts,

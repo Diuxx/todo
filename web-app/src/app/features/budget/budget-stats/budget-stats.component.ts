@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { DecimalPipe, CommonModule } from '@angular/common';
-import { Budget, ExpenseItem, IncomeItem, Period, resolveExpenseIncomeId } from '../../../shared/models/budget/budget.model';
+import { Budget, ExpenseItem, IncomeItem, Period } from '../../../shared/models/budget/budget.model';
 import { BudgetService } from '../../../shared/services/budget.service';
 import { Chart, registerables } from 'chart.js';
 
@@ -630,7 +630,9 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private getExpenseAggregateId(period: Period, expense: ExpenseItem): string {
-    const linkedIncomeId = resolveExpenseIncomeId(expense, period.incomes);
+    const linkedIncomeId = period.incomes.some((income) => income.id === expense.incomeId)
+      ? expense.incomeId
+      : undefined;
 
     if (linkedIncomeId) {
       return `income:${linkedIncomeId}`;
@@ -652,7 +654,9 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private getExpenseLinkedIncome(period: Period, expense: ExpenseItem): IncomeItem | undefined {
-    const linkedIncomeId = resolveExpenseIncomeId(expense, period.incomes);
+    const linkedIncomeId = period.incomes.some((income) => income.id === expense.incomeId)
+      ? expense.incomeId
+      : undefined;
 
     if (!linkedIncomeId) {
       return undefined;

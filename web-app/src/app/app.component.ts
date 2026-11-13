@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { RouterLink } from '@angular/router';
-import { Subject, filter, takeUntil } from 'rxjs';
+import { Subject, filter, firstValueFrom, takeUntil } from 'rxjs';
 import { TodoHeaderComponent } from './shared/components/todo-header/todo-header.component';
 import { TodoFooterComponent } from './shared/components/todo-footer/todo-footer.component';
 import { DatabaseService } from './shared/services/database.service';
@@ -55,6 +55,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ];
   public canGoBack: boolean = false;
   public isAppReady: boolean = false;
+  public startupError: string | null = null;
 
   /**
    * Cleans up subscriptions and pending timers to avoid memory leaks.
@@ -85,24 +86,43 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       });
 
+    await this.initializeApplication();
+  }
+
+  public retryStartup(): void {
+    if (this.isAppReady) {
+      return;
+    }
+
+    void this.initializeApplication();
+  }
+
+  private async initializeApplication(): Promise<void> {
+    this.startupError = null;
+
     try {
       await this.databaseService.init();
-      this.settingsService.get().subscribe(); // Load settings into the reactive stream only after the DB is ready.
+      await firstValueFrom(this.settingsService.get());
 
       try {
         await this.notificationService.init((action) => {
           const route = action.notification.extra?.route;
           if (typeof route === 'string' && route.length > 0) {
-            this.router.navigateByUrl(route);
+            void this.router.navigateByUrl(route);
           }
         });
 
         await this.notificationService.syncScheduledTodoNotifications();
       } catch (error) {
+        // Notifications are optional; unavailable native APIs must not block the app.
         console.warn('Local notifications are unavailable:', error);
       }
-    } finally {
+
       this.isAppReady = true;
+    } catch (error) {
+      console.error('Application initialization failed:', error);
+      this.startupError = 'Les données locales n’ont pas pu être initialisées.';
+      this.isAppReady = false;
     }
   }
 

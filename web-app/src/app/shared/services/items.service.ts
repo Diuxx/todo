@@ -393,7 +393,7 @@ export class ItemsService {
       b.createdAt.localeCompare(a.createdAt)
     );
 
-    if (recurrenceType === 'daily') {
+    if (recurrenceType === 'daily' || recurrenceType === 'custom') {
       const { startISO, endISO } = this.getPeriodBounds('daily');
       const latestInPeriod = sortedHistory.find(
         (entry) =>

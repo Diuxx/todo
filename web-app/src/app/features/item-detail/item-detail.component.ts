@@ -61,6 +61,7 @@ export class ItemDetailComponent implements OnInit {
   private contentTextareaElement?: HTMLTextAreaElement;
   private editingSubItemSnapshot: Record<string, unknown> | null = null;
   private readonly initialTodoDoneState = new Map<string, boolean>();
+  private isItemSaveInProgress = false;
 
   public isTodoEditModalVisible: boolean = false;
   public isAdminModalVisible: boolean = false;
@@ -185,20 +186,35 @@ export class ItemDetailComponent implements OnInit {
    * @returns void
    */
   public saveElement(): void {
-    if (!this.item || !this.itemForm.dirty) {
+    if (!this.item || !this.itemForm.dirty || this.isItemSaveInProgress) {
       return;
     }
 
     const payload = mapItemFormToAppItem(this.itemForm, this.item);
+    const savedFormSnapshot = JSON.stringify(this.itemForm.getRawValue());
+    this.isItemSaveInProgress = true;
     this.item = payload;
 
-    // --
     this.itemsService.updateItem(payload).subscribe({
-      next: () => {
-        this.itemForm.markAsPristine();
-        this.triggerSavedFeedback();
+      next: (persistedItem) => {
+        this.item = persistedItem;
+        this.isItemSaveInProgress = false;
+
+        if (JSON.stringify(this.itemForm.getRawValue()) === savedFormSnapshot) {
+          this.itemForm.markAsPristine();
+          this.triggerSavedFeedback();
+          return;
+        }
+
+        // User changes that arrived during the save must be persisted afterwards.
+        this.saveActionService.updateFormSaveState('dirty');
+        this.saveElement();
       },
-      error: () => console.error('Error updating item'),
+      error: (error) => {
+        this.isItemSaveInProgress = false;
+        this.saveActionService.updateFormSaveState('dirty');
+        console.error('Error updating item:', error);
+      },
     });
   }
 
@@ -355,7 +371,7 @@ export class ItemDetailComponent implements OnInit {
 
     if (isChecked) {
       statusUpdate$ = this.todoHistoryService.markTodoItemAsDone(subItemId);
-    } else if (recurrenceType === 'daily') {
+    } else if (recurrenceType === 'daily' || recurrenceType === 'custom') {
       statusUpdate$ = this.todoHistoryService.unDoneDaily(subItemId);
     } else if (recurrenceType === 'weekly') {
       statusUpdate$ = this.todoHistoryService.unDoneWeekly(subItemId);

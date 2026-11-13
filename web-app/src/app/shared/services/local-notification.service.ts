@@ -364,47 +364,56 @@ export class LocalNotificationService {
     }
 
     const notifications = await Promise.all(
-      item.todoContent.map(async (todo) => {
+      item.todoContent.map(async (todo): Promise<DailyTaskNotification[]> => {
         if (!this.shouldScheduleTodo(todo)) {
-          return null;
+          return [];
         }
 
-        if (await this.isTodoCompletedForCurrentPeriod(todo)) {
-          return null;
+        const recurrence = todo.config?.recurrenceType ?? 'none';
+        if (recurrence === 'none' && (await this.isTodoCompletedForCurrentPeriod(todo))) {
+          return [];
         }
 
-        const notification = this.createNotificationFromTodo(todo, {
+        const options = {
           route: `/item/${item.id}`,
           fallbackTitle: item.title?.trim() || 'Todo reminder',
           body: todo.title?.trim() || item.title?.trim() || 'Todo reminder',
-        });
+        };
 
+        if (recurrence === 'custom') {
+          return this.buildCustomWeeklyNotifications(todo, options);
+        }
+
+        const notification = this.createNotificationFromTodo(todo, options);
         if (!notification) {
-          return null;
+          return [];
         }
 
-        if (todo.config?.recurrenceType === 'weekly' && !notification.weekday) {
-          return null;
+        if (recurrence === 'weekly' && !notification.weekday) {
+          return [];
         }
 
-        if (todo.config?.recurrenceType === 'monthly' && !notification.dayOfMonth) {
-          return null;
+        if (recurrence === 'monthly' && !notification.dayOfMonth) {
+          return [];
         }
 
-        return notification;
+        return [notification];
       })
     );
 
-    return notifications.filter(
-      (notification): notification is DailyTaskNotification => notification !== null
-    );
+    return notifications.flat();
   }
 
   /**
    * Determines whether a notification should be scheduled for a todo item based on its configuration and status.
    */
   private shouldScheduleTodo(todo: TodoInformation): boolean {
-    return !todo.isDone && !!todo.config?.alertEnabled && !!todo.config.alertAt;
+    const recurrence = todo.config?.recurrenceType ?? 'none';
+    return (
+      !!todo.config?.alertEnabled &&
+      !!todo.config.alertAt &&
+      (recurrence !== 'none' || !todo.isDone)
+    );
   }
 
   /**
@@ -415,7 +424,61 @@ export class LocalNotificationService {
       return [];
     }
 
-    return item.todoContent.map((todo) => this.toNotificationId(todo.id));
+    return item.todoContent.flatMap((todo) => [
+      this.toNotificationId(todo.id),
+      ...this.getCustomWeekdays(todo.config?.recurrenceRule).map((weekday) =>
+        this.toNotificationId(`${todo.id}:weekday:${weekday}`)
+      ),
+    ]);
+  }
+
+  private buildCustomWeeklyNotifications(
+    todo: TodoInformation,
+    options: { route: string; fallbackTitle: string; body: string }
+  ): DailyTaskNotification[] {
+    return this.getCustomWeekdays(todo.config?.recurrenceRule).flatMap((day) => {
+      const notification = this.createNotificationFromTodo(todo, {
+        ...options,
+        taskId: this.toNotificationId(`${todo.id}:weekday:${day}`),
+      });
+      if (!notification) {
+        return [];
+      }
+
+      const weekdays: Weekday[] = [
+        Weekday.Sunday,
+        Weekday.Monday,
+        Weekday.Tuesday,
+        Weekday.Wednesday,
+        Weekday.Thursday,
+        Weekday.Friday,
+        Weekday.Saturday,
+      ];
+      return [{ ...notification, weekday: weekdays[day] }];
+    });
+  }
+
+  private getCustomWeekdays(rawRule?: string): number[] {
+    const expression = rawRule?.replace(/^custom:/, '').trim();
+    if (!expression) {
+      return [];
+    }
+
+    const fields = expression.split(/\s+/);
+    if (fields.length !== 5 || fields[2] !== '*' || fields[3] !== '*') {
+      return [];
+    }
+
+    const weekdays = fields[4];
+    if (weekdays === '*') {
+      return [0, 1, 2, 3, 4, 5, 6];
+    }
+
+    if (!/^[0-7](?:,[0-7])*$/.test(weekdays)) {
+      return [];
+    }
+
+    return [...new Set(weekdays.split(',').map((value) => Number(value) % 7))];
   }
 
   /**
