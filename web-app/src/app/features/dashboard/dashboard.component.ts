@@ -38,6 +38,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public settings: AppSettings | undefined;
   public selectedItemId: string | null = null;
   public isLoading: boolean = true;
+  public loadErrorMessage: string | null = null;
   public lockedItemPending?: AppItem;
   public isUnlockModalVisible = false;
   public isUnlockSubmitting = false;
@@ -217,7 +218,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
    * Fetches the application data and updates the component state.
    * @returns void
    */
+  public retryLoadingData(): void {
+    this.getData(this.searchQuery ? null : this.filter);
+  }
+
   private getData(filter: string | null = null): void {
+    this.loadErrorMessage = null;
     this.isLoading = true;
     this.settingsService
       .get()
@@ -237,6 +243,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Error fetching active items:', error);
           this.items = [];
+          this.loadErrorMessage = 'Impossible de charger les éléments.';
           this.isLoading = false;
         },
       });
