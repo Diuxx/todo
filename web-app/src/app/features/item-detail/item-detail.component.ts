@@ -401,7 +401,7 @@ export class ItemDetailComponent implements OnInit {
     this.itemForm.markAsDirty();
   }
 
-  public toggleLock(): void {
+  public async toggleLock(): Promise<void> {
     const isLockedControl = this.itemForm.get('isLocked');
 
     if (!isLockedControl || !this.item) {
@@ -409,6 +409,11 @@ export class ItemDetailComponent implements OnInit {
     }
 
     const nextLockedState = !isLockedControl.value;
+    if (nextLockedState && !(await this.itemLockService.hasPersonalPassword())) {
+      alert('Définissez un mot de passe personnel dans les options avant de verrouiller un élément.');
+      return;
+    }
+
     isLockedControl.setValue(nextLockedState);
     isLockedControl.markAsDirty();
     this.itemForm.markAsDirty();
