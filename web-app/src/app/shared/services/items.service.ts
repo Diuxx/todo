@@ -123,10 +123,30 @@ export class ItemsService {
   }
 
   private async deleteAndSyncItem(id: string): Promise<void> {
-    const existingItem = await db.items.get(id);
+    const existingItem = await db.transaction(
+      'rw',
+      [db.items, db.todoHistory, db.citationsMeta, db.imagesMeta],
+      async () => {
+        const item = await db.items.get(id);
 
-    await db.items.delete(id);
-    await this.syncNotificationsSafely(undefined, existingItem);
+        if (!item) {
+          return undefined;
+        }
+
+        const historyItemIds = [item.id, ...(item.todoContent?.map((subItem) => subItem.id) ?? [])];
+
+        await db.todoHistory.where('todoItemId').anyOf(historyItemIds).delete();
+        await db.citationsMeta.where('itemId').equals(item.id).delete();
+        await db.imagesMeta.where('itemId').equals(item.id).delete();
+        await db.items.delete(item.id);
+
+        return item;
+      }
+    );
+
+    if (existingItem) {
+      await this.syncNotificationsSafely(undefined, existingItem);
+    }
   }
 
   private async updateAndSyncItem(item: AppItem): Promise<AppItem> {
@@ -167,44 +187,60 @@ export class ItemsService {
    * @returns The persisted item.
    */
   private async persistItem(item: AppItem, isNew: boolean = false): Promise<AppItem> {
-    if (item.type === 'citation' && item.isAffirmation) {
-      await db.transaction('rw', db.items, async () => {
-        const citations = await db.items
+    await db.transaction('rw', [db.items, db.todoHistory], async () => {
+      const previousItem = isNew ? undefined : await db.items.get(item.id);
+
+      if (item.type === 'citation' && item.isAffirmation) {
+        const otherAffirmations = await db.items
           .filter(
             (existing) =>
               existing.type === 'citation' && existing.id !== item.id && !!existing.isAffirmation
           )
           .toArray();
 
-        if (citations.length) {
-          await Promise.all(
-            citations.map((citation) =>
-              db.items.put({
-                ...citation,
-                isAffirmation: false,
-                updatedAt: new Date().toISOString(),
-              })
-            )
-          );
+        for (const citation of otherAffirmations) {
+          await db.items.put({
+            ...citation,
+            isAffirmation: false,
+            updatedAt: new Date().toISOString(),
+          });
         }
+      }
 
-        if (isNew) {
-          await db.items.add(item);
-        } else {
-          await db.items.put(item);
-        }
-      });
+      if (isNew) {
+        await db.items.add(item);
+      } else {
+        await db.items.put(item);
+      }
 
-      return item;
-    }
-
-    if (isNew) {
-      await db.items.add(item);
-    } else {
-      await db.items.put(item);
-    }
+      await this.removeHistoryForDeletedSubItems(previousItem, item);
+    });
 
     return item;
+  }
+
+  /**
+   * Remove history only for subitems deleted from this particular todo.
+   * The write happens inside the same transaction as the parent item update.
+   */
+  private async removeHistoryForDeletedSubItems(
+    previousItem: AppItem | undefined,
+    nextItem: AppItem
+  ): Promise<void> {
+    if (previousItem?.type !== 'todo' || !previousItem.todoContent?.length) {
+      return;
+    }
+
+    const retainedIds = new Set(
+      nextItem.type === 'todo' ? (nextItem.todoContent ?? []).map((subItem) => subItem.id) : []
+    );
+    const removedIds = previousItem.todoContent
+      .map((subItem) => subItem.id)
+      .filter((id) => !retainedIds.has(id));
+
+    if (removedIds.length) {
+      await db.todoHistory.where('todoItemId').anyOf(removedIds).delete();
+    }
   }
 
   private normalizeItem(item: AppItem): AppItem {

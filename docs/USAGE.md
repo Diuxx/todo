@@ -27,6 +27,8 @@ npm run test
 npm run format:check
 ```
 
+The GitHub Actions workflow under `.github/workflows/web-app-checks.yml` runs the Angular build and headless Jasmine tests for pull requests that change `web-app/`.
+
 The web build output is `web-app/dist/todo/browser`. The test command uses Angular's Karma configuration and requires a suitable browser environment.
 
 ## Android packaging
@@ -54,7 +56,7 @@ Never commit the actual signing key, passwords or `keystore.properties`. A histo
 
 ## Data and backup
 
-App data is stored locally in Dexie (IndexedDB): `items`, `todoHistory`, `citationsMeta`, `imagesMeta`, `budgets` and `settings`. The active schema version is **5**.
+App data is stored locally in Dexie (IndexedDB): `items`, `todoHistory`, `citationsMeta`, `imagesMeta`, `budgets` and `settings`. The active schema version comes from the `dbVersion` setting in `src/env/env.ts` and the historical migration definitions in `src/app/db.config.ts` (currently version 5).
 
 The Settings screen lets you export application data to JSON and import a JSON backup. Import replaces current local records after confirmation. Verify that you have a usable backup before importing. Imported files must pass structural validation and cannot exceed 10 MiB. Legacy backups without a `budget` are supported by inserting a default budget.
 
@@ -68,11 +70,15 @@ Previously installed versions used a shared default password. Such installations
 
 ## Versioning
 
+Read the current release version from `package.json` instead of relying on a copied version number. The version update script synchronizes `package.json`, `src/env/env*.ts`, Android `versionName`, and increments Android `versionCode`.
+
 ```bash
+npm pkg get version
+# Example: prepare the next release after 1.3.0
 npm run version:set -- 1.3.1
 ```
 
-The version script updates project version declarations and Android version metadata. Verify the resulting diff before releasing.
+Review the diff before committing a release. When adding or changing IndexedDB tables, update the historical Dexie migrations independently of the application version.
 
 ## Known limitations
 
