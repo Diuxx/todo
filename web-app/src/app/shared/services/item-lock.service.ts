@@ -40,6 +40,13 @@ export class ItemLockService {
       return false;
     }
 
-    return this.passwordService.verify(candidate, settings.passwordHash);
+    const valid = await this.passwordService.verify(candidate, settings.passwordHash);
+    if (valid && this.passwordService.isLegacyPasswordHash(settings.passwordHash) &&
+        settings.passwordHash !== this.passwordService.legacyDefaultPasswordHash) {
+      // Upgrade a verified legacy user password without interrupting access.
+      const upgraded = await this.passwordService.hash(candidate);
+      await firstValueFrom(this.settingsService.update({ ...settings, passwordHash: upgraded }));
+    }
+    return valid;
   }
 }
