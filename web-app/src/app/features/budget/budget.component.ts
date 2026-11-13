@@ -14,6 +14,8 @@ import {
   resolveExpenseIncomeId,
 } from '../../shared/models/budget/budget.model';
 import { BudgetService } from '../../shared/services/budget.service';
+import { SaveStatusComponent } from '../../shared/components/save-status/save-status.component';
+import { FormSaveState } from '../../shared/services/save-action.service';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 import { generateUUID, getKeyByValue } from '../../shared/utils';
 import { SwipeNavDirective } from '../../shared/directives/swipe-nav.directive';
@@ -23,7 +25,7 @@ import { SwipeNavDirective } from '../../shared/directives/swipe-nav.directive';
   selector: 'todo-budget',
   templateUrl: './budget.component.html',
   styleUrls: ['./budget.component.scss'],
-  imports: [FormsModule, DecimalPipe, SwipeNavDirective],
+  imports: [FormsModule, DecimalPipe, SwipeNavDirective, SaveStatusComponent],
 })
 export class BudgetComponent implements OnInit {
   private readonly budgetService = inject(BudgetService);
@@ -36,6 +38,8 @@ export class BudgetComponent implements OnInit {
   public activeMonth = this.startOfMonth(new Date());
   public isLoading = true;
   public isSaving = false;
+  public saveState: FormSaveState = 'pristine';
+  public saveErrorMessage: string | null = null;
   public copyPreviousMonthExpenses = false;
   public isIncomeModalVisible = false;
   public editingIncomeId: string | null = null;
@@ -195,7 +199,7 @@ export class BudgetComponent implements OnInit {
           return;
         }
 
-        this.isSaving = true;
+        this.beginSaving();
         this.budgetService.deletePeriod(this.activeMonthKey).subscribe({
           next: (budget) => {
             this.budget = budget;
@@ -204,10 +208,10 @@ export class BudgetComponent implements OnInit {
             this.isExpenseModalVisible = false;
             this.editingIncomeId = null;
             this.editingExpenseId = null;
-            this.isSaving = false;
+            this.finishSaving();
           },
-          error: () => {
-            this.isSaving = false;
+          error: (error) => {
+            this.failSaving(error);
           },
         });
       });
@@ -232,7 +236,7 @@ export class BudgetComponent implements OnInit {
       return;
     }
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService
       .upsertIncome(this.activeMonthKey, {
@@ -246,10 +250,10 @@ export class BudgetComponent implements OnInit {
         next: (budget) => {
           this.budget = budget;
           this.currentPeriod = this.findPeriodForActiveMonth(budget);
-          this.isSaving = false;
+          this.finishSaving();
         },
-        error: () => {
-          this.isSaving = false;
+        error: (error) => {
+          this.failSaving(error);
         },
       });
   }
@@ -529,7 +533,7 @@ export class BudgetComponent implements OnInit {
     const nextIncomeName = this.incomeDraftName.trim() || `Revenu - ${selectedAccount.name}`;
     const currentPeriodDate = this.currentPeriod.date;
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService.updatePeriodEntries(currentPeriodDate, (period) => {
         let incomes = [...period.incomes];
@@ -583,7 +587,7 @@ export class BudgetComponent implements OnInit {
       next: (budget) => {
         this.budget = budget;
         this.currentPeriod = this.findPeriodForActiveMonth(budget);
-        this.isSaving = false;
+        this.finishSaving();
         this.editingIncomeId = null;
         this.incomeDraftName = '';
         this.incomeDraftTypeId = '';
@@ -592,8 +596,8 @@ export class BudgetComponent implements OnInit {
         this.incomeDraftDeductedFromIncomeId = '';
         this.isIncomeModalVisible = false;
       },
-      error: () => {
-        this.isSaving = false;
+      error: (error) => {
+        this.failSaving(error);
       },
     });
   }
@@ -606,7 +610,7 @@ export class BudgetComponent implements OnInit {
     const currentPeriodDate = this.currentPeriod.date;
     const incomeIdToDelete = this.editingIncomeId;
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService.updatePeriodEntries(currentPeriodDate, (period) => {
         const incomeToDelete = period.incomes.find((income) => income.id === incomeIdToDelete);
@@ -650,7 +654,7 @@ export class BudgetComponent implements OnInit {
       next: (budget) => {
         this.budget = budget;
         this.currentPeriod = this.findPeriodForActiveMonth(budget);
-        this.isSaving = false;
+        this.finishSaving();
         this.editingIncomeId = null;
         this.incomeDraftName = '';
         this.incomeDraftTypeId = '';
@@ -659,8 +663,8 @@ export class BudgetComponent implements OnInit {
         this.incomeDraftDeductedFromIncomeId = '';
         this.isIncomeModalVisible = false;
       },
-      error: () => {
-        this.isSaving = false;
+      error: (error) => {
+        this.failSaving(error);
       },
     });
   }
@@ -828,7 +832,7 @@ export class BudgetComponent implements OnInit {
       return;
     }
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService
       .upsertExpense(this.currentPeriod.date, {
@@ -848,15 +852,15 @@ export class BudgetComponent implements OnInit {
         next: (budget) => {
           this.budget = budget;
           this.currentPeriod = this.findPeriodForActiveMonth(budget);
-          this.isSaving = false;
+          this.finishSaving();
           this.editingExpenseId = null;
           this.expenseDraftIncomeId = '';
           this.expenseDraftPlannedDate = '';
           this.expenseDraftRealDate = '';
           this.isExpenseModalVisible = false;
         },
-        error: () => {
-          this.isSaving = false;
+        error: (error) => {
+          this.failSaving(error);
         },
       });
   }
@@ -866,20 +870,20 @@ export class BudgetComponent implements OnInit {
       return;
     }
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService.deleteExpense(this.currentPeriod.date, this.editingExpenseId).subscribe({
       next: (budget) => {
         this.budget = budget;
         this.currentPeriod = this.findPeriodForActiveMonth(budget);
-        this.isSaving = false;
+        this.finishSaving();
         this.editingExpenseId = null;
         this.expenseDraftPlannedDate = '';
         this.expenseDraftRealDate = '';
         this.isExpenseModalVisible = false;
       },
-      error: () => {
-        this.isSaving = false;
+      error: (error) => {
+        this.failSaving(error);
       },
     });
   }
@@ -1088,7 +1092,7 @@ export class BudgetComponent implements OnInit {
       incomeId: expense.incomeId ? incomeIdMap.get(expense.incomeId) : undefined,
     }));
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService
       .upsertPeriod({
@@ -1100,10 +1104,10 @@ export class BudgetComponent implements OnInit {
         next: (budget) => {
           this.budget = budget;
           this.currentPeriod = this.findPeriodForActiveMonth(budget);
-          this.isSaving = false;
+          this.finishSaving();
         },
-        error: () => {
-          this.isSaving = false;
+        error: (error) => {
+          this.failSaving(error);
         },
       });
   }
@@ -1225,4 +1229,22 @@ export class BudgetComponent implements OnInit {
   private startOfMonth(date: Date): Date {
     return new Date(date.getFullYear(), date.getMonth(), 1);
   }
+  private beginSaving(): void {
+    this.isSaving = true;
+    this.saveErrorMessage = null;
+    this.saveState = 'saving';
+  }
+
+  private finishSaving(): void {
+    this.isSaving = false;
+    this.saveState = 'saved';
+  }
+
+  private failSaving(error: unknown): void {
+    console.error('Unable to save budget:', error);
+    this.isSaving = false;
+    this.saveErrorMessage = "L'opération a échoué. Vérifiez les données et réessayez.";
+    this.saveState = 'error';
+  }
+
 }
