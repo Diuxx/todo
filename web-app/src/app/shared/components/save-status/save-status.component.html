@@ -16,7 +16,9 @@
       @case ('error') {
         <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
         <span>{{ errorMessage || "L'enregistrement a échoué." }}</span>
-        <button type="button" (click)="retry.emit()">Réessayer</button>
+        @if (showRetry) {
+          <button type="button" (click)="retry.emit()">Réessayer</button>
+        }
       }
     }
   </div>
