@@ -52,6 +52,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public saveState: FormSaveState = 'pristine';
   public saveErrorMessage: string | null = null;
   public loadErrorMessage: string | null = null;
+  public dataActionErrorMessage: string | null = null;
   public isDeletingData = false;
   public isPasswordModalVisible = false;
   public isPasswordSaving = false;
@@ -69,6 +70,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.loadSettings();
     void this.loadStorageStats().catch((error) => {
       console.error('Unable to load storage statistics:', error);
+      this.dataActionErrorMessage = 'Impossible de charger les statistiques de stockage.';
     });
   }
 
@@ -287,6 +289,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
         importInput.value = '';
         importInput.click();
       }
+    } catch (error) {
+      console.error('Unable to authorize sensitive action:', error);
+      this.sensitivePasswordErrorMessage = "Impossible de terminer la vérification. Réessayez.";
     } finally {
       this.isSensitivePasswordSubmitting = false;
     }
@@ -444,6 +449,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   private async performDeleteAppData(): Promise<void> {
+    if (!(await this.persistPendingSettings())) {
+      return;
+    }
+
     const confirmed = await firstValueFrom(
       this.confirmDialogService.confirm({
         title: 'Supprimer les donnees ?',
@@ -460,12 +469,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }
 
     this.isDeletingData = true;
+    this.dataActionErrorMessage = null;
 
     try {
       await this.localNotificationService.clearAllTodoNotifications();
       await this.databaseService.clearUserContent();
       await this.loadStorageStats();
       this.triggerSavedFeedback();
+    } catch (error) {
+      console.error('Unable to delete local data:', error);
+      this.dataActionErrorMessage = 'La suppression des données a échoué.';
     } finally {
       this.isDeletingData = false;
     }
@@ -473,15 +486,24 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   private async performDownloadAppData(): Promise<void> {
     this.isExportingData = true;
+    this.dataActionErrorMessage = null;
 
     try {
       await this.backupFileService.download(await this.backupService.getCurrentData());
+    } catch (error) {
+      console.error('Unable to export application data:', error);
+      this.dataActionErrorMessage = "L'export des données a échoué.";
     } finally {
       this.isExportingData = false;
     }
   }
 
   private async performImportAppData(file: File, input: HTMLInputElement): Promise<void> {
+    if (!(await this.persistPendingSettings())) {
+      input.value = '';
+      return;
+    }
+
     const confirmed = await firstValueFrom(
       this.confirmDialogService.confirm({
         title: 'Importer et ecraser les donnees ?',
@@ -499,6 +521,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }
 
     this.isImportingData = true;
+    this.dataActionErrorMessage = null;
 
     try {
       const migratedPayload = await this.backupService.restoreFromFile(file);
@@ -525,7 +548,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
       this.triggerSavedFeedback();
     } catch (error) {
       console.error('[Settings] Import failed:', error);
-      alert(error instanceof Error ? error.message : "Impossible d'importer ce fichier JSON.");
+      this.dataActionErrorMessage =
+        error instanceof Error ? error.message : "Impossible d'importer ce fichier JSON.";
     } finally {
       input.value = '';
       this.isImportingData = false;
