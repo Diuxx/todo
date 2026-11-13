@@ -67,7 +67,7 @@ export class DatabaseService {
       language: 'fr',
       dailyAffirmationEnabled: false,
       showArchivedItems: false,
-      passwordHash: this.passwordService.defaultPasswordHash,
+      passwordHash: '',
       userName: 'Nouvel Utilisateur',
       userId: generateUUID(),
       backupState: backupState,
