@@ -46,7 +46,7 @@ export class DatabaseService {
     if (!hasSettings.passwordHash) {
       await db.settings.put({
         ...hasSettings,
-        passwordHash: this.passwordService.defaultPasswordHash,
+        passwordHash: '',
       });
     }
   }
