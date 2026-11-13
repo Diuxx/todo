@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BudgetService } from '../../../shared/services/budget.service';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 import {
@@ -23,6 +23,7 @@ export class BudgetSettingsComponent implements OnInit {
   private readonly budgetService = inject(BudgetService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   public budget: Budget | null = null;
   public isLoading = true;
@@ -46,7 +47,13 @@ export class BudgetSettingsComponent implements OnInit {
   }
 
   public goToBudget(): void {
-    this.router.navigate(['/budget']);
+    const month = this.getOriginMonth();
+    this.router.navigate(['/budget'], month ? { queryParams: { month } } : {});
+  }
+
+  private getOriginMonth(): string | null {
+    const month = this.route.snapshot.queryParamMap.get('month');
+    return month && /^\d{4}-(0[1-9]|1[0-2])$/.test(month) ? month : null;
   }
 
   public get sortedPeriods(): Period[] {
@@ -499,11 +506,13 @@ export class BudgetSettingsComponent implements OnInit {
     this.budgetService.get().subscribe({
       next: (budget) => {
         this.budget = budget;
-        this.calendarYear =
-          Math.max(
-            ...budget.periods.map((period) => Number(period.date.slice(0, 4))),
-            new Date().getFullYear()
-          ) || new Date().getFullYear();
+        const originMonth = this.getOriginMonth();
+        this.calendarYear = originMonth
+          ? Number(originMonth.slice(0, 4))
+          : Math.max(
+              ...budget.periods.map((period) => Number(period.date.slice(0, 4))),
+              new Date().getFullYear()
+            );
         this.copyFromPeriodDate = budget.periods[0]?.date ?? '';
         this.selectedAccountId = budget.accounts[0]?.id ?? '';
         this.onAccountSelectionChange();

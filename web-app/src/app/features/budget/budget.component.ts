@@ -123,21 +123,30 @@ export class BudgetComponent implements OnInit {
   }
 
   public goToPreviousMonth(): void {
-    this.activeMonth = new Date(this.activeMonth.getFullYear(), this.activeMonth.getMonth() - 1, 1);
-    this.loadCurrentPeriod();
+    this.changeMonth(-1);
   }
 
   public goToNextMonth(): void {
-    this.activeMonth = new Date(this.activeMonth.getFullYear(), this.activeMonth.getMonth() + 1, 1);
-    this.loadCurrentPeriod();
+    this.changeMonth(1);
   }
 
   public goToBudgetStats(): void {
-    this.router.navigate(['/budget-stats']);
+    this.router.navigate(['/budget-stats'], { queryParams: { month: this.activeMonthKey } });
   }
 
   public goToBudgetSettings(): void {
-    this.router.navigate(['/budget-settings']);
+    this.router.navigate(['/budget-settings'], { queryParams: { month: this.activeMonthKey } });
+  }
+
+  private changeMonth(offset: number): void {
+    this.activeMonth = new Date(this.activeMonth.getFullYear(), this.activeMonth.getMonth() + offset, 1);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { month: this.activeMonthKey },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+    this.loadCurrentPeriod();
   }
 
   /**

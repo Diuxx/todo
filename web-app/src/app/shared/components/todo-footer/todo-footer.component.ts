@@ -93,13 +93,18 @@ export class TodoFooterComponent implements OnDestroy {
     });
   }
 
-  /**
-   * Handles the click event on the board menu item. Currently, this method is a placeholder and does not perform any actions.
-   */
   public onBoardClick(): void {
     if (this.showSaveIcon) {
       return;
     }
+
+    if (this.isBudgetRoute) {
+      this.router.navigate(['/budget-stats'], {
+        queryParams: { month: this.budgetMonthKey },
+      });
+      return;
+    }
+
     this.router.navigate(['/recap']);
   }
 
@@ -129,6 +134,13 @@ export class TodoFooterComponent implements OnDestroy {
   }
 
   public goToBudget(): void {
+    if (this.isBudgetRoute) {
+      this.router.navigate(['/budget'], {
+        queryParams: { month: this.budgetMonthKey },
+      });
+      return;
+    }
+
     this.router.navigate(['/budget']);
   }
 

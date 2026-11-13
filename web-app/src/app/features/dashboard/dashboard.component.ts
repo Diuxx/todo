@@ -152,6 +152,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
     );
   }
 
+  public get hasVisibleItems(): boolean {
+    return this.displayedItems.length > 0 || !!this.affirmationItem;
+  }
+
+  public get emptyStateMessage(): string {
+    if (this.searchQuery) {
+      return 'Aucun résultat pour cette recherche.';
+    }
+
+    if (this.calendarOnlyMode) {
+      return 'Aucun élément créé depuis le calendrier.';
+    }
+
+    return this.filter ? 'Aucun élément pour ce filtre.' : 'Aucun item pour le moment.';
+  }
+
   /**
    * Displays the details of the selected item.
    * @param item The item to display details for.

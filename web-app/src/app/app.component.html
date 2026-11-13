@@ -53,9 +53,11 @@
             type="button"
             class="item-type-filter"
             [class.is-active]="isCalendarFilterActive()"
+            [attr.aria-pressed]="isCalendarFilterActive()"
+            title="Afficher uniquement les éléments créés depuis le calendrier"
             (click)="toggleCalendarFilter()"
           >
-            Calendrier
+            Créés via calendrier
           </button>
         </nav>
       }

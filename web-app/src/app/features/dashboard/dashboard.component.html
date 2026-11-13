@@ -1,6 +1,6 @@
 @if (isLoading) {
   <app-dashboard-skeleton [count]="6"></app-dashboard-skeleton>
-} @else if (items.length > 0) {
+} @else if (hasVisibleItems) {
   <div class="dashboard-container">
     @if (affirmationItem) {
       <div class="dashboard-card-large" (click)="displayItemDetails(affirmationItem)">
@@ -61,7 +61,7 @@
         @if (item.fromCalendar || item.date) {
           <div class="dashboard-card-meta-row">
             @if (item.fromCalendar) {
-              <span class="dashboard-chip dashboard-chip-calendar">Calendrier</span>
+              <span class="dashboard-chip dashboard-chip-calendar">Créé via calendrier</span>
             }
             @if (item.date) {
               <span class="dashboard-chip">
@@ -117,7 +117,7 @@
     }
   </div>
 } @else {
-  <p class="dashboard-empty">Aucun item pour le moment.</p>
+  <p class="dashboard-empty">{{ emptyStateMessage }}</p>
 }
 
 <app-password-prompt-modal
