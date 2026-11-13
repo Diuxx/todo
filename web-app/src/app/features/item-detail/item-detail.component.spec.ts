@@ -66,7 +66,7 @@ describe('ItemDetailComponent autosave', () => {
     component.itemForm = createItemForm(TestBed.inject(FormBuilder), original);
   });
 
-  it('persists changes made while an earlier save is pending', () => {
+  it('persists changes made while an earlier save is pending', async () => {
     component.itemForm.get('title')?.setValue('First edit');
     component.itemForm.markAsDirty();
     component.saveElement();
@@ -80,27 +80,71 @@ describe('ItemDetailComponent autosave', () => {
 
     writes[0].next({ ...original, title: 'First edit' });
     writes[0].complete();
+    await Promise.resolve();
 
     expect(itemService.updateItem).toHaveBeenCalledTimes(2);
     expect(component.itemForm.dirty).toBeTrue();
 
     writes[1].next({ ...original, title: 'Second edit' });
     writes[1].complete();
+    await Promise.resolve();
 
     expect(component.itemForm.pristine).toBeTrue();
     expect(component.item?.title).toBe('Second edit');
     expect(saveState.updateFormSaveState).toHaveBeenCalledWith('saved');
   });
 
-  it('keeps the form dirty if the save fails', () => {
+  it('keeps the form dirty if the save fails', async () => {
     component.itemForm.get('title')?.setValue('Unsent');
     component.itemForm.markAsDirty();
     component.saveElement();
     spyOn(console, 'error');
 
     writes[0].error(new Error('storage failed'));
+    await Promise.resolve();
 
     expect(component.itemForm.dirty).toBeTrue();
     expect(saveState.updateFormSaveState).toHaveBeenCalledWith('dirty');
   });
+  it('waits for the pending write before allowing route deactivation', async () => {
+    component.itemForm.get('title')?.setValue('Last edit');
+    component.itemForm.markAsDirty();
+
+    const exit = component.canDeactivate();
+
+    expect(itemService.updateItem).toHaveBeenCalledTimes(1);
+
+    writes[0].next({ ...original, title: 'Last edit' });
+    writes[0].complete();
+
+    expect(await exit).toBeTrue();
+    expect(component.itemForm.pristine).toBeTrue();
+  });
+
+  it('blocks navigation after a save failure and permits retry', async () => {
+    component.itemForm.get('title')?.setValue('Retained edit');
+    component.itemForm.markAsDirty();
+    spyOn(console, 'error');
+
+    const firstExit = component.canDeactivate();
+    writes[0].error(new Error('storage unavailable'));
+
+    expect(await firstExit).toBeFalse();
+    expect(component.itemForm.dirty).toBeTrue();
+    expect(component.saveState).toBe('error');
+    expect(component.saveErrorMessage).not.toBeNull();
+
+    const retry = component.canDeactivate();
+    writes[1].next({ ...original, title: 'Retained edit' });
+    writes[1].complete();
+
+    expect(await retry).toBeTrue();
+    expect(component.saveState).toBe('saved');
+  });
+
+  it('does not navigate away from an unfinished subtask modal', async () => {
+    component.isTodoEditModalVisible = true;
+    expect(await component.canDeactivate()).toBeFalse();
+  });
+
 });
