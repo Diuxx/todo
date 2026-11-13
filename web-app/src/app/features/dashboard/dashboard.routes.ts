@@ -35,6 +35,7 @@ export const DASHBOARD_ROUTES: Routes = [
   {
     path: 'budget',
     loadComponent: () => import('../budget/budget.component').then((m) => m.BudgetComponent),
+    canDeactivate: [protectPendingChanges],
     title: 'Todo - Budget',
   },
   {
@@ -46,6 +47,7 @@ export const DASHBOARD_ROUTES: Routes = [
     path: 'budget-settings',
     loadComponent: () =>
       import('../budget/budget-settings/budget-settings.component').then((m) => m.BudgetSettingsComponent),
+    canDeactivate: [protectPendingChanges],
     title: 'Todo - Budget Settings',
   },
 ];
