@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { DecimalPipe, CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { Budget, ExpenseItem, IncomeItem, Period } from '../../../shared/models/budget/budget.model';
 import { BudgetService } from '../../../shared/services/budget.service';
 import { Chart, registerables } from 'chart.js';
@@ -33,6 +34,7 @@ interface MonthlyExpenseStat {
 })
 export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly budgetService = inject(BudgetService);
+  private readonly route = inject(ActivatedRoute);
   private monthlyLineChart: Chart<'line'> | null = null;
   private savingsColumnChart: Chart | null = null;
   private monthlyLineChartCanvas?: HTMLCanvasElement;
@@ -77,6 +79,12 @@ export class BudgetStatsComponent implements OnInit, AfterViewInit, OnDestroy {
   public monthlyLineMode: 'planned' | 'real' = 'planned';
 
   public ngOnInit(): void {
+    const originMonth = this.route.snapshot.queryParamMap.get('month');
+
+    if (originMonth && /^\d{4}-(0[1-9]|1[0-2])$/.test(originMonth)) {
+      this.selectedYear = Number(originMonth.slice(0, 4));
+    }
+
     this.loadBudget();
   }
 
