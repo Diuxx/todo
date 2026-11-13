@@ -581,7 +581,7 @@ export class CalendarComponent implements OnInit {
       return false;
     }
 
-    if (todo.recurrenceType === 'daily') {
+    if (todo.recurrenceType === 'daily' || todo.recurrenceType === 'custom') {
       const [start, end] = this.getDailyBounds(date);
       return doneTimestamps.some((timestamp) => timestamp >= start && timestamp < end);
     }
