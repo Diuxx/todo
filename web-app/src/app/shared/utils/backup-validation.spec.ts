@@ -55,6 +55,18 @@ describe('Backup validation', () => {
     expect(isValidBackup(backup)).toBeFalse();
   });
 
+  it('rejects settings records that cannot be loaded later', () => {
+    const backup = validBackup();
+    backup.settings.id = 'incorrect-settings-id';
+    expect(isValidBackup(backup)).toBeFalse();
+  });
+
+  it('rejects unsupported password hash formats', () => {
+    const backup = validBackup();
+    backup.settings.passwordHash = 'invalid-hash';
+    expect(isValidBackup(backup)).toBeFalse();
+  });
+
   it('rejects a malformed backup', () => {
     expect(isValidBackup(null)).toBeFalse();
     expect(isValidBackup({ items: [] })).toBeFalse();
