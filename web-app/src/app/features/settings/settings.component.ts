@@ -53,6 +53,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public saveErrorMessage: string | null = null;
   public loadErrorMessage: string | null = null;
   public dataActionErrorMessage: string | null = null;
+  public dataActionSuccessMessage: string | null = null;
   public isDeletingData = false;
   public isPasswordModalVisible = false;
   public isPasswordSaving = false;
@@ -473,12 +474,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this.isDeletingData = true;
     this.dataActionErrorMessage = null;
+    this.dataActionSuccessMessage = null;
 
     try {
       await this.localNotificationService.clearAllTodoNotifications();
       await this.databaseService.clearUserContent();
       await this.loadStorageStats();
-      this.triggerSavedFeedback();
+      this.dataActionSuccessMessage = 'Données locales supprimées.';
     } catch (error) {
       console.error('Unable to delete local data:', error);
       this.dataActionErrorMessage = 'La suppression des données a échoué.';
@@ -490,9 +492,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private async performDownloadAppData(): Promise<void> {
     this.isExportingData = true;
     this.dataActionErrorMessage = null;
+    this.dataActionSuccessMessage = null;
 
     try {
       await this.backupFileService.download(await this.backupService.getCurrentData());
+      this.dataActionSuccessMessage = 'Export terminé.';
     } catch (error) {
       console.error('Unable to export application data:', error);
       this.dataActionErrorMessage = "L'export des données a échoué.";
@@ -525,6 +529,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this.isImportingData = true;
     this.dataActionErrorMessage = null;
+    this.dataActionSuccessMessage = null;
 
     try {
       const migratedPayload = await this.backupService.restoreFromFile(file);
@@ -546,11 +551,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
       );
 
       this.settingsForm.markAsPristine();
+      this.updateSaveState('pristine');
       this.updatePasswordState(migratedPayload.settings.passwordHash);
       await this.loadStorageStats();
       await this.localNotificationService.clearAllTodoNotifications();
       await this.localNotificationService.syncScheduledTodoNotifications();
-      this.triggerSavedFeedback();
+      this.dataActionSuccessMessage = 'Données importées.';
     } catch (error) {
       console.error('[Settings] Import failed:', error);
       this.dataActionErrorMessage =
