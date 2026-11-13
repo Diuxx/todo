@@ -48,9 +48,10 @@ describe('ItemDetailComponent autosave', () => {
     ]);
 
     TestBed.configureTestingModule({
+      imports: [ItemDetailComponent],
       providers: [
         FormBuilder,
-        { provide: ActivatedRoute, useValue: {} },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => null } } } },
         { provide: Router, useValue: {} },
         { provide: ItemsService, useValue: itemService },
         { provide: SaveActionService, useValue: saveState },
@@ -103,4 +104,34 @@ describe('ItemDetailComponent autosave', () => {
     expect(component.itemForm.dirty).toBeTrue();
     expect(saveState.updateFormSaveState).toHaveBeenCalledWith('dirty');
   });
+  it('positions note actions and title above the flexible editor', () => {
+    const fixture = TestBed.createComponent(ItemDetailComponent);
+    const note = { ...original, title: 'Mail Montpellier', content: 'Note content' };
+
+    // Reproduce the full-height note view at a desktop-sized viewport.
+    fixture.nativeElement.style.cssText =
+      'display:block; width:900px; height:700px; margin:0; padding:0; overflow:visible;';
+    fixture.componentInstance.item = note;
+    fixture.componentInstance.itemForm = createItemForm(TestBed.inject(FormBuilder), note);
+    fixture.componentInstance.isLoading = false;
+    fixture.componentInstance.hasCurrentAccess = true;
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.detail-card') as HTMLElement;
+    const actions = fixture.nativeElement.querySelector('.detail-card-actions') as HTMLElement;
+    const title = fixture.nativeElement.querySelector('.title-editable') as HTMLInputElement;
+    const editor = fixture.nativeElement.querySelector('.detail-card-content') as HTMLTextAreaElement;
+
+    expect(card).toBeTruthy();
+    expect(actions.getBoundingClientRect().top - card.getBoundingClientRect().top)
+      .toBeLessThan(70);
+    expect(title.getBoundingClientRect().top - actions.getBoundingClientRect().bottom)
+      .toBeLessThan(45);
+    expect(editor.getBoundingClientRect().top - title.getBoundingClientRect().bottom)
+      .toBeLessThan(45);
+    expect(editor.getBoundingClientRect().height).toBeGreaterThan(250);
+
+    fixture.destroy();
+  });
+
 });
