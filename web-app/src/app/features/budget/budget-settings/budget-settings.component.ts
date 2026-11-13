@@ -2,6 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BudgetService } from '../../../shared/services/budget.service';
+import { SaveStatusComponent } from '../../../shared/components/save-status/save-status.component';
+import { FormSaveState } from '../../../shared/services/save-action.service';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 import {
   Account,
@@ -17,7 +19,7 @@ import { generateUUID } from '../../../shared/utils';
   selector: 'todo-budget-settings',
   templateUrl: './budget-settings.component.html',
   styleUrls: ['./budget-settings.component.scss'],
-  imports: [FormsModule],
+  imports: [FormsModule, SaveStatusComponent],
 })
 export class BudgetSettingsComponent implements OnInit {
   private readonly budgetService = inject(BudgetService);
@@ -28,6 +30,8 @@ export class BudgetSettingsComponent implements OnInit {
   public budget: Budget | null = null;
   public isLoading = true;
   public isSaving = false;
+  public saveState: FormSaveState = 'pristine';
+  public saveErrorMessage: string | null = null;
 
   public calendarYear = new Date().getFullYear();
   public newPeriodDate = '';
@@ -167,7 +171,7 @@ export class BudgetSettingsComponent implements OnInit {
         : null;
     const copiedData = sourcePeriod ? this.clonePeriodData(sourcePeriod) : { incomes: [], expenses: [] };
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService
       .upsertPeriod({
@@ -181,10 +185,10 @@ export class BudgetSettingsComponent implements OnInit {
         this.copyPeriodData = false;
         this.copyFromPeriodDate = '';
         this.newPeriodDate = '';
-        this.isSaving = false;
+        this.finishSaving();
       },
-      error: () => {
-        this.isSaving = false;
+      error: (error) => {
+        this.failSaving(error);
       },
     });
   }
@@ -199,7 +203,7 @@ export class BudgetSettingsComponent implements OnInit {
       return;
     }
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService
       .upsertAccount({
@@ -211,10 +215,10 @@ export class BudgetSettingsComponent implements OnInit {
           this.budget = budget;
           this.selectedAccountId = '';
           this.accountFormName = '';
-          this.isSaving = false;
+          this.finishSaving();
         },
-        error: () => {
-          this.isSaving = false;
+        error: (error) => {
+          this.failSaving(error);
         },
       });
   }
@@ -231,7 +235,7 @@ export class BudgetSettingsComponent implements OnInit {
       return;
     }
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService
       .upsertAccount({
@@ -242,10 +246,10 @@ export class BudgetSettingsComponent implements OnInit {
         next: (budget) => {
           this.budget = budget;
           this.onAccountSelectionChange();
-          this.isSaving = false;
+          this.finishSaving();
         },
-        error: () => {
-          this.isSaving = false;
+        error: (error) => {
+          this.failSaving(error);
         },
       });
   }
@@ -270,17 +274,17 @@ export class BudgetSettingsComponent implements OnInit {
           return;
         }
 
-        this.isSaving = true;
+        this.beginSaving();
 
         this.budgetService.deleteAccount(selected.id).subscribe({
           next: (budget) => {
             this.budget = budget;
             this.selectedAccountId = '';
             this.accountFormName = '';
-            this.isSaving = false;
+            this.finishSaving();
           },
-          error: () => {
-            this.isSaving = false;
+          error: (error) => {
+            this.failSaving(error);
           },
         });
       });
@@ -297,7 +301,7 @@ export class BudgetSettingsComponent implements OnInit {
       return;
     }
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService
       .upsertIncomeType({
@@ -311,10 +315,10 @@ export class BudgetSettingsComponent implements OnInit {
           this.selectedIncomeTypeId = '';
           this.incomeTypeFormName = '';
           this.incomeTypeFormSaving = false;
-          this.isSaving = false;
+          this.finishSaving();
         },
-        error: () => {
-          this.isSaving = false;
+        error: (error) => {
+          this.failSaving(error);
         },
       });
   }
@@ -331,7 +335,7 @@ export class BudgetSettingsComponent implements OnInit {
       return;
     }
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService
       .upsertIncomeType({
@@ -343,10 +347,10 @@ export class BudgetSettingsComponent implements OnInit {
         next: (budget) => {
           this.budget = budget;
           this.onIncomeTypeSelectionChange();
-          this.isSaving = false;
+          this.finishSaving();
         },
-        error: () => {
-          this.isSaving = false;
+        error: (error) => {
+          this.failSaving(error);
         },
       });
   }
@@ -375,7 +379,7 @@ export class BudgetSettingsComponent implements OnInit {
           return;
         }
 
-        this.isSaving = true;
+        this.beginSaving();
 
         this.budgetService.deleteIncomeType(selected.id).subscribe({
           next: (budget) => {
@@ -383,10 +387,10 @@ export class BudgetSettingsComponent implements OnInit {
             this.selectedIncomeTypeId = '';
             this.incomeTypeFormName = '';
             this.incomeTypeFormSaving = false;
-            this.isSaving = false;
+            this.finishSaving();
           },
-          error: () => {
-            this.isSaving = false;
+          error: (error) => {
+            this.failSaving(error);
           },
         });
       });
@@ -405,7 +409,7 @@ export class BudgetSettingsComponent implements OnInit {
       return;
     }
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService
       .upsertExpenseCategory({
@@ -419,10 +423,10 @@ export class BudgetSettingsComponent implements OnInit {
           this.selectedExpenseCategoryId = '';
           this.expenseCategoryFormName = '';
           this.expenseCategoryFormIcon = '';
-          this.isSaving = false;
+          this.finishSaving();
         },
-        error: () => {
-          this.isSaving = false;
+        error: (error) => {
+          this.failSaving(error);
         },
       });
   }
@@ -441,7 +445,7 @@ export class BudgetSettingsComponent implements OnInit {
       return;
     }
 
-    this.isSaving = true;
+    this.beginSaving();
 
     this.budgetService
       .upsertExpenseCategory({
@@ -453,10 +457,10 @@ export class BudgetSettingsComponent implements OnInit {
         next: (budget) => {
           this.budget = budget;
           this.onExpenseCategorySelectionChange();
-          this.isSaving = false;
+          this.finishSaving();
         },
-        error: () => {
-          this.isSaving = false;
+        error: (error) => {
+          this.failSaving(error);
         },
       });
   }
@@ -483,7 +487,7 @@ export class BudgetSettingsComponent implements OnInit {
           return;
         }
 
-        this.isSaving = true;
+        this.beginSaving();
 
         this.budgetService.deleteExpenseCategory(selected.id).subscribe({
           next: (budget) => {
@@ -491,10 +495,10 @@ export class BudgetSettingsComponent implements OnInit {
             this.selectedExpenseCategoryId = '';
             this.expenseCategoryFormName = '';
             this.expenseCategoryFormIcon = '';
-            this.isSaving = false;
+            this.finishSaving();
           },
-          error: () => {
-            this.isSaving = false;
+          error: (error) => {
+            this.failSaving(error);
           },
         });
       });
@@ -556,4 +560,22 @@ export class BudgetSettingsComponent implements OnInit {
       expenses,
     };
   }
+  private beginSaving(): void {
+    this.isSaving = true;
+    this.saveErrorMessage = null;
+    this.saveState = 'saving';
+  }
+
+  private finishSaving(): void {
+    this.isSaving = false;
+    this.saveState = 'saved';
+  }
+
+  private failSaving(error: unknown): void {
+    console.error('Unable to save budget administration:', error);
+    this.isSaving = false;
+    this.saveErrorMessage = "L'opération a échoué. Vérifiez les données et réessayez.";
+    this.saveState = 'error';
+  }
+
 }
