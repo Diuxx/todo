@@ -1,8 +1,10 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { Subject, debounceTime, firstValueFrom, takeUntil } from 'rxjs';
 import { SettingsService } from '../../shared/services/settings.service';
+import { FormSaveState, SaveActionService } from '../../shared/services/save-action.service';
+import { SaveStatusComponent } from '../../shared/components/save-status/save-status.component';
 import { AppSettings } from '../../shared/models/app-settings.model';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
 import { DatabaseService } from '../../shared/services/database.service';
@@ -27,11 +29,13 @@ type SensitiveAction = 'delete' | 'export' | 'import';
     NgClass,
     PasswordSettingsModalComponent,
     PasswordPromptModalComponent,
+    SaveStatusComponent,
   ],
 })
 export class SettingsComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly settingsService = inject(SettingsService);
+  private readonly saveActionService = inject(SaveActionService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
   private readonly databaseService = inject(DatabaseService);
   private readonly backupService = inject(BackupService);
@@ -39,13 +43,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private readonly localNotificationService = inject(LocalNotificationService);
   private readonly passwordService = inject(PasswordService);
   private readonly destroy$ = new Subject<void>();
-  private savedFeedbackTimeoutId?: ReturnType<typeof setTimeout>;
+  private pendingSettingsSave: Promise<boolean> | null = null;
   private pendingSensitiveAction: SensitiveAction | null = null;
   private pendingImportInput: HTMLInputElement | null = null;
   private importPasswordValidated = false;
 
   public settingsForm!: FormGroup;
-  public savedFeedback = false;
+  public saveState: FormSaveState = 'pristine';
+  public saveErrorMessage: string | null = null;
+  public loadErrorMessage: string | null = null;
   public isDeletingData = false;
   public isPasswordModalVisible = false;
   public isPasswordSaving = false;
@@ -60,25 +66,66 @@ export class SettingsComponent implements OnInit, OnDestroy {
   public sensitivePasswordErrorMessage: string | null = null;
 
   public ngOnInit(): void {
-    this.settingsService.get().subscribe((settings) => {
-      if (!settings) {
-        return;
-      }
-
-      this.buildForm(settings);
-      this.updatePasswordState(settings.passwordHash);
-      this.setupAutoSave();
+    this.loadSettings();
+    void this.loadStorageStats().catch((error) => {
+      console.error('Unable to load storage statistics:', error);
     });
+  }
 
-    this.loadStorageStats();
+  private loadSettings(): void {
+    this.loadErrorMessage = null;
+    this.settingsService.get().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (settings) => {
+        if (!settings) {
+          this.loadErrorMessage = 'Les paramètres sont indisponibles.';
+          return;
+        }
+
+        this.buildForm(settings);
+        this.updatePasswordState(settings.passwordHash);
+        this.updateSaveState('pristine');
+        this.setupAutoSave();
+      },
+      error: (error) => {
+        console.error('Unable to load settings:', error);
+        this.loadErrorMessage = 'Impossible de charger les paramètres.';
+      },
+    });
+  }
+
+  public retryLoadingSettings(): void {
+    this.loadSettings();
   }
 
   public ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.savedFeedbackTimeoutId) {
-      clearTimeout(this.savedFeedbackTimeoutId);
+    this.saveActionService.updateFormSaveState('pristine');
+  }
+
+  public async canDeactivate(): Promise<boolean> {
+    if (
+      this.isPasswordModalVisible ||
+      this.isSensitivePasswordPromptVisible ||
+      this.isImportingData ||
+      this.isDeletingData ||
+      this.isPasswordSaving ||
+      this.isSensitivePasswordSubmitting
+    ) {
+      return false;
     }
+
+    return this.persistPendingSettings();
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  public warnBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.settingsForm?.dirty && !this.pendingSettingsSave) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = '';
   }
 
   public setTheme(theme: 'light' | 'dark' | 'system'): void {
@@ -122,6 +169,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
       const nextPasswordHash = await this.passwordService.hash(payload.nextPassword);
       await this.persistPasswordHash(nextPasswordHash);
+    } catch (error) {
+      console.error('Unable to change the password:', error);
+      this.passwordErrorMessage = "Le mot de passe n'a pas pu être enregistré.";
     } finally {
       this.isPasswordSaving = false;
     }
@@ -305,29 +355,78 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   private setupAutoSave(): void {
     this.settingsForm.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.settingsForm.dirty) {
+          this.updateSaveState('dirty');
+        }
+      });
+
+    this.settingsForm.valueChanges
       .pipe(debounceTime(800), takeUntil(this.destroy$))
       .subscribe(() => this.saveSettings());
   }
 
-  private saveSettings(): void {
-    if (!this.settingsForm.dirty) {
-      return;
+  public saveSettings(): void {
+    void this.persistPendingSettings();
+  }
+
+  private persistPendingSettings(): Promise<boolean> {
+    if (this.pendingSettingsSave) {
+      return this.pendingSettingsSave;
     }
-    const settings: AppSettings = this.settingsForm.getRawValue();
-    this.settingsService.update(settings).subscribe(() => {
-      this.settingsForm.markAsPristine();
-      this.triggerSavedFeedback();
+
+    if (!this.settingsForm?.dirty) {
+      return Promise.resolve(true);
+    }
+
+    const save = this.writePendingSettings();
+    this.pendingSettingsSave = save;
+    void save.finally(() => {
+      if (this.pendingSettingsSave === save) {
+        this.pendingSettingsSave = null;
+      }
     });
+
+    return save;
+  }
+
+  private async writePendingSettings(): Promise<boolean> {
+    while (this.settingsForm.dirty) {
+      const settings: AppSettings = this.settingsForm.getRawValue();
+      const snapshot = JSON.stringify(settings);
+
+      this.saveErrorMessage = null;
+      this.updateSaveState('saving');
+
+      try {
+        await firstValueFrom(this.settingsService.update(settings));
+      } catch (error) {
+        console.error('Unable to save settings:', error);
+        this.saveErrorMessage = "L'enregistrement a échoué. Réessayez avant de quitter.";
+        this.updateSaveState('error');
+        return false;
+      }
+
+      if (JSON.stringify(this.settingsForm.getRawValue()) === snapshot) {
+        this.settingsForm.markAsPristine();
+        this.triggerSavedFeedback();
+        return true;
+      }
+
+      this.updateSaveState('dirty');
+    }
+
+    return true;
+  }
+
+  private updateSaveState(state: FormSaveState): void {
+    this.saveState = state;
+    this.saveActionService.updateFormSaveState(state);
   }
 
   private triggerSavedFeedback(): void {
-    this.savedFeedback = true;
-    if (this.savedFeedbackTimeoutId) {
-      clearTimeout(this.savedFeedbackTimeoutId);
-    }
-    this.savedFeedbackTimeoutId = setTimeout(() => {
-      this.savedFeedback = false;
-    }, 2000);
+    this.updateSaveState('saved');
   }
 
   private openSensitivePasswordPrompt(action: SensitiveAction): void {
@@ -440,6 +539,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   private async upgradeVerifiedPassword(password: string): Promise<void> {
+    if (!(await this.persistPendingSettings())) {
+      throw new Error('Save settings before upgrading the password.');
+    }
+
     const currentSettings = await firstValueFrom(this.settingsService.get());
     if (!currentSettings) {
       throw new Error('Unable to load settings to upgrade the password.');
@@ -452,16 +555,19 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   private async persistPasswordHash(passwordHash: string): Promise<void> {
+    if (!(await this.persistPendingSettings())) {
+      throw new Error('Save current settings before changing the password.');
+    }
+
     this.settingsForm.get('passwordHash')?.setValue(passwordHash);
     this.settingsForm.markAsDirty();
 
-    const settings: AppSettings = this.settingsForm.getRawValue();
-    await firstValueFrom(this.settingsService.update(settings));
+    if (!(await this.persistPendingSettings())) {
+      throw new Error('Could not save the new password.');
+    }
 
-    this.settingsForm.markAsPristine();
     this.updatePasswordState(passwordHash);
     this.closePasswordModal();
-    this.triggerSavedFeedback();
   }
 
   private updatePasswordState(passwordHash: string): void {
