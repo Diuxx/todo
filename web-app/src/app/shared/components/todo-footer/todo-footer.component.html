@@ -41,6 +41,12 @@
         'edit-mode-saved': showSaveIcon && formSaveState !== 'dirty'
       }"
       (click)="onBoardClick()"
+      (keydown.enter)="onBoardClick()"
+      (keydown.space)="onBoardClick(); $event.preventDefault()"
+      role="button"
+      [attr.tabindex]="showSaveIcon ? -1 : 0"
+      [attr.aria-disabled]="showSaveIcon"
+      [attr.aria-label]="isBudgetRoute ? 'Ouvrir les statistiques du budget' : 'Ouvrir le récapitulatif des tâches'"
     >
       @if (isBudgetRoute) {
         <canvas
