@@ -147,6 +147,9 @@
         @if (dataActionErrorMessage) {
           <p class="data-action-error" role="alert">{{ dataActionErrorMessage }}</p>
         }
+        @if (dataActionSuccessMessage) {
+          <p class="data-action-success" role="status">{{ dataActionSuccessMessage }}</p>
+        }
 
         <div class="stats-grid">
           <div class="stats-card">
