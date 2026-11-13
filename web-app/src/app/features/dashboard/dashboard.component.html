@@ -1,5 +1,10 @@
 @if (isLoading) {
   <app-dashboard-skeleton [count]="6"></app-dashboard-skeleton>
+} @else if (loadErrorMessage) {
+  <div class="dashboard-empty" role="alert">
+    <p>{{ loadErrorMessage }}</p>
+    <button type="button" (click)="retryLoadingData()">Réessayer</button>
+  </div>
 } @else if (hasVisibleItems) {
   <div class="dashboard-container">
     @if (affirmationItem) {
