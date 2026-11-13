@@ -33,8 +33,7 @@ export class DatabaseService {
     }
 
     if (!hasBudget) {
-      // If an example budget exists in `appDataExample`, use it; otherwise create defaults
-      const budgetPayload = (appDataExample && (appDataExample as any).budget) ?? createDefaultBudget();
+      const budgetPayload = appDataExample.budget ?? createDefaultBudget();
       await db.budgets.add({
         periods: budgetPayload.periods,
         accounts: budgetPayload.accounts,
@@ -85,27 +84,16 @@ export class DatabaseService {
     await db.citationsMeta.bulkAdd(this.normalizeCitationMetas(appDataExample.citationsMeta));
     await db.imagesMeta.bulkAdd(this.normalizeImageMetas(appDataExample.imagesMeta));
 
-    // Seed budget from example data when available, otherwise use defaults
-    try {
-      const budgetPayload = appDataExample.budget ?? createDefaultBudget();
-      await db.budgets.add({
-        periods: budgetPayload.periods,
-        accounts: budgetPayload.accounts,
-        expenseCategories: budgetPayload.expenseCategories,
-        incomeTypes: budgetPayload.incomeTypes,
-        id: 'main',
-      });
-    } catch (err) {
-      // If adding fails (already exists), fall back to ensuring default budget exists
-      const defaultBudget = createDefaultBudget();
-      await db.budgets.put({
-        periods: defaultBudget.periods,
-        accounts: defaultBudget.accounts,
-        expenseCategories: defaultBudget.expenseCategories,
-        incomeTypes: defaultBudget.incomeTypes,
-        id: 'main',
-      });
-    }
+    // Dexie's populate hook can already create the budget on first open.
+    // Upsert the seed instead of masking unexpected database failures.
+    const budgetPayload = appDataExample.budget ?? createDefaultBudget();
+    await db.budgets.put({
+      periods: budgetPayload.periods,
+      accounts: budgetPayload.accounts,
+      expenseCategories: budgetPayload.expenseCategories,
+      incomeTypes: budgetPayload.incomeTypes,
+      id: 'main',
+    });
   }
 
   private async initializeDefaultDatabase(): Promise<void> {
