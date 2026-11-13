@@ -14,6 +14,11 @@
     (swipeNext)="goToNext()">
   @if (isLoading) {
     <p class="calendar-loading">Chargement...</p>
+  } @else if (loadErrorMessage) {
+    <div class="calendar-loading" role="alert">
+      <p>{{ loadErrorMessage }}</p>
+      <button type="button" (click)="retryLoadingCalendar()">Réessayer</button>
+    </div>
   } @else {
     <section class="calendar-month-panel" aria-label="Calendrier mensuel">
       <div class="calendar-month">
