@@ -33,6 +33,11 @@ export class ItemLockService {
   /**
    * Verifies a clear password against the configured application password hash.
    */
+  public async hasPersonalPassword(): Promise<boolean> {
+    const settings = await firstValueFrom(this.settingsService.get());
+    return this.passwordService.isCustomPasswordHash(settings?.passwordHash);
+  }
+
   public async verifyPassword(candidate: string): Promise<boolean> {
     const settings = await firstValueFrom(this.settingsService.get());
 
