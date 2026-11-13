@@ -128,7 +128,7 @@
               </span>
             } @else {
               <span class="security-hint">
-                Aucun mot de passe personnel n'est défini. Le mot de passe actuel est test.
+                Aucun mot de passe personnel n'est défini. Définissez-en un avant d'utiliser les actions sensibles.
               </span>
             }
           </div>
@@ -222,7 +222,6 @@
     [errorMessage]="passwordErrorMessage"
     (close)="closePasswordModal()"
     (submitPassword)="savePassword($event)"
-    (resetPassword)="resetPasswordToDefault($event)"
   >
   </app-password-settings-modal>
 
