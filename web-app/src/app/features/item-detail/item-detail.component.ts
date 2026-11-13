@@ -65,6 +65,7 @@ export class ItemDetailComponent implements OnInit {
   private readonly initialTodoDoneState = new Map<string, boolean>();
   private pendingItemSave: Promise<boolean> | null = null;
   private itemWasDeleted = false;
+  private isDeletingItem = false;
 
   public isTodoEditModalVisible: boolean = false;
   public isAdminModalVisible: boolean = false;
@@ -169,12 +170,16 @@ export class ItemDetailComponent implements OnInit {
   }
 
   public isFormChanged(): boolean {
-    return !this.itemWasDeleted && (this.itemForm.dirty || this.pendingItemSave !== null);
+    return !this.itemWasDeleted && (this.itemForm.dirty || this.pendingItemSave !== null || this.isDeletingItem);
   }
 
   public async canDeactivate(): Promise<boolean> {
     if (this.itemWasDeleted) {
       return true;
+    }
+
+    if (this.isDeletingItem) {
+      return false;
     }
 
     // Changes inside the subtask modal have not yet been accepted by the user.
@@ -226,6 +231,7 @@ export class ItemDetailComponent implements OnInit {
     }
 
     this.deleteErrorMessage = null;
+    this.isDeletingItem = true;
 
     try {
       // An existing write must finish before deletion, otherwise it could recreate the item.
@@ -237,6 +243,8 @@ export class ItemDetailComponent implements OnInit {
     } catch (error) {
       console.error('Error deleting item:', error);
       this.deleteErrorMessage = "Impossible de supprimer cet élément. Réessayez.";
+    } finally {
+      this.isDeletingItem = false;
     }
   }
 
@@ -249,6 +257,10 @@ export class ItemDetailComponent implements OnInit {
   }
 
   private persistPendingChanges(): Promise<boolean> {
+    if (this.itemWasDeleted || this.isDeletingItem) {
+      return Promise.resolve(true);
+    }
+
     if (this.pendingItemSave) {
       return this.pendingItemSave;
     }
