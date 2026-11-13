@@ -48,9 +48,11 @@ export class AppDb extends Dexie {
 
     this.version(3)
       .stores({
-        ...APP_DB_SCHEMA,
-        items: 'id, type, createdAt, updatedAt, date, fromCalendar',
-        budgets: null,
+        items: APP_DB_SCHEMA.items,
+        todoHistory: APP_DB_SCHEMA.todoHistory,
+        citationsMeta: APP_DB_SCHEMA.citationsMeta,
+        imagesMeta: APP_DB_SCHEMA.imagesMeta,
+        settings: APP_DB_SCHEMA.settings,
       })
       .upgrade(async (transaction) => {
         await transaction.table<AppItem, string>('items').toCollection().modify((item) => {
