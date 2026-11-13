@@ -73,6 +73,7 @@ export class ItemDetailComponent implements OnInit {
   public isLoading: boolean = true;
   public saveState: FormSaveState = 'pristine';
   public saveErrorMessage: string | null = null;
+  public loadErrorMessage: string | null = null;
   public isUnlockModalVisible = false;
   public isUnlockSubmitting = false;
   public unlockErrorMessage: string | null = null;
@@ -103,14 +104,32 @@ export class ItemDetailComponent implements OnInit {
 
   public ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-
-    if (!id) {
-      return;
+    if (id) {
+      this.loadItem(id);
     }
 
-    // get item and create form.
-    this.itemsService.getItemById(id).subscribe({
+    this.saveActionService.save$.pipe(takeUntil(this.destroy$)).subscribe(() => this.saveElement());
+  }
+
+  public retryLoadingItem(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.loadItem(id);
+    }
+  }
+
+  private loadItem(id: string): void {
+    this.isLoading = true;
+    this.loadErrorMessage = null;
+
+    this.itemsService.getItemById(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (item) => {
+        if (!item) {
+          this.loadErrorMessage = "Cet élément n'existe plus.";
+          this.isLoading = false;
+          return;
+        }
+
         this.item = item;
         this.itemForm = createItemForm(this.formBuilder, item);
         this.initializeTodoDoneState();
@@ -118,22 +137,20 @@ export class ItemDetailComponent implements OnInit {
         this.updateSaveState('pristine');
         this.setupAutoSaveSubscriptions();
         this.emitTodoProgress();
-        this.pendingTextareaFocus = !!item && !(item.type === 'todo' && item.todoContent?.length);
-        this.hasCurrentAccess =
-          !!item && (!item.isLocked || this.itemLockService.isUnlocked(item.id));
+        this.pendingTextareaFocus = item.type !== 'todo' || !item.todoContent?.length;
+        this.hasCurrentAccess = !item.isLocked || this.itemLockService.isUnlocked(item.id);
         this.isLoading = false;
 
-        if (item?.isLocked && !this.hasCurrentAccess) {
+        if (item.isLocked && !this.hasCurrentAccess) {
           this.isUnlockModalVisible = true;
         }
       },
-      error: (err) => {
-        console.error('Error fetching item with id:', id, err);
+      error: (error) => {
+        console.error('Error fetching item with id:', id, error);
+        this.loadErrorMessage = "Impossible de charger cet élément.";
         this.isLoading = false;
       },
     });
-
-    this.saveActionService.save$.pipe(takeUntil(this.destroy$)).subscribe(() => this.saveElement());
   }
 
   public ngOnDestroy(): void {
