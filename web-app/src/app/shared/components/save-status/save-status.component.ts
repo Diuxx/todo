@@ -10,5 +10,6 @@ import { FormSaveState } from '../../services/save-action.service';
 export class SaveStatusComponent {
   @Input() state: FormSaveState = 'pristine';
   @Input() errorMessage: string | null = null;
+  @Input() showRetry = true;
   @Output() retry = new EventEmitter<void>();
 }
