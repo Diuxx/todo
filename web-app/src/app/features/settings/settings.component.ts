@@ -355,6 +355,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
       passwordHash: [settings.passwordHash],
       userName: [settings.userName],
       userId: [settings.userId],
+      // Preserve metadata when editing preferences; SettingsService.update writes the full record.
+      backupState: [settings.backupState],
+      version: [settings.version],
     });
   }
 
@@ -536,6 +539,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
           passwordHash: migratedPayload.settings.passwordHash,
           userName: migratedPayload.settings.userName,
           userId: migratedPayload.settings.userId,
+          backupState: migratedPayload.settings.backupState,
+          version: migratedPayload.settings.version,
         },
         { emitEvent: false }
       );
