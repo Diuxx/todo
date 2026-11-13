@@ -333,7 +333,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private openSensitivePasswordPrompt(action: SensitiveAction): void {
     const passwordHash = this.settingsForm?.get('passwordHash')?.value as string | undefined;
     if (!passwordHash || passwordHash === this.passwordService.legacyDefaultPasswordHash) {
-      this.passwordErrorMessage = 'Définissez un mot de passe personnel avant cette action.';
       this.openPasswordModal();
       this.passwordErrorMessage = 'Définissez un mot de passe personnel avant cette action.';
       this.pendingImportInput = null;
