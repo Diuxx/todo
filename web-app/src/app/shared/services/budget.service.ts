@@ -12,7 +12,6 @@ import {
   IncomeItem,
   Period,
   createDefaultBudget,
-  resolveExpenseIncomeId,
 } from '../models/budget/budget.model';
 import { generateUUID } from '../utils';
 
@@ -147,6 +146,24 @@ export class BudgetService {
           (item) => item.date
         ),
       }))
+    ).pipe(tap((saved) => this.budgetSubject.next(saved)));
+  }
+
+  public updatePeriodEntries(
+    date: string,
+    change: (period: Period) => Period
+  ): Observable<Budget> {
+    return from(
+      this.mutateBudget((budget) => {
+        if (!budget.periods.some((period) => period.date === date)) {
+          throw new Error('The selected budget period no longer exists.');
+        }
+
+        return {
+          ...budget,
+          periods: budget.periods.map((period) => (period.date === date ? change(period) : period)),
+        };
+      })
     ).pipe(tap((saved) => this.budgetSubject.next(saved)));
   }
 
@@ -313,7 +330,11 @@ export class BudgetService {
         note: expense.note ?? '',
         plannedDate: expense.plannedDate || undefined,
         realDate: expense.realDate || undefined,
-        incomeId: resolveExpenseIncomeId(expense, period.incomes ?? []),
+        // Historical backups are migrated separately. Do not silently reassign an expense
+        // when its linked income is deleted or otherwise missing.
+        incomeId: (period.incomes ?? []).some((income) => income.id === expense.incomeId)
+          ? expense.incomeId
+          : undefined,
       })),
     };
   }
