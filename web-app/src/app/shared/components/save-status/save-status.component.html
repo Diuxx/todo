@@ -1,0 +1,23 @@
+@if (state !== 'pristine') {
+  <div class="save-status" [class.is-error]="state === 'error'" role="status" aria-live="polite">
+    @switch (state) {
+      @case ('dirty') {
+        <i class="bi bi-pencil" aria-hidden="true"></i>
+        <span>Modifications non enregistrées</span>
+      }
+      @case ('saving') {
+        <span class="save-spinner" aria-hidden="true"></span>
+        <span>Enregistrement…</span>
+      }
+      @case ('saved') {
+        <i class="bi bi-check2" aria-hidden="true"></i>
+        <span>Enregistré</span>
+      }
+      @case ('error') {
+        <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+        <span>{{ errorMessage || "L'enregistrement a échoué." }}</span>
+        <button type="button" (click)="retry.emit()">Réessayer</button>
+      }
+    }
+  </div>
+}
