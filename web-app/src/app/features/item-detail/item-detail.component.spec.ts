@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { AppItem } from '../../shared/models/app-item.model';
 import { createItemForm } from '../../shared/models/app-item-form.model';
 import { ConfirmDialogService } from '../../shared/services/confirm-dialog.service';
@@ -16,6 +16,8 @@ describe('ItemDetailComponent autosave', () => {
   let component: ItemDetailComponent;
   let itemService: jasmine.SpyObj<ItemsService>;
   let saveState: jasmine.SpyObj<SaveActionService>;
+  let router: jasmine.SpyObj<Router>;
+  let confirmations: jasmine.SpyObj<ConfirmDialogService>;
   let writes: Array<Subject<AppItem>>;
 
   const original: AppItem = {
@@ -36,7 +38,12 @@ describe('ItemDetailComponent autosave', () => {
 
   beforeEach(() => {
     writes = [];
-    itemService = jasmine.createSpyObj<ItemsService>('ItemsService', ['updateItem']);
+    itemService = jasmine.createSpyObj<ItemsService>('ItemsService', ['updateItem', 'deleteItem']);
+    itemService.deleteItem.and.returnValue(of(undefined));
+    router = jasmine.createSpyObj<Router>('Router', ['navigate']);
+    router.navigate.and.resolveTo(true);
+    confirmations = jasmine.createSpyObj<ConfirmDialogService>('ConfirmDialogService', ['confirm']);
+    confirmations.confirm.and.returnValue(of(true));
     itemService.updateItem.and.callFake(() => {
       const deferred = new Subject<AppItem>();
       writes.push(deferred);
@@ -51,10 +58,10 @@ describe('ItemDetailComponent autosave', () => {
       providers: [
         FormBuilder,
         { provide: ActivatedRoute, useValue: {} },
-        { provide: Router, useValue: {} },
+        { provide: Router, useValue: router },
         { provide: ItemsService, useValue: itemService },
         { provide: SaveActionService, useValue: saveState },
-        { provide: ConfirmDialogService, useValue: {} },
+        { provide: ConfirmDialogService, useValue: confirmations },
         { provide: TodoHistoryService, useValue: {} },
         { provide: LocalNotificationService, useValue: {} },
         { provide: ItemLockService, useValue: {} },
@@ -142,6 +149,21 @@ describe('ItemDetailComponent autosave', () => {
 
     expect(await retry).toBeTrue();
     expect(component.saveState).toBe('saved');
+  });
+
+  it('does not recreate an item after confirmed deletion', async () => {
+    component.itemForm.get('title')?.setValue('Unsaved draft');
+    component.itemForm.markAsDirty();
+
+    component.deleteItem();
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+    expect(itemService.deleteItem).toHaveBeenCalledWith(original.id);
+    expect(await component.canDeactivate()).toBeTrue();
+    component.saveElement();
+
+    expect(itemService.updateItem).not.toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
 
   it('does not navigate away from an unfinished subtask modal', async () => {
