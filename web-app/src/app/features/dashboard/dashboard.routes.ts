@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { DashboardComponent } from './dashboard.component';
 import { ItemDetailComponent } from '../item-detail/item-detail.component';
+import { protectPendingChanges } from '../../shared/guards/pending-changes.guard';
 
 export const DASHBOARD_ROUTES: Routes = [
   {
@@ -11,11 +12,13 @@ export const DASHBOARD_ROUTES: Routes = [
   {
     path: 'item/:id',
     component: ItemDetailComponent,
+    canDeactivate: [protectPendingChanges],
     title: 'Todo - Item details',
   },
   {
     path: 'settings',
     loadComponent: () => import('../settings/settings.component').then((m) => m.SettingsComponent),
+    canDeactivate: [protectPendingChanges],
     title: 'Todo - Settings',
   },
   {
