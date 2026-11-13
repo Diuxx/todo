@@ -115,6 +115,25 @@ describe('SettingsComponent autosave', () => {
     expect(component.settingsForm.pristine).toBeTrue();
   });
 
+  it('keeps version and backup metadata when saving preferences', async () => {
+    component.settingsForm.get('userName')?.setValue('Updated');
+    component.settingsForm.markAsDirty();
+
+    const save = component.canDeactivate();
+
+    expect(settingsService.update).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        version: 5,
+        backupState: { status: 'idle' },
+        userName: 'Updated',
+      })
+    );
+
+    updates[0].next({ ...initialSettings, userName: 'Updated' });
+    updates[0].complete();
+    expect(await save).toBeTrue();
+  });
+
   it('does not navigate away while an authenticated dialog is active', async () => {
     component.isSensitivePasswordPromptVisible = true;
     expect(await component.canDeactivate()).toBeFalse();
