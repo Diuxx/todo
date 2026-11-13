@@ -41,7 +41,7 @@ export class SettingsService {
     const payload: AppSettings = {
       ...settings,
       id: SETTINGS_ID,
-      passwordHash: settings.passwordHash || this.passwordService.defaultPasswordHash,
+      passwordHash: settings.passwordHash ?? '',
     };
 
     return from(db.settings.put(payload).then(() => payload)).pipe(
@@ -62,7 +62,7 @@ export class SettingsService {
 
     const normalized: AppSettings = {
       ...settings,
-      passwordHash: this.passwordService.defaultPasswordHash,
+      passwordHash: '',
     };
 
     await db.settings.put(normalized);
