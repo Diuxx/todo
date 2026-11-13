@@ -62,7 +62,7 @@ Backups are **not encrypted**. Store exported files securely. Removing browser/s
 
 ## Local password
 
-Set a personal password in Settings before performing sensitive export, import or delete operations. New passwords use PBKDF2-SHA256 with a random salt. Older personalized SHA-256 password hashes remain accepted and are upgraded after successful item unlock.
+Set a personal password of at least 12 characters in Settings before performing sensitive export, import or delete operations. New passwords use PBKDF2-SHA256 with a random salt. Older personalized SHA-256 password hashes remain accepted and are upgraded after successful item unlock.
 
 Previously installed versions used a shared default password. Such installations should be upgraded to a personal password. The password lock is a UI protection; it does not encrypt IndexedDB or JSON backups, nor protect against a user with full local device/storage access.
 
