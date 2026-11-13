@@ -1,4 +1,10 @@
-@if (isAppReady) {
+@if (startupError) {
+  <main class="app-startup-error" role="alert">
+    <h1>Impossible de démarrer l’application</h1>
+    <p>{{ startupError }}</p>
+    <button type="button" (click)="retryStartup()">Réessayer</button>
+  </main>
+} @else if (isAppReady) {
   <div class="mobile-top"></div>
   <todo-header>
     <div left-section class="header-meta">
