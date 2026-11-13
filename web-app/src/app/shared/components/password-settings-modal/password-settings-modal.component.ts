@@ -73,6 +73,11 @@ export class PasswordSettingsModalComponent implements OnChanges {
       return;
     }
 
+    if (this.nextPassword.length < 12) {
+      this.localErrorMessage = 'Le mot de passe doit contenir au moins 12 caractères.';
+      return;
+    }
+
     if (this.nextPassword !== this.confirmPassword) {
       this.localErrorMessage = 'La confirmation ne correspond pas au nouveau mot de passe.';
       return;
